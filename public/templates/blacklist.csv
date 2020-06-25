@@ -1,0 +1,4 @@
+ASIN,Reason,Allowance,Action
+test1,Qty Limit,5,add
+test2,Delay,12,add
+

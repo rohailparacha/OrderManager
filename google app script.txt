@@ -1,0 +1,45 @@
+function doGet(e)
+{    
+   var orderId = e.parameter.orderId;
+   var SEARCH_QUERY = "from:shipment-tracking@amazon.com subject:Your Amazon.com order #"+orderId;
+   return ContentService.createTextOutput(JSON.stringify(getEmails_(SEARCH_QUERY))).setMimeType(ContentService.MimeType.JSON);
+}
+
+function getEmails_(q) {
+    var emails = [];
+    var threads = GmailApp.search(q);
+    for (var i in threads) {
+        var msgs = threads[i].getMessages();
+        for (var j in msgs) {                                           
+          
+            var body = msgs[j].getRawContent().replace(/<.+?>/g, '\n')
+                .replace(/^\s*\n/gm, '').replace(/^\s*/gm, '').replace(/\s*\n/gm, '\n');
+                       
+            var temp = body.substring(
+              body.indexOf("https://www.amazon.com/gp/css/shiptrack/view.html")+49, 
+              body.indexOf("Shipped to:")
+            ).trim();
+         
+          
+              var link = temp.substring(
+                 temp.indexOf('&orderingShipmentId=')+20,
+                 temp.indexOf('&packageId')
+                ).trim();
+          
+               if (link!= undefined)
+               {
+                  var record = {};
+                 record['status'] = 200;
+                 record['shipmentId'] = link
+                 return record; 
+               }
+            }
+    }    
+  
+                 var record = {};
+                 record['status'] = 400;
+                 record['message'] = 'Record Not Found'; 
+                 return record; 
+        
+}
+
