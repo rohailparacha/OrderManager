@@ -10,6 +10,7 @@ use App\orders;
 use App\order_details;
 use App\returns;
 use App\cancelled_orders;
+use Log;
 
 // use App\blacklist;
 // use App\settings;
@@ -42,8 +43,9 @@ class ProductReportController extends Controller
     public function index(Request $request)
     {
         // $products = products::query();
-
         // return $products;
+
+        $stores = products::distinct('account')->pluck('account');
 
         if($request->ajax())
         {
@@ -55,9 +57,40 @@ class ProductReportController extends Controller
 
             $products = products::query();
 
-            // $products = $products->where('account', 'Snapp!');
+            
+            // Log::debug('storename' . print_r($request->all(), true) );
 
+            if($request->has('storeName'))
+            {
+                if($request->storeName != "")
+                {
+                    // Log::debug('storename' . $request->storeName );
+                    $products = $products->where(['account' => $request->storeName]);
+                }
+            }
+
+            if($request->has('fromDate') && $request->has('toDate'))
+            {
+                
+                if($request->fromDate != ""  && $request->toDate != "")
+                {
+                    Log::debug('Request has dates');
+                    $fromDate = new Carbon($request->fromDate);
+                    $toDate = new Carbon($request->toDate);
+                }
+            }
+
+            if(isset($fromDate) && isset($toDate))
+            {
+                $products = $products->whereBetween('created_at', [$fromDate, $toDate]);
+            }
+            
             return DataTables::of($products)
+
+                ->addColumn('image', function(products $product) {
+                    return '<img src="'.$product->image.'" width="75px" height="75px">';
+                })
+
                 ->addColumn('sold', function(products $product) {
 
                     $details = order_details::groupBy('SKU')->where(['SKU' => $product->asin])
@@ -183,14 +216,15 @@ class ProductReportController extends Controller
                             }
                         }
                     }
-               
+
                     $net = $sold - $returned - $cancelled;
                     return $net;
                 })
+                ->rawColumns(['image'])
                 ->make(true);
         }
 
-        return view('report.productReport');
+        return view('report.productReport', ['stores' => $stores]);
     }
 
     

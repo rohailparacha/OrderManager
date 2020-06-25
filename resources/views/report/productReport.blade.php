@@ -4,11 +4,13 @@
 @include('layouts.headers.cards')
 
 @section('css')
-<link href="{{ asset('argon') }}/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
-<link href="{{ asset('argon') }}/vendor/datatables/buttons.bootstrap4.min.css" rel="stylesheet">
-<link href="{{ asset('argon') }}/vendor/datatables/select.bootstrap4.min.css" rel="stylesheet">
+<link href="{{ asset('argon') }}/vendor/datatables/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+<link href="{{ asset('argon') }}/vendor/datatables/css/buttons.bootstrap4.min.css" rel="stylesheet">
+<link href="{{ asset('argon') }}/vendor/datatables/css/select.bootstrap4.min.css" rel="stylesheet">
 
-<style>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<!-- <style>
     td,th {
         white-space: normal !important; 
         word-wrap: break-word;
@@ -27,7 +29,7 @@
             padding-left: 12px !important;
         }
     }
-</style>
+</style> -->
 @endsection
 
 <div class="container-fluid mt--7">
@@ -43,26 +45,46 @@
                 </div>
                 
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col text-center" id="filters">
-                            <form action="productReportFilter" class="form-inline" style="width:100%" method="post">
-                                @csrf
-                                <div style="width:100%; padding-bottom:2%;">
-                                    <div class="form-group">
-                                        <div style="padding-right:1%;">
-                                            <select class="form-control" id="marketplace" name="marketplace" style="margin-right:0%;width:180px;">
-                                                <option value="0">Marketplaces</option>
-                                                <option value="1">Amazon</option>
-                                                <option value="2">eBay</option>
-                                                <option value="3">Walmart</option>                                                                        
-                                            </select>
-                                        </div>
-                                        <button id="btnExport" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px;">Export</button>       
+                    <form action="productReportFilter" class="form-inline" style="width:100%" method="post">
+                        @csrf
+                        <div class="row">
+                            <div class="col" id="filters">
+                                <div class="form-group">
+                                    <div style="padding-right:1%;">
+                                        <select class="form-control" id="storeName" name="storeName" style="margin-right:0%;width:180px;">
+                                            <option value="">Store Name</option>
+                                            @foreach($stores as $store)
+                                                <option value="{{ $store }}">{{ $store }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
+
+                            <div class="col">
+                                <div class="form-group">
+                                    <select class="form-control" id="export" name="export">
+                                        <option id=""> Export </option>
+                                        <option id="csv">Export as CSV</option>
+                                        <option id="excel">Export as XLS</option>
+                                        <option id="copy">Copy to clipboard</option>
+                                        <option id="pdf">Export as PDF</option>
+                                        <option id="print">Print</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="form-group">
+                                    <input class="form-control" type="text" name="daterange" value="{{$dateRange ?? ''}}" />
+                                    <input type="hidden" id="fromDate" name="fromDate">
+                                    <input type="hidden" id="toDate" name="toDate">
+                                </div>
+                            </div>
+
                         </div>
-                    </div>
+                    </form>
+                    <br>
 
                     <div class="row">
                         <div class="col">
@@ -70,6 +92,7 @@
                                 <table class="table align-items-center table-flush dataTable" id="productReport">
                                     <thead class="thead-light">
                                         <tr>
+                                            <th>{{ __('Image') }}</th>
                                             <th>{{ __('ASIN') }}</th>
                                             <th>{{ __('Store Name') }}</th>
                                             <th>{{ __('Date') }}</th>
@@ -95,16 +118,26 @@
 @endsection
 
 @push('js')
-<script src="http://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+<script src="http://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.6.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.flash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.print.min.js"></script>
 <script src="{{ asset('argon') }}/vendor/datatables/js/dataTables.bootstrap4.min.js"></script>
-<script src="{{ asset('argon') }}/vendor/datatables/js/dataTables.buttons.min.js"></script>
 <script src="{{ asset('argon') }}/vendor/datatables/js/buttons.bootstrap4.min.js"></script>
-<script src="{{ asset('argon') }}/vendor/datatables/js/buttons.html5.min.js"></script>
-<script src="{{ asset('argon') }}/vendor/datatables/js/buttons.flash.min.js"></script>
-<script src="{{ asset('argon') }}/vendor/datatables/js/buttons.print.min.js"></script>
-<script src="{{ asset('argon') }}/vendor/datatables/js/dataTables.select.min.js"></script>
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
 
+<!-- <script src="{{ asset('argon') }}/vendor/datatables/js/dataTables.buttons.min.js"></script> -->
+<!-- <script src="{{ asset('argon') }}/vendor/datatables/js/buttons.html5.min.js"></script> -->
+<!-- <script src="{{ asset('argon') }}/vendor/datatables/js/buttons.flash.min.js"></script> -->
+<!-- <script src="{{ asset('argon') }}/vendor/datatables/js/buttons.print.min.js"></script> -->
+<!-- <script src="{{ asset('argon') }}/vendor/datatables/js/dataTables.select.min.js"></script> -->
 
 
 <script>
@@ -116,23 +149,19 @@
             }
         });
 
-        // $('.date-input').datepicker({
-        //     format: 'yyyy-mm-dd',
-        //     clearBtn: true,
-        //     todayBtn: 'linked'
-        // });
+
 
         var table = $('#productReport').DataTable({
             processing: true,
             serverSide: true,
-            pageLength: 50,
+            pageLength: 150,
             order: [[ 0, "Asc" ]],
             // searchDelay: 2000,
             ajax: {
                 url: "{{ route('product.report') }}",
                 method: 'GET',
                 data: function(newData){
-                    newData.cid = $('#marketplace option:selected').val();
+                    newData.storeName = $('#storeName option:selected').val();
                     newData.fromDate = $('#fromDate').val();
                     newData.toDate = $('#toDate').val();
                 },
@@ -147,6 +176,7 @@
                 },
             },
             columns: [
+                {data: 'image', name: 'image'},
                 {data: 'asin', name: 'asin'},
                 {data: 'account', name: 'account'},
                 {data: 'created_at', name: 'created_at'},
@@ -163,14 +193,62 @@
                 }
             },
 
-            lengthChange: false,
+            lengthChange: true,
             // bFilter: false,
 
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel', 'pdf', 'print'
+            ],
+
+            initComplete: function() {
+                var $buttons = $('.dt-buttons').hide();
+                var $srch = $('#productReport_filter').hide();
+
+                $('#export').on('change', function() {
+                    var btnClass = $(this).find(":selected")[0].id 
+                    ? '.buttons-' + $(this).find(":selected")[0].id 
+                    : null;
+                    if (btnClass) $buttons.find(btnClass).click(); 
+                })
+            }
+
         });
 
-        $('#marketplace, #fromDate, #toDate').change(function () {
+        $.fn.DataTable.ext.pager.numbers_length = 13;
+
+        $('#storeName, #fromDate, #toDate').change(function () {
             table.draw();
         });
+
+
+        $('input[name="daterange"]').daterangepicker({
+            opens: 'left'
+        }, function(start, end, label) {
+            console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
+            $('#fromDate').val(start.format('YYYY-MM-DD'));
+            $('#toDate').val(end.format('YYYY-MM-DD'));
+            table.draw();
+        });
+
+
+
+        var search = $.fn.dataTable.util.throttle(
+            function(val) {
+                table.search(val).draw();
+            },
+            400  // Search delay in ms
+        );
+
+        // $('#dSearch').keyup(function(){
+        //     search(this.value);
+        // });
+
+        $('#searchQuery').keyup(function(){
+            // table.search($(this).val()).draw();
+            search(this.value);
+        });
+
 
     });
 </script>
