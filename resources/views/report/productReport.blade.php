@@ -7,8 +7,9 @@
 <link href="{{ asset('argon') }}/vendor/datatables/css/dataTables.bootstrap4.min.css" rel="stylesheet">
 <link href="{{ asset('argon') }}/vendor/datatables/css/buttons.bootstrap4.min.css" rel="stylesheet">
 <link href="{{ asset('argon') }}/vendor/datatables/css/select.bootstrap4.min.css" rel="stylesheet">
-
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+<link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
 
 <!-- <style>
     td,th {
@@ -82,6 +83,26 @@
                                 </div>
                             </div>
 
+
+                            <div class="col">
+                                <div class="form-group row">
+                                    <label for="sold" class="col-md-4 col-form-label form-control-label">Sold:</label>
+                                    <div class="col-md-8">
+                                        <input class="form-control" type="text" id="sold" name="sold" readonly style="border:0; font-weight:bold;">
+                                        <p>
+                                            <div id="slider-range"></div>
+                                        </p>
+
+                                        <input type="hidden" id="sold_min" name="sold_min">
+                                        <input type="hidden" id="sold_max" name="sold_max">
+                                    </div>
+                                </div>
+
+
+
+                            </div>
+
+
                         </div>
                     </form>
                     <br>
@@ -132,6 +153,7 @@
 <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
 <!-- <script src="{{ asset('argon') }}/vendor/datatables/js/dataTables.buttons.min.js"></script> -->
 <!-- <script src="{{ asset('argon') }}/vendor/datatables/js/buttons.html5.min.js"></script> -->
@@ -164,6 +186,8 @@
                     newData.storeName = $('#storeName option:selected').val();
                     newData.fromDate = $('#fromDate').val();
                     newData.toDate = $('#toDate').val();
+                    newData.sold_min = $('#sold_min').val();
+                    newData.sold_max = $('#sold_max').val();
                 },
                 beforeSend: function(jqXHR, settings){
                     // 
@@ -231,8 +255,6 @@
             table.draw();
         });
 
-
-
         var search = $.fn.dataTable.util.throttle(
             function(val) {
                 table.search(val).draw();
@@ -249,7 +271,30 @@
             search(this.value);
         });
 
+        $( "#slider-range" ).slider({
+        range: true,
+        min: {{ $minAmount }},
+        max: {{ $maxAmount }},
+        values: [ {{ $minAmount }}, {{ $maxAmount }} ],
+        slide: function( event, ui ) {
+            $( "#sold" ).val(ui.values[ 0 ] + " - " + ui.values[ 1 ] );
+            $("#sold_min").val(ui.values[ 0 ]);
+            $("#sold_max").val(ui.values[ 1 ]);
+        }
+        });
+
+        $( "#sold" ).val($( "#slider-range" ).slider( "values", 0 ) +
+          " - " + $( "#slider-range" ).slider( "values", 1 ) );
 
     });
 </script>
+
+  <script>
+  $( function() {
+      
+  } );
+  </script>
+
+
+
 @endpush

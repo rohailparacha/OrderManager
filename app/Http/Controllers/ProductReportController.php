@@ -224,7 +224,10 @@ class ProductReportController extends Controller
                 ->make(true);
         }
 
-        return view('report.productReport', ['stores' => $stores]);
+        $minAmount = 0; 
+        $maxAmount = orders::where('flag', '!=' , '8')->max('quantity');
+
+        return view('report.productReport', ['stores' => $stores, 'minAmount' => $minAmount, 'maxAmount' => $maxAmount]);
     }
 
     
