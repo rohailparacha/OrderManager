@@ -1785,6 +1785,13 @@ class orderController extends Controller
         
         $order  = orders::where('id',$id)->update(['status'=>'cancelled','poNumber'=>null, 'poTotalAmount'=>null]);
         
+        $orderDetails = order_details::where('order_id',$id)->get(); 
+
+        foreach($orderDetails as $orderDetail)
+        {
+            products::where('asin',$orderDetail->SKU)->increment('cancelled',$orderDetail->quantity);
+        }
+
         if($order)
             return "success";
         else
@@ -2059,10 +2066,12 @@ class orderController extends Controller
                     $tempOrder["referenceNumber"] = $temp['sellOrderId'];
                     
                     $fulfillmentOrders[]=$tempOrder;
+
+                    products::where('asin',$temp2['SKU'])->increment('sold',$temp['quantity']);
                 }
 
                 try{
-                   order_details::insert($details);   
+                    order_details::insert($details);   
                     $this->autoFlag($orderId);            
                 }
                 catch(\Exception $ex)

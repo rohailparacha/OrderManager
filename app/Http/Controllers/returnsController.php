@@ -101,11 +101,26 @@ class returnsController extends Controller
 
         if($status==1)
             $status='returned';
-        elseif($status==1)
+        elseif($status==2)
             $status='refunded';
 
         $test = returns::where('id',$id)->update(['status'=>$status]);
 
+        if($test && $status=='returned')
+        {
+            $return  = returns::where('id',$id)->get()->first(); 
+        
+            $order = orders::where('id',$return->order_id)->get()->first();
+
+            $orderDetails = order_details::where('order_id',$order->id)->get(); 
+
+            foreach($orderDetails as $orderDetail)
+            {
+                products::where('asin',$orderDetail->SKU)->increment('returned',$orderDetail->quantity);
+            }
+        }
+
+        
         if($test)
             {
                 $return  = returns::where('id',$id)->get()->first(); 
