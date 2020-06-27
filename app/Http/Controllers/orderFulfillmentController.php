@@ -112,7 +112,7 @@ class orderFulfillmentController extends Controller
 
         foreach($orders as $order)
         {           
-            $data =$order->afpoNumber.'; '.$order->trackingNumber. PHP_EOL;
+            $data =$order->afpoNumber.'  -  '.$order->trackingNumber. PHP_EOL;
             File::append(public_path($fileName),$data);            
         }
 
