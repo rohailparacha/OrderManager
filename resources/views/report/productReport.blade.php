@@ -4,23 +4,17 @@
 @include('layouts.headers.cards')
 
 @section('css')
-<link href="{{ asset('argon') }}/vendor/datatables/css/dataTables.bootstrap4.min.css" rel="stylesheet">
-<link href="{{ asset('argon') }}/vendor/datatables/css/buttons.bootstrap4.min.css" rel="stylesheet">
-<link href="{{ asset('argon') }}/vendor/datatables/css/select.bootstrap4.min.css" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 
+<style>
 
-<!-- <style>
-    td,th {
-        white-space: normal !important; 
-        word-wrap: break-word;
-        padding-left:1rem!important;
-        padding-right:1rem!important;  
+    .card .table td, 
+    .card .table th {
+        padding-right: .5rem;
+        padding-left: .5rem;
     }
-    table {
-        table-layout: fixed;
-    }
+
 
     @media (min-width: 768px)
     {
@@ -30,7 +24,7 @@
             padding-left: 12px !important;
         }
     }
-</style> -->
+</style>
 @endsection
 
 <div class="container-fluid mt--7">
@@ -46,87 +40,111 @@
                 </div>
                 
                 <div class="card-body">
-                    <form action="productReportFilter" class="form-inline" style="width:100%" method="post">
-                        @csrf
-                        <div class="row">
-                            <div class="col" id="filters">
-                                <div class="form-group">
-                                    <div style="padding-right:1%;">
-                                        <select class="form-control" id="storeName" name="storeName" style="margin-right:0%;width:180px;">
-                                            <option value="">Store Name</option>
-                                            @foreach($stores as $store)
-                                                <option value="{{ $store }}">{{ $store }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
+                    <form action="{{ route('product.report') }}" class="form-inline" style="width:100%" method="get">
 
-                            <div class="col">
-                                <div class="form-group">
-                                    <select class="form-control" id="export" name="export">
-                                        <option id=""> Export </option>
-                                        <option id="csv">Export as CSV</option>
-                                        <option id="excel">Export as XLS</option>
-                                        <option id="copy">Copy to clipboard</option>
-                                        <option id="pdf">Export as PDF</option>
-                                        <option id="print">Print</option>
+                        <input type="hidden" id="fromDate" name="fromDate" value="{{ $fromDate }}">
+                        <input type="hidden" id="toDate" name="toDate" value="{{ $toDate }}">
+                        <input type="hidden" id="min_sold" name="min_sold" value="{{ $min_sold }}">
+                        <input type="hidden" id="max_sold" name="max_sold" value="{{ $max_sold }}">
+
+                        <div style="width:100%; padding-bottom:2%;">
+                            <div class="form-group focused">
+
+                                <div style="padding-right:1%;">
+                                    <select class="form-control" id="storeName" name="storeName" style="margin-right:0%;width:180px;">
+                                        <option value="">Store Name</option>
+                                        @foreach($stores as $store)
+                                            <option value="{{ $store }}" @if($storeName == $store) selected @endif>{{ $store }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
-                            </div>
 
-                            <div class="col">
-                                <div class="form-group">
-                                    <input class="form-control" type="text" name="daterange" value="{{$dateRange ?? ''}}" />
-                                    <input type="hidden" id="fromDate" name="fromDate">
-                                    <input type="hidden" id="toDate" name="toDate">
-                                </div>
-                            </div>
-
-
-                            <div class="col">
-                                <div class="form-group row">
-                                    <label for="sold" class="col-md-4 col-form-label form-control-label">Sold:</label>
-                                    <div class="col-md-8">
-                                        <input class="form-control" type="text" id="sold" name="sold" readonly style="border:0; font-weight:bold;">
-                                        <p>
-                                            <div id="slider-range"></div>
-                                        </p>
-
-                                        <input type="hidden" id="sold_min" name="sold_min">
-                                        <input type="hidden" id="sold_max" name="sold_max">
+                                <div style="padding-right:1%;">
+                                    <div class="form-group">
+                                        <input class="form-control" type="text" id="daterange" name="daterange" value="{{ $daterange ?? ''}}" />
                                     </div>
                                 </div>
 
+                                <div style="padding-right:3%;">
+                                    <p id="price">
+                                        <label for="sold">Sold</label>
+                                        <input class="form-control" style="width:200px;" type="text" name="sold" id="sold"
+                                            readonly="">
+                                    </p>
+                                    <div id="price-range" style="width:200px;"
+                                        class="ui-slider ui-corner-all ui-slider-horizontal ui-widget ui-widget-content">
+                                        <div class="ui-slider-range ui-corner-all ui-widget-header" style="left: 0%; width: 100%;"></div><span
+                                            tabindex="0" class="ui-slider-handle ui-corner-all ui-state-default" style="left: 0%;"></span><span
+                                            tabindex="0" class="ui-slider-handle ui-corner-all ui-state-default" style="left: 100%;"></span>
+                                    </div>
+                                </div>
 
-
+                                <input type="submit" value="Filter" class="btn btn-primary btn-md">
+                                <input type="submit" value="Export" class="btn btn-primary btn-md" id="btnExport" name="btnExport">
                             </div>
-
-
                         </div>
-                    </form>
+                   </form>
+
                     <br>
 
                     <div class="row">
                         <div class="col">
                             <div class="table-responsive">
-                                <table class="table align-items-center table-flush dataTable" id="productReport">
+                                <table class="table table-hover table-sm w-auto" id="productReport">
                                     <thead class="thead-light">
                                         <tr>
                                             <th>{{ __('Image') }}</th>
-                                            <th>{{ __('ASIN') }}</th>
                                             <th>{{ __('Store Name') }}</th>
+                                            <th>{{ __('ASIN') }}</th>
+                                            <th>{{ __('UPC') }}</th>
+                                            <th>{{ __('Title') }}</th>
                                             <th>{{ __('Date') }}</th>
                                             <th>{{ __('Sold') }}</th>
                                             <th>{{ __('Returned') }}</th>
                                             <th>{{ __('Cancelled') }}</th>
                                             <th>{{ __('Net') }}</th>
+                                            <th>{{ __('Link') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-            
+                                        @if($products->count())
+                                            @foreach($products as $product)
+                                                <tr>
+                                                    <td><img src="{{ $product->image }}" width="75px" height="75px"></td>
+                                                    <td>{{ $product->account }}</td>
+                                                    <td>{{ $product->asin }}</td>
+                                                    <td>{{ $product->upc }}</td>
+                                                    <td>
+                                                        @php 
+                                                            if(strlen($product->title) > 25)
+                                                            {
+                                                                $title = substr($product->title,0,25) . '...';
+                                                            } 
+                                                        @endphp
+                                                    
+                                                        {{ $title }}
+                                                    </td>
+
+                                                    <td>{{ date('m/d/Y', strtotime($product->created_at)) }}</td>
+                                                    <td>{{ $product->sold }}</td>
+                                                    <td>{{ $product->returned }}</td>
+                                                    <td>{{ $product->cancelled }}</td>
+                                                    <td>{{ $product->sold - $product->returned - $product->cancelled }} </td>
+                                                    <td><a href="https://amazon.com/dp/{{$product->asin}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a></td>
+                                                </tr>
+                                            @endforeach
+                                        @else
+                                            <tr>
+                                                <td colspan="11" class="text-center"> No records found. </td>
+                                            </tr>
+                                        @endif
                                     </tbody>
                                 </table>
+                            </div>
+                            <div class="row" style="margin-top:15px;">
+                                <div class="col">
+                                    {{ $products->appends(request()->except('page'))->links() }}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -139,162 +157,46 @@
 @endsection
 
 @push('js')
-<script src="http://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/1.6.2/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.flash.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-<script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.print.min.js"></script>
-<script src="{{ asset('argon') }}/vendor/datatables/js/dataTables.bootstrap4.min.js"></script>
-<script src="{{ asset('argon') }}/vendor/datatables/js/buttons.bootstrap4.min.js"></script>
-
+<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
-  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-
-<!-- <script src="{{ asset('argon') }}/vendor/datatables/js/dataTables.buttons.min.js"></script> -->
-<!-- <script src="{{ asset('argon') }}/vendor/datatables/js/buttons.html5.min.js"></script> -->
-<!-- <script src="{{ asset('argon') }}/vendor/datatables/js/buttons.flash.min.js"></script> -->
-<!-- <script src="{{ asset('argon') }}/vendor/datatables/js/buttons.print.min.js"></script> -->
-<!-- <script src="{{ asset('argon') }}/vendor/datatables/js/dataTables.select.min.js"></script> -->
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
 
 <script>
     $(document).ready(function(){
 
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
-
-
-
-        var table = $('#productReport').DataTable({
-            processing: true,
-            serverSide: true,
-            pageLength: 150,
-            order: [[ 0, "Asc" ]],
-            // searchDelay: 2000,
-            ajax: {
-                url: "{{ route('product.report') }}",
-                method: 'GET',
-                data: function(newData){
-                    newData.storeName = $('#storeName option:selected').val();
-                    newData.fromDate = $('#fromDate').val();
-                    newData.toDate = $('#toDate').val();
-                    newData.sold_min = $('#sold_min').val();
-                    newData.sold_max = $('#sold_max').val();
-                },
-                beforeSend: function(jqXHR, settings){
-                    // 
-                },
-
-                statusCode: {
-                    200: function(responseObject, textStatus, errorThrown) {
-                        // SETTING THE VALUES HERE WILL PUT SCRIPT IN INFINITE LOOP
-                    }
-                },
-            },
-            columns: [
-                {data: 'image', name: 'image'},
-                {data: 'asin', name: 'asin'},
-                {data: 'account', name: 'account'},
-                {data: 'created_at', name: 'created_at'},
-                {data: 'sold', name: 'sold'},
-                {data: 'returned', name: 'returned'},
-                {data: 'cancelled', name: 'cancelled'},
-                {data: 'net', name: 'net'},
-            ],
-
-            language: {
-                paginate: {
-                    previous: '<i class="fas fa-angle-left"></i>',
-                    next: '<i class="fas fa-angle-right"></i>'
-                }
-            },
-
-            lengthChange: true,
-            // bFilter: false,
-
-            dom: 'Bfrtip',
-            buttons: [
-                'copy', 'csv', 'excel', 'pdf', 'print'
-            ],
-
-            initComplete: function() {
-                var $buttons = $('.dt-buttons').hide();
-                var $srch = $('#productReport_filter').hide();
-
-                $('#export').on('change', function() {
-                    var btnClass = $(this).find(":selected")[0].id 
-                    ? '.buttons-' + $(this).find(":selected")[0].id 
-                    : null;
-                    if (btnClass) $buttons.find(btnClass).click(); 
-                })
-            }
-
-        });
-
-        $.fn.DataTable.ext.pager.numbers_length = 13;
-
-        $('#storeName, #fromDate, #toDate').change(function () {
-            table.draw();
-        });
-
-
-        $('input[name="daterange"]').daterangepicker({
-            opens: 'left'
+        $('#daterange').daterangepicker({
+            opens: 'left',
+            maxDate: moment()
         }, function(start, end, label) {
-            console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
             $('#fromDate').val(start.format('YYYY-MM-DD'));
             $('#toDate').val(end.format('YYYY-MM-DD'));
-            table.draw();
         });
 
-        var search = $.fn.dataTable.util.throttle(
-            function(val) {
-                table.search(val).draw();
-            },
-            400  // Search delay in ms
-        );
+        $(function () {
+            // debugger;
+            var min_sold = {{ $min_sold }};
+            var max_sold = {{ $max_sold }};
+            $("#price-range").slider({
+                range: true,
+                min: min_sold,
+                max: max_sold,
+                values: [min_sold, max_sold],
+                slide: function (event, ui) {
+                    $("#sold").val(ui.values[0] + " - " + ui.values[1]);
+                    $("#min_sold").val(ui.values[0]);
+                    $("#max_sold").val(ui.values[1]);
+                }
+            });
 
-        // $('#dSearch').keyup(function(){
-        //     search(this.value);
-        // });
-
-        $('#searchQuery').keyup(function(){
-            // table.search($(this).val()).draw();
-            search(this.value);
+            $("#sold").val($("#price-range").slider("values", 0) +
+                " - " + $("#price-range").slider("values", 1));
         });
 
-        $( "#slider-range" ).slider({
-        range: true,
-        min: {{ $minAmount }},
-        max: {{ $maxAmount }},
-        values: [ {{ $minAmount }}, {{ $maxAmount }} ],
-        slide: function( event, ui ) {
-            $( "#sold" ).val(ui.values[ 0 ] + " - " + ui.values[ 1 ] );
-            $("#sold_min").val(ui.values[ 0 ]);
-            $("#sold_max").val(ui.values[ 1 ]);
-        }
-        });
-
-        $( "#sold" ).val($( "#slider-range" ).slider( "values", 0 ) +
-          " - " + $( "#slider-range" ).slider( "values", 1 ) );
 
     });
 </script>
-
-  <script>
-  $( function() {
-      
-  } );
-  </script>
-
-
 
 @endpush
