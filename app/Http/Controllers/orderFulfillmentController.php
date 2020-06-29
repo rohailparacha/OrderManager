@@ -71,20 +71,19 @@ class orderFulfillmentController extends Controller
     public function export(Request $request)
     {        
         
-        $fileName = date("d-m-Y")."-".time()."-auto-fulfillment-orders.txt";
-        $data ='Order Number; TBA Tracking Number'. PHP_EOL;
+        $fileName = date("d-m-Y")."-".time()."-auto-fulfillment-orders.txt";        
+        $data ='Order Number  -  TBA Tracking Number'. PHP_EOL;
         File::put(public_path($fileName),$data); 
-        
+       
+        $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',true)->where('flag','8')
-            ->where(function($test){
-                $test->where('status','processing');
-                $test->orWhere('status','shipped');
-            }) 
+            $orders = orders::select()->where('converted',false)->where('flag','8')
+            ->where('marketPlace','Walmart')
+            ->where('carrierName',$amzCarrier->id)
+            ->where('status','processing')
+            ->where('trackingNumber','like','TBA%')
             ->orderBy('status', 'DESC')->paginate(100);
-
-
         }
 
         elseif(auth()->user()->role==2)
@@ -97,22 +96,25 @@ class orderFulfillmentController extends Controller
                 $strArray[]= $str->store;
             }
             
-            $orders = orders::select()->where('converted',true)->where('flag','8')->whereIn('storeName',$strArray)
-            ->where(function($test){
-                $test->where('status','processing');
-                $test->orWhere('status','shipped');
-            }) 
+            $orders = orders::select()->where('converted',false)
+            ->where('marketPlace','Walmart')
+            ->where('carrierName',$amzCarrier->id)
+            ->where('flag','8')->whereIn('storeName',$strArray)
+            ->where('status','processing')
+            ->where('trackingNumber','like','TBA%')
             ->orderBy('status', 'DESC')->paginate(100);
+
+         
             
         }
             
         else
             $orders = array();
 
-
         foreach($orders as $order)
         {           
             $data =$order->afpoNumber.'  -  '.$order->trackingNumber. PHP_EOL;
+            
             File::append(public_path($fileName),$data);            
         }
 
