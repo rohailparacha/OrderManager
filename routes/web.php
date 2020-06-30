@@ -192,5 +192,9 @@ Route::group(['middleware' => 'auth'], function () {
 	//Reports routes
 	Route::get('/productReport', ['as'=>'product.report',   'uses'=>'ProductReportController@index'])->middleware('admin');
 	Route::get('/productReport/orders', ['as'=>'product.report.orders',   'uses'=>'ProductReportController@orders'])->middleware('admin');
+
+	//Keepa Routes
+	Route::get('keepa','keepaController@index')->middleware('admin');
+	Route::post('getkeepa','keepaController@getResponse')->middleware('admin');
 });
 
