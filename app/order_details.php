@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use App\orders;
+use App\products;
 
 class order_details extends Model
 {
@@ -24,5 +25,9 @@ class order_details extends Model
         return $this->belongsTo(orders::class);
     }
 
+    public function asin()
+    {
+        return $this->belongsTo(products::class, 'SKU', 'asin');
+    }
 
 }

@@ -14,6 +14,26 @@
         padding-left: .5rem;
     }
 
+    td,th {
+    white-space: normal !important; 
+    word-wrap: break-word;  
+    padding-left:1rem!important;
+    padding-right:1rem!important;
+    }
+    th
+    {
+        text-align: center;
+    }
+
+    .specifictd{
+        text-align: center;
+    }
+    table {
+    table-layout: fixed;
+    }
+
+
+
     @media (min-width: 768px)
     {
         .main-content .container-fluid
@@ -148,73 +168,73 @@
                             </div>
 
                             <div class="table-responsive">
-                                <table class="table table-hover table-sm w-auto" id="productReport">
+                                <table class="table align-items-center table-flush" id="productReport">
                                     <thead class="thead-light">
                                         <tr>
-                                            <th>{{ __('Image') }}</th>
-                                            <th>{{ __('Store Name') }}</th>
-                                            <th>{{ __('ASIN') }}</th>
-                                            <th>{{ __('UPC') }}</th>
-                                            <th>{{ __('Title') }}</th>
-                                            <th>{{ __('Date') }}</th>
-                                            <th>{{ __('Sold') }}</th>
-                                            <th>{{ __('Returned') }}</th>
-                                            <th>{{ __('Cancelled') }}</th>
-                                            <th>{{ __('Net') }}</th>
-                                            <th>{{ __('Link') }}</th>
+                                            <th scope="col" width="8%">{{ __('Image') }}</th>
+                                            <th scope="col" width="8%">{{ __('Store Name') }}</th>
+                                            <th scope="col" width="8%">{{ __('ASIN') }}</th>
+                                            <th scope="col" width="8%">{{ __('UPC') }}</th>
+                                            <th scope="col" width="20%">{{ __('Title') }}</th>
+                                            <th scope="col" width="8%">{{ __('Date') }}</th>
+                                            <th scope="col" width="8%">{{ __('Sold') }}</th>
+                                            <th scope="col" width="8%">{{ __('Returned') }}</th>
+                                            <th scope="col" width="8%">{{ __('Cancelled') }}</th>
+                                            <th scope="col" width="8%">{{ __('Net') }}</th>
+                                            <th scope="col" width="8%">{{ __('Link') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @if($products->count())
                                             @foreach($products as $product)
                                                 <tr>
-                                                    <td><img src="{{ $product->image }}" width="75px" height="75px"></td>
-                                                    <td>{{ $product->account }}</td>
-                                                    <td>{{ $product->asin }}</td>
-                                                    <td>{{ $product->upc }}</td>
-                                                    <td>{{ $product->title }}</td>
-                                                    <td>{{ date('m/d/Y', strtotime($product->created_at)) }}</td>
-                                                    <td>
+                                                    <td width="8%"><img src="{{ $product->image }}" width="75px" height="75px"></td>
+                                                    <td width="8%" class="specifictd">{{ $product->account }}</td>
+                                                    <td width="8%" class="specifictd">{{ $product->asin }}</td>
+                                                    <td width="8%" class="specifictd">{{ $product->upc }}</td>
+                                                    <td width="20%">{{ $product->title }}</td>
+                                                    <td width="8% class="specifictd"">{{ date('m/d/Y', strtotime($product->created_at)) }}</td>
+                                                    <td width="8%"  class="specifictd">
                                                         @php
                                                             if($product->sold > 0)
                                                             {
                                                                 $url = route('product.report.orders', ['asin' => $product->asin, 'status' => 'sold']);
 
-                                                                $sold = '<a href='.$url.'>'.$product->sold.'</a>';
+                                                                $sold = '<a target="_blank" href='.$url.'>'.$product->sold.'</a>';
                                                             }else{
                                                                 $sold = $product->sold;
                                                             }
                                                         @endphp
                                                         {!! $sold !!}
                                                     </td>
-                                                    <td>
+                                                    <td width="8%"  class="specifictd">
                                                         @php
                                                             if($product->returned > 0)
                                                             {
                                                                 $url = route('product.report.orders', ['asin' => $product->asin, 'status' => 'returned']);
 
-                                                                $returned = '<a href='.$url.'>'.$product->returned.'</a>';
+                                                                $returned = '<a target="_blank" href='.$url.'>'.$product->returned.'</a>';
                                                             }else{
                                                                 $returned = $product->returned;
                                                             }
                                                         @endphp
                                                         {!! $returned !!}
                                                     </td>
-                                                    <td>
+                                                    <td width="8%" class="specifictd">
                                                         @php
                                                             if($product->cancelled > 0)
                                                             {
                                                                 $url = route('product.report.orders', ['asin' => $product->asin, 'status' => 'cancelled']);
 
-                                                                $cancelled = '<a href='.$url.'>'.$product->cancelled.'</a>';
+                                                                $cancelled = '<a target="_blank" href='.$url.'>'.$product->cancelled.'</a>';
                                                             }else{
                                                                 $cancelled = $product->cancelled;
                                                             }
                                                         @endphp
                                                         {!! $cancelled !!}
                                                     </td>
-                                                    <td>{{ $product->sold - $product->returned - $product->cancelled }} </td>
-                                                    <td><a href="https://amazon.com/dp/{{$product->asin}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a></td>
+                                                    <td width="8%" class="specifictd">{{ $product->sold - $product->returned - $product->cancelled }} </td>
+                                                    <td width="8%" class="specifictd"><a href="https://amazon.com/dp/{{$product->asin}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a></td>
                                                 </tr>
                                             @endforeach
                                         @else

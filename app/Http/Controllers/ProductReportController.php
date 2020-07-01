@@ -10,6 +10,7 @@ use App\orders;
 use App\order_details;
 use App\returns;
 use App\cancelled_orders;
+use App\carriers;
 use Log;
 use App\Exports\ProductReportExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -19,7 +20,7 @@ class ProductReportController extends Controller
 
     public function index(Request $request)
     {
-        Log::debug(print_r($request->all(), true));
+        // Log::debug(print_r($request->all(), true));
         $stores = products::distinct('account')->pluck('account');
 
         $products = products::query();
@@ -151,9 +152,15 @@ class ProductReportController extends Controller
 
         if($request->status == 'sold')
         {
-            $order_details = order_details::with(['order' => function($order){
-                $order->where(['status' => 'shipped']);
-            }])->where(['SKU' => $request->asin])->paginate(100);
+            $order_details = order_details::with(
+                [
+                    'order' => function($order)
+                    {
+                        $order->where(['status' => 'shipped']);
+                    },
+                    'asin'
+                ]
+            )->where(['SKU' => $request->asin])->paginate(100);
         }
 
 
@@ -171,23 +178,20 @@ class ProductReportController extends Controller
         }
 
 
+        $carriers = carriers::all(); 
+        $carrierArr = array(); 
+        foreach($carriers as $carrier)
+        {
+            $carrierArr[$carrier->id]= $carrier->name; 
+        }
+
         if($order_details)
         {
-            return view('report.orders',['order_details' => $order_details]);
+            return view('report.orders',['order_details' => $order_details,'carrierArr' => $carrierArr]);
         }else{
             return 'No orders found';
         }
 
     }
-
-
-
-
-
-
-
-
-
-
     
 }
