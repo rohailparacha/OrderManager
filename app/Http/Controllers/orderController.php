@@ -33,6 +33,7 @@ use Validator;
 use Session;
 use Redirect;
 use Excel;
+use App\Http\Controllers\ProductReportController;
 
 class orderController extends Controller
 {
@@ -1692,6 +1693,22 @@ class orderController extends Controller
              $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
             return view('returns',compact('returns','accounts','stores','search','route'));
         }
+
+        else if($route == 'product.report')
+        {
+            $productReport = new ProductReportController();
+            $query = $request->searchQuery;
+            return $productReport->index($request, $query);
+        } 
+
+        else if($route == 'sold.report')
+        {
+            $soldReport = new SoldReportController();
+            $query = $request->searchQuery;
+            return $soldReport->index($request, $query);
+        } 
+
+
         else
         redirect()->back();
     }

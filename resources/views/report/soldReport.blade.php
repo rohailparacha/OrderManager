@@ -14,13 +14,14 @@
         padding-left: .5rem;
     }
 
-    td,th {
-    white-space: normal !important; 
-    word-wrap: break-word;  
-    padding-left:1rem!important;
-    padding-right:1rem!important;
+    .report td, .repor th {
+        white-space: normal !important; 
+        word-wrap: break-word;  
+        padding-left:1rem!important;
+        padding-right:1rem!important;
     }
-    th
+
+    .report th
     {
         text-align: center;
     }
@@ -28,10 +29,10 @@
     .specifictd{
         text-align: center;
     }
-    table {
-    table-layout: fixed;
-    }
 
+    table {
+        table-layout: fixed;
+    }
 
     @media (min-width: 768px)
     {
@@ -79,13 +80,13 @@
                                     </select>
                                 </div>
 
-                                <!-- <div style="padding-right:1%;">
+                                <div style="padding-right:1%;">
                                     <div class="form-group">
                                         <input class="form-control" type="text" id="daterange" name="daterange" value="{{ $daterange ?? ''}}" />
                                     </div>
-                                </div> -->
+                                </div>
 
-                                <!-- <div style="padding-right:3%;">
+                                <div style="padding-right:3%;">
                                     <p id="price">
                                         <label for="sold">Sold</label>
                                         <input class="form-control" style="width:200px;" type="text" name="sold" id="sold"
@@ -97,7 +98,19 @@
                                             tabindex="0" class="ui-slider-handle ui-corner-all ui-state-default" style="left: 0%;"></span><span
                                             tabindex="0" class="ui-slider-handle ui-corner-all ui-state-default" style="left: 100%;"></span>
                                     </div>
-                                </div> -->
+                                </div>
+
+
+                                <div style="padding-right:1%;">
+                                    <select class="form-control" id="daysRange" name="daysRange" style="margin-right:0%;width:180px;">
+                                        <option value="0">Days</option>
+                                        <option value="30" @if($daysRange == 30) selected @endif>30 Days</option>
+                                        <option value="60" @if($daysRange == 60) selected @endif>60 Days</option>
+                                        <option value="90" @if($daysRange == 90) selected @endif>90 Days</option>
+                                        <option value="120" @if($daysRange == 120) selected @endif>120 Days</option>
+                                    </select>
+                                </div>
+
 
                                 <input type="submit" value="Filter" class="btn btn-primary btn-md">
                                 <input type="submit" value="Export" class="btn btn-primary btn-md" id="btnExport" name="btnExport">
@@ -119,37 +132,37 @@
                             </div>
 
                             <div class="table-responsive">
-                                <table class="table table-hover table-sm" id="productReport">
+                                <table class="table table-hover table-sm report" id="soldReport">
                                     <thead class="thead-light">
                                         <tr>
-                                            <th>{{ __('Image') }}</th>
-                                            <th>{{ __('Store Name') }}</th>
-                                            <th>{{ __('ASIN') }}</th>
-                                            <th>{{ __('Title') }}</th>
-                                            <th>{{ __('Date') }}</th>
-                                            <th>{{ __('Sold 30 Days') }}</th>
-                                            <th>{{ __('Sold 60 Days') }}</th>
-                                            <th>{{ __('Sold 90 Days') }}</th>
-                                            <th>{{ __('Sold 120 Days') }}</th>
-                                            <th>{{ __('Total Sold') }}</th>
-                                            <th>{{ __('Link') }}</th>
+                                            <th scope="col" width="7%">{{ __('Image') }}</th>
+                                            <th scope="col" width="7%">{{ __('Store Name') }}</th>
+                                            <th scope="col" width="7%">{{ __('ASIN') }}</th>
+                                            <th scope="col" width="30%">{{ __('Title') }}</th>
+                                            <th scope="col" width="7%">{{ __('Date') }}</th>
+                                            <th scope="col" width="7%">{{ __('30 Days') }}</th>
+                                            <th scope="col" width="7%">{{ __('60 Days') }}</th>
+                                            <th scope="col" width="7%">{{ __('90 Days') }}</th>
+                                            <th scope="col" width="7%">{{ __('120 Days') }}</th>
+                                            <th scope="col" width="7%">{{ __('Total Sold') }}</th>
+                                            <th scope="col" width="7%">{{ __('Link') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @if($products->count())
                                             @foreach($products as $product)
                                                 <tr>
-                                                    <td><img src="{{ $product->image }}" width="75px" height="75px"></td>
-                                                    <td>{{ $product->account }}</td>
-                                                    <td>{{ $product->asin }}</td>
-                                                    <td>{{ $product->title }}</td>
-                                                    <td>{{ date('m/d/Y', strtotime($product->created_at)) }}</td>
-                                                    <td class="text-center">{{ $product->sales30days }}</td>
-                                                    <td class="text-center">{{ $product->sales60days }}</td>
-                                                    <td class="text-center">{{ $product->sales90days }}</td>
-                                                    <td class="text-center">{{ $product->sales120days }}</td>
-                                                    <td class="text-center">{{ $product->totalSold }}</td>
-                                                    <td><a href="https://amazon.com/dp/{{$product->asin}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a></td>
+                                                    <td width="7%"><img src="{{ $product->image }}" width="75px" height="75px"></td>
+                                                    <td width="7%" class="specifictd">{{ $product->account }}</td>
+                                                    <td width="7%" class="specifictd">{{ $product->asin }}</td>
+                                                    <td width="30%">{{ $product->title }}</td>
+                                                    <td width="7%" class="specifictd">{{ date('m/d/Y', strtotime($product->created_at)) }}</td>
+                                                    <td width="7%" class="specifictd">{{ $product->sales30days }}</td>
+                                                    <td width="7%" class="specifictd">{{ $product->sales60days }}</td>
+                                                    <td width="7%" class="specifictd">{{ $product->sales90days }}</td>
+                                                    <td width="7%" class="specifictd">{{ $product->sales120days }}</td>
+                                                    <td width="7%" class="specifictd">{{ $product->totalSold }}</td>
+                                                    <td width="7%" class="specifictd"><a href="https://amazon.com/dp/{{$product->asin}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a></td>
                                                 </tr>
                                             @endforeach
                                         @else
@@ -195,29 +208,25 @@
             $('#toDate').val(end.format('YYYY-MM-DD'));
         });
 
-{{{--
-        // $(function () {
-        //     debugger;
-        //     var min_sold = {{ $min_sold }};
-        //     var max_sold = {{ $max_sold }};
-        //     $("#sold-range").slider({
-        //         range: true,
-        //         min: min_sold,
-        //         max: max_sold,
-        //         values: [{{ $filtered_min_sold ?? $min_sold }}, {{ $filtered_max_sold ?? $max_sold }}],
-        //         slide: function (event, ui) {
-        //             $("#sold").val(ui.values[0] + " - " + ui.values[1]);
-        //             $("#min_sold").val(ui.values[0]);
-        //             $("#max_sold").val(ui.values[1]);
-        //         }
-        //     });
+        $(function () {
+            debugger;
+            var min_sold = {{ $min_sold }};
+            var max_sold = {{ $max_sold }};
+            $("#sold-range").slider({
+                range: true,
+                min: min_sold,
+                max: max_sold,
+                values: [{{ $filtered_min_sold ?? $min_sold }}, {{ $filtered_max_sold ?? $max_sold }}],
+                slide: function (event, ui) {
+                    $("#sold").val(ui.values[0] + " - " + ui.values[1]);
+                    $("#min_sold").val(ui.values[0]);
+                    $("#max_sold").val(ui.values[1]);
+                }
+            });
 
-        //     $("#sold").val($("#sold-range").slider("values", 0) +
-        //         " - " + $("#sold-range").slider("values", 1));
-        // });
---}}}
-
-
+            $("#sold").val($("#sold-range").slider("values", 0) +
+                " - " + $("#sold-range").slider("values", 1));
+        });
 
 
 

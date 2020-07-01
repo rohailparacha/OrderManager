@@ -14,13 +14,14 @@
         padding-left: .5rem;
     }
 
-    td,th {
-    white-space: normal !important; 
-    word-wrap: break-word;  
-    padding-left:1rem!important;
-    padding-right:1rem!important;
+    .report td, .repor th {
+        white-space: normal !important; 
+        word-wrap: break-word;  
+        padding-left:1rem!important;
+        padding-right:1rem!important;
     }
-    th
+
+    .report th
     {
         text-align: center;
     }
@@ -28,11 +29,10 @@
     .specifictd{
         text-align: center;
     }
+
     table {
-    table-layout: fixed;
+        table-layout: fixed;
     }
-
-
 
     @media (min-width: 768px)
     {
@@ -168,7 +168,7 @@
                             </div>
 
                             <div class="table-responsive">
-                                <table class="table align-items-center table-flush" id="productReport">
+                                <table class="table align-items-center table-flush report" id="productReport">
                                     <thead class="thead-light">
                                         <tr>
                                             <th scope="col" width="8%">{{ __('Image') }}</th>
@@ -187,13 +187,13 @@
                                     <tbody>
                                         @if($products->count())
                                             @foreach($products as $product)
-                                                <tr>
+                                                <tr id="{{ $product->id }}">
                                                     <td width="8%"><img src="{{ $product->image }}" width="75px" height="75px"></td>
                                                     <td width="8%" class="specifictd">{{ $product->account }}</td>
                                                     <td width="8%" class="specifictd">{{ $product->asin }}</td>
                                                     <td width="8%" class="specifictd">{{ $product->upc }}</td>
                                                     <td width="20%">{{ $product->title }}</td>
-                                                    <td width="8% class="specifictd"">{{ date('m/d/Y', strtotime($product->created_at)) }}</td>
+                                                    <td width="8%" class="specifictd">{{ date('m/d/Y', strtotime($product->created_at)) }}</td>
                                                     <td width="8%"  class="specifictd">
                                                         @php
                                                             if($product->sold > 0)

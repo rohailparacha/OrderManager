@@ -63,21 +63,33 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($order_details as $detail)
-                                    <tr>
-                                        <td>{{ $provider::getIranTime(date_format(date_create($detail->order->date), 'm/d/Y H:i:s')) }}</td>
-                                        <td>{{ $detail->order->marketplace }}</td>
-                                        <td>{{ $detail->asin->account }}</td>
-                                        <td>{{ $detail->order->buyerName }}</td>
-                                        <td>{{ $detail->order->sellOrderId }}</td>
-                                        <td>{{ $detail->order->poNumber }}</td>
-                                        <td>{{ number_format((float)$detail->order->poTotalAmount, 2, '.', '') }}</td>
-                                        <td>{{ $carrierArr[$detail->order->carrierName] }}</td>
-                                        <td>{{ $detail->order->trackingNumber }}</td>
-                                        <td>{{ $detail->order->status }}</td>
-                                        <td><a href="{{ route('orderDetails', ['id'=> $detail->order_id]) }}" class="btn btn-primary btn-sm">Details</a></td>
-                                    </tr>
-                                @endforeach
+
+                                @if($order_details->count())
+                                    @foreach ($order_details as $detail)
+                                        @if($detail->order != null)
+                                            <tr>
+                                                <td>{{ $provider::getIranTime(date_format(date_create($detail->order->date), 'm/d/Y H:i:s')) }}</td>
+                                                <td>{{ $detail->order->marketplace }}</td>
+                                                <td>{{ $detail->asin->account }}</td>
+                                                <td>{{ $detail->order->buyerName }}</td>
+                                                <td>{{ $detail->order->sellOrderId }}</td>
+                                                <td>{{ $detail->order->poNumber }}</td>
+                                                <td>{{ number_format((float)$detail->order->poTotalAmount, 2, '.', '') }}</td>
+                                                <td>
+                                                    @if(!is_null($detail->order->carrierName))
+                                                        {{ $carrierArr[$detail->order->carrierName] }}
+                                                    @endif
+                                                </td>
+                                                <td>{{ $detail->order->trackingNumber }}</td>
+                                                <td>{{ $detail->order->status }}</td>
+                                                <td><a href="{{ route('orderDetails', ['id'=> $detail->order_id]) }}" class="btn btn-primary btn-sm">Details</a></td>
+                                            </tr>
+                                        @endif
+                                    @endforeach
+                                @endif
+
+
+
                             </tbody>
                         </table>
                     </div>

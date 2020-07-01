@@ -18,12 +18,18 @@ use Maatwebsite\Excel\Facades\Excel;
 class ProductReportController extends Controller
 {
 
-    public function index(Request $request)
+    public function index(Request $request, $asin = 0)
     {
+        
         // Log::debug(print_r($request->all(), true));
         $stores = products::distinct('account')->pluck('account');
-
+        
         $products = products::query();
+        
+        if($asin !== 0)
+        {
+            $products = $products->where(['asin' => $asin]);
+        }
 
         $storeName = " ";
         if($request->has('storeName'))
@@ -173,20 +179,29 @@ class ProductReportController extends Controller
 
         if($request->status == 'cancelled')
         {
-            $cancelled  = cancelled_orders::pluck('order_id');
-            $order_details = order_details::with(['order'])->whereIn('order_id', $cancelled)->where(['SKU' => $request->asin])->paginate(10);
-        }
-
-
-        $carriers = carriers::all(); 
-        $carrierArr = array(); 
-        foreach($carriers as $carrier)
-        {
-            $carrierArr[$carrier->id]= $carrier->name; 
+            $order_details = order_details::with(
+                [
+                    'order' => function($order)
+                    {
+                        $order->where(['status' => 'cancelled']);
+                    },
+                    'asin'
+                ]
+            )->where(['SKU' => $request->asin])->paginate(100);
+            // $cancelled  = cancelled_orders::pluck('order_id');
+            // $order_details = order_details::with(['order'])->whereIn('order_id', $cancelled)->where(['SKU' => $request->asin])->paginate(10);
         }
 
         if($order_details)
         {
+            $carriers = carriers::all(); 
+            $carrierArr = array(); 
+            foreach($carriers as $carrier)
+            {
+                $carrierArr[$carrier->id]= $carrier->name; 
+            }
+
+            // return $order_details;
             return view('report.orders',['order_details' => $order_details,'carrierArr' => $carrierArr]);
         }else{
             return 'No orders found';
