@@ -297,6 +297,25 @@
                                 </a>
                             </li>
 
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('sold.report') }}">
+                                    Sold Report
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('sales.report') }}">
+                                    Sale Report
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('purchase.report') }}">
+                                    Purchase Report
+                                </a>
+                            </li>
+
+
                         @endif
                         </ul>
                     </div>
