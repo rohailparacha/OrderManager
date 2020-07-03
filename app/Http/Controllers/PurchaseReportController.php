@@ -10,7 +10,7 @@ use App\orders;
 use App\order_details;
 use App\returns;
 use Log;
-use App\Exports\SalesReportExport;
+use App\Exports\PurchaseReportExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
@@ -18,13 +18,11 @@ use Illuminate\Support\Collection;
 use DB;
 
 
-class SalesReportController extends Controller
+class PurchaseReportController extends Controller
 {
 
     public function index(Request $request)
     {
-        // Log::debug(print_r($request->all(), true));
-        // return $request->all();
         $storesForView = orders::distinct('storeName')->pluck('storeName');
 
         $orders = orders::query();
@@ -75,7 +73,7 @@ class SalesReportController extends Controller
         }
 
         $orders =   $orders
-                    ->select(DB::raw('SUM(orders.quantity) as total_quantity'), DB::raw('SUM(orders.totalAmount) as total_amount'), DB::raw('count(orders.id) as count'), DB::raw("DATE_FORMAT(date, '%Y-%m-%d') as o_date"), 'storeName')
+                    ->select(DB::raw('SUM(orders.quantity) as total_quantity'), DB::raw('SUM(orders.poTotalAmount) as total_amount'), DB::raw("DATE_FORMAT(date, '%Y-%m-%d') as o_date"), 'storeName')
                     ->groupBy('o_date', 'storeName');
 
         $data =  $orders->get()->toArray();
@@ -106,7 +104,7 @@ class SalesReportController extends Controller
 
         if($request->has('btnExport'))
         {
-            return Excel::download(new SalesReportExport($stores, $dates, $data, $chartType), 'Sales Report.xlsx');
+            return Excel::download(new PurchaseReportExport($stores, $dates, $data, $chartType), 'Purshase Report.xlsx');
         }
 
         if($chartType == 'amt')
@@ -156,7 +154,7 @@ class SalesReportController extends Controller
         }
 
 
-        return view('report.salesReport', [
+        return view('report.purchaseReport', [
             'orders' => $orders, 
             'stores' => $storesForView, 
             'fromDate' => $fromDate, 
