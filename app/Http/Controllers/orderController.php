@@ -33,6 +33,7 @@ use Validator;
 use Session;
 use Redirect;
 use Excel;
+use App\Http\Controllers\ProductReportController;
 
 class orderController extends Controller
 {
@@ -162,25 +163,39 @@ class orderController extends Controller
                     }
                     else
                     {
+                        
                         try{
-                            $baseUrl = "https://www.amazon.com/progress-tracker/package/ref=ppx_yo_dt_b_track_package?_encoding=UTF8&itemId=klpjsskrrrpoqn&orderId=";
+                            $baseUrl = "https://www.amazon.com/progress-tracker/package/ref=ppx_yo_dt_b_track_package?_encoding=UTF8";
                             
-                            
+                             
                             $order_details = order_details::where('order_id',$order->id)->get();
                             
                             if(count($order_details)>1)
-                                $html = file_get_contents($baseUrl.trim($number).'&shipmentId='.$this->getShipment($order->poNumber));    
+                            {
+                                if($order->flag=='8')
+                                {
+                                   
+                                 $html = file_get_contents($baseUrl.'&itemId='.$order->itemId.'&orderId='.trim($number));   
+                                }
+                                else
+                                {
+                                    $html = file_get_contents($baseUrl.'&itemId=klpjsskrrrpoqn&orderId='.trim($number).'&shipmentId='.$this->getShipment($order->poNumber));    
+                                }
+                                
+                            }
                             else
-                                $html = file_get_contents($baseUrl.trim($number));    
+                                $html = file_get_contents($baseUrl.'&itemId=klpjsskrrrpoqn&orderId='.trim($number));
+                                
+                           
                             
                             $html = str_replace('&','&amp;',$html);
                             
                             $doc = new \DOMDocument();
                             
                             $internalErrors = libxml_use_internal_errors(true);
-                            
+                           
                             $doc->loadHTML($html);
-                            
+                             
                             try{
                                 $elem = $doc->getElementById('primaryStatus');
                                 $stat =  $elem->nodeValue;                             
@@ -204,13 +219,16 @@ class orderController extends Controller
                             }
                             catch(\Exception $ex)
                             {
-                
+                               
                             }
                             
                             $elements = $doc->getElementById($field);
                             
+                            
                             if(empty($elements))
                                 continue;
+                                
+                             
                             libxml_use_internal_errors($internalErrors);
                             
                             $doc->loadHTML($this->DOMinnerHTML($elements));
@@ -243,7 +261,7 @@ class orderController extends Controller
                                 }        
                             }
                            
-                            
+                         
                             if(empty(trim($trackingId)) && !empty(trim($carrier)) )
                                 continue;
                             
@@ -294,8 +312,8 @@ class orderController extends Controller
                                 
                             }
                             else
-                            {                    
-                                
+                            {    
+
                                 $this->shipOrder($order->id, $trackingId, $carrierId->name, 'new'); 
                                 try{
                                 if($order->flag=='8')
@@ -310,7 +328,7 @@ class orderController extends Controller
                                 }
                                 catch(\Exception $ex)
                                 {
-                                
+                                    
                                 }
             
                                 
@@ -1692,6 +1710,22 @@ class orderController extends Controller
              $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
             return view('returns',compact('returns','accounts','stores','search','route'));
         }
+
+        else if($route == 'product.report')
+        {
+            $productReport = new ProductReportController();
+            $query = $request->searchQuery;
+            return $productReport->index($request, $query);
+        } 
+
+        else if($route == 'sold.report')
+        {
+            $soldReport = new SoldReportController();
+            $query = $request->searchQuery;
+            return $soldReport->index($request, $query);
+        } 
+
+
         else
         redirect()->back();
     }
