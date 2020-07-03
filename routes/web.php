@@ -193,6 +193,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('/productReport', ['as'=>'product.report',   'uses'=>'ProductReportController@index'])->middleware('admin');
 	Route::get('/productReport/orders', ['as'=>'product.report.orders',   'uses'=>'ProductReportController@orders'])->middleware('admin');
 	Route::get('/soldReport', ['as'=>'sold.report',   'uses'=>'SoldReportController@index'])->middleware('admin');
+	Route::get('/salesReport', ['as'=>'sales.report',   'uses'=>'SalesReportController@index'])->middleware('admin');
 
 
 
