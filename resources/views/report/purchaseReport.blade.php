@@ -157,7 +157,7 @@
 
         // Set chart options
         var options = {
-            width: 1000,
+            width: 1200,
             height: 600,
             legend: { position: 'top', maxLines: 3 },
             bar: { groupWidth: '75%' },

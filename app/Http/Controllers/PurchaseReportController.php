@@ -44,12 +44,17 @@ class PurchaseReportController extends Controller
             if($request->fromDate != 0  && $request->toDate != 0)
             {
                 $fromDate = new Carbon($request->fromDate);
+                $fromDate = $fromDate->startOfDay();
                 $toDate = new Carbon($request->toDate);
+                $toDate = $toDate->endOfDay();
+                
+                // Log::debug('From Date : ' .$fromDate .' and to date : ' .$toDate);
 
                 if($fromDate->diffInDays($toDate) > 31 )
                 {
                     return 'Please select maximum 30 days range';
                 }
+
 
             }
         }else{
