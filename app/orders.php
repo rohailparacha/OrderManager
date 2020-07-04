@@ -22,6 +22,9 @@ class orders extends Model
     protected $fillable = ['id','account_id','orderId','date','marketplace','storeName','sellOrderId','buyerName','quantity','totalAmount','address1','address2','address3','city', 'state', 'country', 'postalCode','phone','status','poTotalAmount','poNumber','assigned','uid','carrierName','trackingNumber','newTrackingNumber','converted'];
 
 
+    protected $casts = [
+        'date' => 'datetime',
+    ];
     
     public function orderDetails()
     {

@@ -19,12 +19,11 @@ use Illuminate\Support\Collection;
 use DB;
 
 
-class SoldReportController extends Controller
+class SoldReportModifiedController extends Controller
 {
 
     public function index(Request $request, $asin = 0)
     {
-
         Log::debug(print_r($request->all(), true));
         $stores = products::distinct('account')->pluck('account');
 
@@ -52,7 +51,10 @@ class SoldReportController extends Controller
             if($request->fromDate != 0  && $request->toDate != 0)
             {
                 $fromDate = new Carbon($request->fromDate);
+                $fromDate = $fromDate->startOfDay();
                 $toDate = new Carbon($request->toDate);
+                $toDate = $toDate->endOfDay();
+
                 $products = $products->whereBetween('created_at', [$fromDate, $toDate]);
             }
         }
@@ -77,49 +79,103 @@ class SoldReportController extends Controller
             $daterange = $request->daterange;
         }
         
+        $daysRange = 0;
+        if($request->has('daysRange') && $request->daysRange)
+        {
+            $daysRange = $request->daysRange;
+        }
+
         $min_sold = 0;
         $max_sold = products::max('sold');
 
         $forExport = $products;
-        $forView   = $products;
+        $forView   = $products->get();
+
+
+        /* Start New Code */ 
+
+        $orders = orders::with(['orderDetails'])->get();
+        $now = Carbon::now();
+        $quantities = [];
+
+        foreach($orders as $order) {
+            $daysOld = $order->date->diffInDays($now);
+
+            foreach ($order->orderDetails as $details) {
+                if (!isset($quantities[$details->SKU])) {
+                    $quantities[$details->SKU]['30'] = 0;
+                    $quantities[$details->SKU]['60'] = 0;
+                    $quantities[$details->SKU]['90'] = 0;
+                    $quantities[$details->SKU]['120'] = 0;
+                    $quantities[$details->SKU]['total'] = 0;
+                }
+
+                if ($daysOld <= 30) {
+                    $quantities[$details->SKU]['30'] += $details->quantity;
+                }
+
+                if ($daysOld <= 60) {
+                    $quantities[$details->SKU]['60'] += $details->quantity;
+                }
+                
+                if ($daysOld <= 90) {
+                    $quantities[$details->SKU]['90'] += $details->quantity;
+                }
+
+                if ($daysOld <= 120) {
+                    $quantities[$details->SKU]['120'] += $details->quantity;
+                }
+
+                $quantities[$details->SKU]['total'] += $details->quantity;
+            }
+        }
+
+        $mapedProducts =    $forView->map(function ($product) use ($quantities) 
+                            {
+                                $product->sales30days  = array_key_exists($product->asin, $quantities) ?  $quantities[$product->asin]['30'] : 0;
+                                $product->sales60days  = array_key_exists($product->asin, $quantities) ?  $quantities[$product->asin]['60'] : 0;
+                                $product->sales90days  = array_key_exists($product->asin, $quantities) ?  $quantities[$product->asin]['90'] : 0;
+                                $product->sales120days = array_key_exists($product->asin, $quantities) ?  $quantities[$product->asin]['120'] : 0;
+                                $product->salesTotal   = array_key_exists($product->asin, $quantities) ?  $quantities[$product->asin]['total'] : 0;
+
+                                return $product;
+                            }); 
+
+
+                            // return $mapedProducts;
+// $ps = $this->paginateWithoutKey($mapedProducts);
+
+// return
+
+            return view('report.soldReport', [
+                'products' => $mapedProducts, 
+                'stores' => $stores, 
+                'fromDate' => $fromDate, 
+                'toDate' => $toDate, 
+                'daterange' => $daterange, 
+                'storeName'=> $storeName,
+                'min_sold' => $min_sold, 
+                'max_sold' => $max_sold, 
+                'filtered_min_sold' => $filtered_min_sold,
+                'filtered_max_sold' => $filtered_max_sold,
+                'daysRange' => $daysRange
+                ]
+            );
+
+
+        /* End New Code */ 
+
+
+
+
+
+
+
+
+
 
         if($request->has('btnExport'))
         {
-            // return $forExport->get()->count();
-            // DB::enableQueryLog();
-            // $products = $forExport->get();
-            $products = $forExport->paginate(600);
-            // return $forExport->get()->count();
-
-            // dd(DB::getQueryLog());            
-
-            // ini_set('max_execution_time', 300);
-
-            // $products->chunk(200, function($prds)
-            // {
-            //     foreach($prds as $product)
-            //     {
-            //         $orderIds = order_details::where('SKU','=',$product->asin)->pluck('order_id');
-                    
-            //         $product->sales30days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(30), Carbon::now()])->sum('quantity');
-            //         $product->sales60days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(60), Carbon::now()])->sum('quantity');
-            //         $product->sales90days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(90), Carbon::now()])->sum('quantity');
-            //         $product->sales120days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(120), Carbon::now()])->sum('quantity');
-            //         $product->totalSold = orders::whereIn('id', $orderIds)->sum('quantity');
-            //     }
-            // });
-
-            foreach($products as $product)
-            {
-                $orderIds = order_details::where('SKU','=',$product->asin)->pluck('order_id');
-                
-                $product->sales30days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(30), Carbon::now()])->sum('quantity');
-                $product->sales60days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(60), Carbon::now()])->sum('quantity');
-                $product->sales90days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(90), Carbon::now()])->sum('quantity');
-                $product->sales120days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(120), Carbon::now()])->sum('quantity');
-                $product->totalSold = orders::whereIn('id', $orderIds)->sum('quantity');
-            }
-
             $daysRange = 0;
             if($request->has('daysRange') && $request->daysRange)
             {

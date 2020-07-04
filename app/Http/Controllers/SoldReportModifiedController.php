@@ -19,13 +19,13 @@ use Illuminate\Support\Collection;
 use DB;
 
 
-class SoldReportController extends Controller
+class SoldReportModifiedController extends Controller
 {
 
     public function index(Request $request, $asin = 0)
     {
 
-        Log::debug(print_r($request->all(), true));
+        // Log::debug(print_r($request->all(), true));
         $stores = products::distinct('account')->pluck('account');
 
         $products = products::query();
@@ -52,7 +52,10 @@ class SoldReportController extends Controller
             if($request->fromDate != 0  && $request->toDate != 0)
             {
                 $fromDate = new Carbon($request->fromDate);
+                $fromDate = $fromDate->startOfDay();
                 $toDate = new Carbon($request->toDate);
+                $toDate = $toDate->endOfDay();
+
                 $products = $products->whereBetween('created_at', [$fromDate, $toDate]);
             }
         }
@@ -82,32 +85,13 @@ class SoldReportController extends Controller
 
         $forExport = $products;
         $forView   = $products;
+        $forDaysFilter   = $products;
 
         if($request->has('btnExport'))
         {
             // return $forExport->get()->count();
-            // DB::enableQueryLog();
-            // $products = $forExport->get();
-            $products = $forExport->paginate(600);
-            // return $forExport->get()->count();
 
-            // dd(DB::getQueryLog());            
-
-            // ini_set('max_execution_time', 300);
-
-            // $products->chunk(200, function($prds)
-            // {
-            //     foreach($prds as $product)
-            //     {
-            //         $orderIds = order_details::where('SKU','=',$product->asin)->pluck('order_id');
-                    
-            //         $product->sales30days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(30), Carbon::now()])->sum('quantity');
-            //         $product->sales60days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(60), Carbon::now()])->sum('quantity');
-            //         $product->sales90days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(90), Carbon::now()])->sum('quantity');
-            //         $product->sales120days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(120), Carbon::now()])->sum('quantity');
-            //         $product->totalSold = orders::whereIn('id', $orderIds)->sum('quantity');
-            //     }
-            // });
+            $products = $forExport->get();
 
             foreach($products as $product)
             {
@@ -168,7 +152,7 @@ class SoldReportController extends Controller
             return Excel::download(new SoldReportExport($filtered), 'Sold Report.xlsx');
         }else{
 
-            $ps   = $forView->paginate(100);
+            $ps   = $forView->get();
 
             foreach($ps as $product)
             {
@@ -182,8 +166,10 @@ class SoldReportController extends Controller
             }
 
             $daysRange = 0;
+            
             if($request->has('daysRange') && $request->daysRange)
             {
+                // $ps = $forDaysFilter->get();
                 $daysRange = $request->daysRange;
                 $filtered = $ps->reject(function ($value, $key) use($request, $filtered_min_sold, $filtered_max_sold) {
                     // Log::debug('Rejecting value '. $value);
@@ -224,8 +210,15 @@ class SoldReportController extends Controller
                     }
                 });
 
-                $ps = $this->paginateWithoutKey($filtered);
+                // return $filtered;
+
             } 
+            
+            $ps = $this->paginateWithoutKey($filtered);
+
+
+
+
 
             return view('report.soldReport', [
                 'products' => $ps, 

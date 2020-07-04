@@ -55,7 +55,6 @@ class PurchaseReportController extends Controller
                     return 'Please select maximum 30 days range';
                 }
 
-
             }
         }else{
             $fromDate = Carbon::now()->subDays(6);
