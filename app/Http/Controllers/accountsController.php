@@ -5,6 +5,7 @@ use App\User;
 use App\orders;
 use App\order_details;
 use App\accounts;
+use App\sc_accounts;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Input;
@@ -18,7 +19,11 @@ class accountsController extends Controller
 
     public function index()
     {
-        $accounts = accounts::select()->paginate(50);     
+        $accounts = accounts::
+        leftJoin('sc_accounts','accounts.scaccount_id','=','sc_accounts.id')
+        ->leftJoin('users','accounts.manager_id','=','users.id')
+        ->select(['accounts.*','sc_accounts.name','users.name As manager'])->paginate(50);   
+
         $managers = User::where('role',2)->get();    
         return view('accounts.index',compact('accounts','managers'));
     }
@@ -26,7 +31,8 @@ class accountsController extends Controller
     public function create()
     {
         $managers = User::where('role',2)->get(); 
-        return view ('accounts.create',compact('managers'));
+        $scaccounts = sc_accounts::all();
+        return view ('accounts.create',compact('managers','scaccounts'));
     }
 
     public function edit($id)
@@ -34,7 +40,8 @@ class accountsController extends Controller
 
         $account = accounts::select()->where('id',$id)->get()->first();
         $managers = User::where('role',2)->get(); 
-        return view ('accounts.edit',compact('account','managers'));
+        $scaccounts = sc_accounts::all();
+        return view ('accounts.edit',compact('account','managers','scaccounts'));
     }
 
     public function update(Request $request)
@@ -43,12 +50,14 @@ class accountsController extends Controller
             'store' => $request->store,
             'username' => $request->username,
             'password'    => $request->password,
+            'scaccount'    => $request->scaccount,
         ];
 
         $rules = [
             'store'    => 'required',
             'username' => 'required',
-            'password' => 'required'            
+            'password' => 'required',
+            'scaccount' => 'required'        
         ];
 
         $validator = Validator::make($input,$rules);
@@ -64,8 +73,9 @@ class accountsController extends Controller
         $id  =$request->id;
         $manager  =$request->manager;
         $lag = $request->lag;
+        $scaccount = $request->scaccount;
       
-        $account = accounts::where('id', $id)->update(['store'=>$store, 'username'=>$username, 'password'=>$password, 'manager_id'=>$manager, 'lagTime'=>$lag]);
+        $account = accounts::where('id', $id)->update(['store'=>$store, 'username'=>$username, 'password'=>$password, 'manager_id'=>$manager, 'lagTime'=>$lag ,'scaccount_id'=>$scaccount]);
 
         if($account)
         {
@@ -98,12 +108,14 @@ class accountsController extends Controller
             'store' => $request->store,
             'username' => $request->username,
             'password'    => $request->password,
+            'scaccount'    => $request->scaccount,
         ];
 
         $rules = [
             'store'    => 'required',
             'username' => 'required|unique:accounts',
-            'password' => 'required'            
+            'password' => 'required',
+            'scaccount' => 'required'         
     ];
 
         $validator = Validator::make($input,$rules);
@@ -118,7 +130,9 @@ class accountsController extends Controller
         $password  =$request->password;
         $manager  =$request->manager;
         $lag = $request->lag;
-        $account = accounts::insert(['store'=>$store, 'username'=>$username, 'password'=>$password, 'manager_id'=>$manager, 'lagTime'=>$lag]);
+        $scaccount = $request->scaccount;
+
+        $account = accounts::insert(['store'=>$store, 'username'=>$username, 'password'=>$password, 'manager_id'=>$manager, 'lagTime'=>$lag,'scaccount_id'=>$scaccount]);
 
         if($account)
         {

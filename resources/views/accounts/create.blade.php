@@ -87,6 +87,20 @@
                                             <div class="error" style="color:red;">{{ $message }}</div>
                                          @enderror
                                 </div>
+
+                                <div class="form-group{{ $errors->has('scaccount') ? ' has-danger' : '' }}">
+                                <label class="form-control-label" for="input-role">{{ __('Select SC Account:') }}</label>
+                                        <select class="form-control" name="scaccount" style="">                                
+                                                    <option value=0>Select Account</option>
+                                                    @foreach($scaccounts as $account)
+                                                    <option value={{$account->id}}>{{$account->name}}</option>    
+                                                    @endforeach                                                                                                  
+                                        </select>                                    
+                                    
+                                        @error('scaccount')
+                                            <div class="error" style="color:red;">{{ $message }}</div>
+                                         @enderror
+                                </div>
                                 
                                 <div class="text-center">
                                     <button type="submit" class="btn btn-success mt-4">{{ __('Save') }}</button>

@@ -205,7 +205,7 @@ $(document).ready(function(){
                             <tbody>
                                 @foreach ($products as $product)
                                     <tr>
-                                        <td class="prodtd">{{ date('m/d/Y H:i:s',strtotime('+14 hours',strtotime($product->created_at))) }}</td>
+                                        <td class="prodtd">{{ date('m/d/Y H:i:s',strtotime($product->created_at)) }}</td>
                                         <td width="8%" class="prodtd"><img src="{{ $product->image }}" width="75px" height="75px"></td>
                                         <td class="prodtd">{{ $product->name }}</td>
                                         <td class="prodtd">{{$product->productIdType}}</td>

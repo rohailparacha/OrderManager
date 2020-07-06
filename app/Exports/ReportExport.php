@@ -34,15 +34,9 @@ class ReportExport implements FromCollection,WithHeadings,ShouldAutoSize
 
     public function getIranTime($date)
     {        
-        date_default_timezone_set('UTC');
-
         $datetime = new \DateTime($date);        
         
-        $la_time = new \DateTimeZone('Asia/Tehran');
-        
-        $datetime->setTimezone($la_time);
-        
-        return $datetime->format('m/d/Y H:i:s');        
+        return $datetime->format('m/d/Y H:i:s');
     }
     
     public function getTotalShipping($id)

@@ -2101,7 +2101,7 @@ class orderController extends Controller
                     
                     $fulfillmentOrders[]=$tempOrder;
 
-                    products::where('asin',$temp2['SKU'])->increment('sold',$temp['quantity']);
+                    products::where('asin',$temp2['SKU'])->increment('sold', $temp2['quantity'] );
                 }
 
                 try{
@@ -2469,13 +2469,7 @@ class orderController extends Controller
     public static function getIranTime($date)
     {
         
-        date_default_timezone_set('UTC');
-
         $datetime = new \DateTime($date);        
-        
-        $la_time = new \DateTimeZone('Asia/Tehran');
-        
-        $datetime->setTimezone($la_time);
         
         return $datetime->format('m/d/Y H:i:s');
         
