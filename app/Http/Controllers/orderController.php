@@ -1959,7 +1959,10 @@ class orderController extends Controller
                 $temp['orderId'] = $order->$att;
                 
                 $att = 'DateOrdered';           
-                $temp['date'] = $order->$att;
+               
+                $dateTime = new \DateTime ($order->$att);
+                $dateTime->setTimezone(new \DateTimeZone('America/Los_Angeles'));
+                $temp['date'] = $dateTime->format('Y-m-d H:i:s'); 
                 
                 $att = 'Site';
                 $temp['marketplace'] = $order->$att;
