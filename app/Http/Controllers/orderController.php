@@ -2105,6 +2105,10 @@ class orderController extends Controller
                     $fulfillmentOrders[]=$tempOrder;
 
                     products::where('asin',$temp2['SKU'])->increment('sold', $temp2['quantity'] );
+                    products::where('asin',$temp2['SKU'])->increment('30days', $temp2['quantity'] );
+                    products::where('asin',$temp2['SKU'])->increment('60days', $temp2['quantity'] );
+                    products::where('asin',$temp2['SKU'])->increment('90days', $temp2['quantity'] );
+                    products::where('asin',$temp2['SKU'])->increment('120days', $temp2['quantity'] );
                 }
 
                 try{

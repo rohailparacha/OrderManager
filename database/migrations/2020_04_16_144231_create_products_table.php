@@ -25,6 +25,13 @@ class CreateProductsTable extends Migration
             $table->double('lowestPrice',8,2)->default(0);
             $table->double('price',8,2)->default(0);
             $table->unsignedBigInteger('strategy_id');
+            $table->integer('sold')->default(0);
+            $table->integer('returned')->default(0);
+            $table->integer('cancelled')->default(0);
+            $table->integer('30days')->default(0);
+            $table->integer('60days')->default(0);
+            $table->integer('90days')->default(0);
+            $table->integer('120days')->default(0);
 
             $table->foreign('strategy_id')->references('id')->on('strategies');
         });

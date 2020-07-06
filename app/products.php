@@ -13,7 +13,7 @@ class products extends Model
 
     public $timestamps = false;
 
-    protected $fillable  = ['image','sc_id','account','asin','upc','title','totalSellers','lowestPrice','price','strategy_id'];
+    protected $fillable  = ['image','sc_id','account','asin','upc','title','totalSellers','lowestPrice','price','strategy_id','created_at','sold','returned','cancelled','30days','60days','90days','120days'];
 
 
     public function orderDetails()
