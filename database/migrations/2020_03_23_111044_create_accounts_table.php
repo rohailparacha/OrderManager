@@ -16,10 +16,12 @@ class CreateAccountsTable extends Migration
         Schema::create('accounts', function (Blueprint $table) {
             $table->id();
             $table->string('store');
+            $table->unsignedBigInteger('scaccount_id');
             $table->string('username');
             $table->text('password');
             $table->string('manager_id');
-            $table->integer('lagTime')->default(0);
+            $table->integer('lagTime')->default(0);            
+            $table->foreign('scaccount_id')->references('id')->on('sc_accounts');
         });
     }
 

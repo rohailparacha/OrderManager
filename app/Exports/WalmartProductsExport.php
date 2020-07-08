@@ -64,7 +64,7 @@ class WalmartProductsExport implements WithColumnFormatting,FromCollection,WithH
         {
 
             $dataArray[]=  [
-                "Date"=> date('m/d/Y H:i:s',strtotime('+14 hours',strtotime($product->created_at))),
+                "Date"=> date('m/d/Y H:i:s',strtotime($product->created_at)),
                 "Image"=>$product->image,              
                 "Title"=>$product->name,
                 "Attribute"=>strval($product->productIdType),

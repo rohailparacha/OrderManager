@@ -196,7 +196,17 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('/salesReport', ['as'=>'sales.report',   'uses'=>'SalesReportController@index'])->middleware('admin');
 	Route::get('/purchaseReport', ['as'=>'purchase.report',   'uses'=>'PurchaseReportController@index'])->middleware('admin');
 
+	//SC Settings Routes
+	Route::get('/scaccounts', 'scAccountsController@accounts')->name('scaccounts')->middleware('admin');
+	Route::post('/addSCAccount', 'scAccountsController@addAccount')->middleware('admin');
+	Route::post('/editSCAccount', 'scAccountsController@editAccount')->middleware('admin');
+	Route::delete('/scAccountDelete/{id}','scAccountsController@delAccount')->name('scAccountDelete')->middleware('admin');
 
+	//Informed Settings Routes
+	Route::get('/informedSettings', 'informedSettingsController@settings')->name('informed')->middleware('admin');
+	Route::post('/addInfCode', 'informedSettingsController@addSetting')->middleware('admin');
+	Route::post('/editInfCode', 'informedSettingsController@editSetting')->middleware('admin');
+	Route::delete('/infCodeDelete/{id}','informedSettingsController@delSetting')->name('infCodeDelete')->middleware('admin');
 
 	//Keepa Routes
 	Route::get('keepa','keepaController@index')->middleware('admin');

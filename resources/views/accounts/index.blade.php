@@ -44,6 +44,7 @@
                                     <th scope="col">{{ __('Username') }}</th>
                                     <th scope="col">{{ __('Password') }}</th>
                                     <th scope="col">{{ __('Lag Time') }}</th>
+                                    <th scope="col">{{ __('SC Account') }}</th>
                                     <th scope="col">{{ __('Manager') }}</th>
                                     <th scope="col"></th>
                                 </tr>
@@ -55,11 +56,8 @@
                                         <td>{{ $account->username }}</td>
                                         <td>{{ $account->password }}</td>
                                         <td>{{ $account->lagTime }}</td>
-                                        @foreach($managers as $manager)
-                                        @if($manager->id == $account->manager_id)
-                                        <td>{{ $manager->name }}</td>
-                                        @endif
-                                        @endforeach
+                                        <td>{{ $account->name }}</td>                                    
+                                        <td>{{ $account->manager }}</td>                                        
                                         <td class="text-right">
                                             <div class="dropdown">
                                                 <a class="btn btn-sm btn-icon-only text-light" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

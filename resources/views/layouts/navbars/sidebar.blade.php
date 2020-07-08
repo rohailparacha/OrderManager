@@ -264,6 +264,18 @@
                                 </a>
                             </li>
 
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('scaccounts') }}">
+                                    {{ __('SyncCentric Accounts') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('informed') }}">
+                                    {{ __('Informed Setting') }}
+                                </a>
+                            </li>
+
                             
 
                             

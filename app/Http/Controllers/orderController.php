@@ -1959,7 +1959,10 @@ class orderController extends Controller
                 $temp['orderId'] = $order->$att;
                 
                 $att = 'DateOrdered';           
-                $temp['date'] = $order->$att;
+               
+                $dateTime = new \DateTime ($order->$att);
+                $dateTime->setTimezone(new \DateTimeZone('America/Los_Angeles'));
+                $temp['date'] = $dateTime->format('Y-m-d H:i:s'); 
                 
                 $att = 'Site';
                 $temp['marketplace'] = $order->$att;
@@ -2101,7 +2104,11 @@ class orderController extends Controller
                     
                     $fulfillmentOrders[]=$tempOrder;
 
-                    products::where('asin',$temp2['SKU'])->increment('sold',$temp['quantity']);
+                    products::where('asin',$temp2['SKU'])->increment('sold', $temp2['quantity'] );
+                    products::where('asin',$temp2['SKU'])->increment('30days', $temp2['quantity'] );
+                    products::where('asin',$temp2['SKU'])->increment('60days', $temp2['quantity'] );
+                    products::where('asin',$temp2['SKU'])->increment('90days', $temp2['quantity'] );
+                    products::where('asin',$temp2['SKU'])->increment('120days', $temp2['quantity'] );
                 }
 
                 try{
@@ -2469,13 +2476,7 @@ class orderController extends Controller
     public static function getIranTime($date)
     {
         
-        date_default_timezone_set('UTC');
-
         $datetime = new \DateTime($date);        
-        
-        $la_time = new \DateTimeZone('Asia/Tehran');
-        
-        $datetime->setTimezone($la_time);
         
         return $datetime->format('m/d/Y H:i:s');
         
