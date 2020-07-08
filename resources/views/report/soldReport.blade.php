@@ -54,6 +54,11 @@
                         <div class="col-6">
                             <h3 class="mb-0">{{ __('Sold Report') }}</h3>
                         </div>
+                        @if(request()->route()->getName() != 'sold.report')
+                            <div class="col-4" style="text-align:right;">
+                                <a href="{{ url()->previous() }}"class="btn btn-primary btn-md">Go Back</a>
+                            </div>
+                        @endif
                     </div>
                 </div>
                 
@@ -126,7 +131,7 @@
                             <div class="row">
                                 <div class="col">
                                     <div class="float-right">
-                                      {{--  Showing {{ $products->firstItem() }} to {{ $products->lastItem() }} of total {{$products->total()}} entries --}}
+                                        Showing {{ $products->firstItem() }} to {{ $products->lastItem() }} of total {{$products->total()}} entries
                                     </div>
                                 </div>
                             </div>
@@ -175,7 +180,7 @@
                             </div>
                             <div class="row" style="margin-top:15px;">
                                 <div class="col">
-                                 {{--    <div class="float-right">{{ $products->appends(request()->except('page'))->links() }}</div> --}}
+                                    <div class="float-right">{{ $products->appends(request()->except('page'))->links() }}</div>
                                 </div>
                             </div>
                         </div>

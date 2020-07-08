@@ -52,8 +52,13 @@
                 <div class="card-header border-0">
                     <div class="row align-items-center">
                         <div class="col-6">
-                            <h3 class="mb-0">{{ __('Product Report') }}</h3>
+                            <h3 class="mb-0">{{ __('Product Report') }} </h3>
                         </div>
+                        @if(request()->route()->getName() != 'product.report')
+                            <div class="col-4" style="text-align:right;">
+                                <a href="{{ url()->previous() }}"class="btn btn-primary btn-md">Go Back</a>
+                            </div>
+                        @endif
                     </div>
                 </div>
                 
