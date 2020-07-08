@@ -55,7 +55,7 @@
                             <h3 class="mb-0">{{ __('Sold Report') }}</h3>
                         </div>
                         @if(request()->route()->getName() != 'sold.report')
-                            <div class="col-4" style="text-align:right;">
+                            <div class="col-6" style="text-align:right;">
                                 <a href="{{ url()->previous() }}"class="btn btn-primary btn-md">Go Back</a>
                             </div>
                         @endif
@@ -162,11 +162,11 @@
                                                     <td width="7%" class="specifictd">{{ $product->asin }}</td>
                                                     <td width="30%">{{ $product->title }}</td>
                                                     <td width="7%" class="specifictd">{{ date('m/d/Y', strtotime($product->created_at)) }}</td>
-                                                    <td width="7%" class="specifictd">{{ $product->sales30days }}</td>
-                                                    <td width="7%" class="specifictd">{{ $product->sales60days }}</td>
-                                                    <td width="7%" class="specifictd">{{ $product->sales90days }}</td>
-                                                    <td width="7%" class="specifictd">{{ $product->sales120days }}</td>
-                                                    <td width="7%" class="specifictd">{{ $product->totalSold }}</td>
+                                                    <td width="7%" class="specifictd">{{ $product->{'30days'} }}</td>
+                                                    <td width="7%" class="specifictd">{{ $product->{'60days'} }}</td>
+                                                    <td width="7%" class="specifictd">{{ $product->{'90days'} }}</td>
+                                                    <td width="7%" class="specifictd">{{ $product->{'120days'} }}</td>
+                                                    <td width="7%" class="specifictd">{{ $product->{'30days'} + $product->{'60days'} + $product->{'90days'} + $product->{'120days'} }}</td>
                                                     <td width="7%" class="specifictd"><a href="https://amazon.com/dp/{{$product->asin}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a></td>
                                                 </tr>
                                             @endforeach
@@ -221,7 +221,7 @@
                 range: true,
                 min: min_sold,
                 max: max_sold,
-                values: [{{ $filtered_min_sold ?? $min_sold }}, {{ $filtered_max_sold ?? $max_sold }}],
+                values: [{{  $filtered_min_sold  }}, {{ $filtered_max_sold }}],
                 slide: function (event, ui) {
                     $("#sold").val(ui.values[0] + " - " + ui.values[1]);
                     $("#min_sold").val(ui.values[0]);

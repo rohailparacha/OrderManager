@@ -43,21 +43,10 @@ class PurchaseReportController extends Controller
         {
             if($request->fromDate != 0  && $request->toDate != 0)
             {
-                // $fromDate = new Carbon($request->fromDate);
-                // $fromDate = $fromDate->startOfDay();
-                // $toDate = new Carbon($request->toDate);
-                // $toDate = $toDate->endOfDay();
-
                 $fromDate = new Carbon($request->fromDate);
-                $fromDate->setTimezone('Asia/Tehran');
                 $fromDate = $fromDate->startOfDay();
                 $toDate = new Carbon($request->toDate);
-                $toDate->setTimezone('Asia/Tehran');
                 $toDate = $toDate->endOfDay();
-                
-
-
-                // Log::debug('From Date : ' .$fromDate .' and to date : ' .$toDate);
 
                 if($fromDate->diffInDays($toDate) > 31 )
                 {

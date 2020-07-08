@@ -23,17 +23,17 @@
                     <td>{{ $product->asin }}</td>
                     <td>{{ $product->title }}</td>
                     <td>{{ date('m/d/Y', strtotime($product->created_at)) }}</td>
-                    <td class="text-center">{{ $product->sales30days }}</td>
-                    <td class="text-center">{{ $product->sales60days }}</td>
-                    <td class="text-center">{{ $product->sales90days }}</td>
-                    <td class="text-center">{{ $product->sales120days }}</td>
-                    <td class="text-center">{{ $product->totalSold }}</td>
+                    <td class="text-center">{{ $product->{'30days'} }}</td>
+                    <td class="text-center">{{ $product->{'60days'} }}</td>
+                    <td class="text-center">{{ $product->{'90days'} }}</td>
+                    <td class="text-center">{{ $product->{'120days'} }}</td>
+                    <td class="text-center">{{ $product->{'30days'} + $product->{'60days'} + $product->{'90days'} + $product->{'120days'} }}</td>
                     <td><a href="https://amazon.com/dp/{{$product->asin}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a></td>
                 </tr>
             @endforeach
         @else
             <tr>
-                <td colspan="11" class="text-center"> No records found. </td>
+                <td colspan="10" class="text-center"> No records found. </td>
             </tr>
         @endif
     </tbody>
