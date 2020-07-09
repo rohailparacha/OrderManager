@@ -166,14 +166,14 @@ class ProductReportController extends Controller
                     },
                     'asin'
                 ]
-            )->where(['SKU' => $request->asin])->paginate(100);
+            )->where(['SKU' => $request->asin])->paginate(200);
         }
 
 
         if($request->status == 'returned')
         {
             $returns  = returns::pluck('order_id');
-            $order_details = order_details::with(['order'])->whereIn('order_id', $returns)->where(['SKU' => $request->asin])->paginate(10);
+            $order_details = order_details::with(['order'])->whereIn('order_id', $returns)->where(['SKU' => $request->asin])->paginate(200);
         }
 
 
@@ -187,7 +187,7 @@ class ProductReportController extends Controller
                     },
                     'asin'
                 ]
-            )->where(['SKU' => $request->asin])->paginate(100);
+            )->where(['SKU' => $request->asin])->groupBy('order_id')->paginate(200);
             // $cancelled  = cancelled_orders::pluck('order_id');
             // $order_details = order_details::with(['order'])->whereIn('order_id', $cancelled)->where(['SKU' => $request->asin])->paginate(10);
         }

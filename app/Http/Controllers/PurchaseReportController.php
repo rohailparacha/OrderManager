@@ -68,7 +68,7 @@ class PurchaseReportController extends Controller
         }
 
 
-        $chartType = 'amt';
+        $chartType = 'qty';
         if($request->has('chartType') && $request->chartType !== 0)
         {
             $chartType = $request->chartType;
