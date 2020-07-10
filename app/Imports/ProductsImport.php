@@ -18,7 +18,7 @@ class ProductsImport implements ToCollection
         $dataArray = array(); 
         foreach ($rows as $row) 
         {
-            if(count($row)<4)
+            if(count($row)<3)
                 continue; 
             else
             {
@@ -34,10 +34,10 @@ class ProductsImport implements ToCollection
                     }
                 }        
                 $account = $row[1];
-                $strategy = $row[2];
-                $action = $row[3];
+                
+                $action = $row[2];
 
-                $dataArray[]= ['asin'=>$asin, 'account'=>$account, 'strategy'=>$strategy, 'action'=>$action];
+                $dataArray[]= ['asin'=>$asin, 'account'=>$account, 'action'=>$action];
             } 
         }
         

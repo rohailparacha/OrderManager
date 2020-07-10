@@ -1,4 +1,4 @@
-ASIN,Account,Strategy,Action
-0062803832,mirniatradeinc,Plus10,add
-0060760273,mirniatradeinc,Plus10,modify
-0060760273,mirniatradeinc,Plus10,delete
+ASIN,Account,Action
+0062803832,mirniatradeinc,add
+0060760273,mirniatradeinc,modify
+0060760273,mirniatradeinc,delete
