@@ -24,8 +24,7 @@ class SoldReportController extends Controller
 
     public function index(Request $request, $asin = 0)
     {
-
-        Log::debug(print_r($request->all(), true));
+        // return $request->all();
         $stores = products::distinct('account')->pluck('account');
 
         $products = products::query();
@@ -52,24 +51,14 @@ class SoldReportController extends Controller
             if($request->fromDate != 0  && $request->toDate != 0)
             {
                 $fromDate = new Carbon($request->fromDate);
+                $fromDate = $fromDate->startOfDay();
                 $toDate = new Carbon($request->toDate);
+                $toDate = $toDate->endOfDay();
+
                 $products = $products->whereBetween('created_at', [$fromDate, $toDate]);
             }
         }
 
-        $filtered_min_sold = 0;
-        if($request->has('min_sold') && $request->min_sold > 0)
-        {
-            $filtered_min_sold = $request->min_sold;
-            // $products = $products->where('sold', '>=', $request->min_sold);
-        }
-
-        $filtered_max_sold = 0;
-        if($request->has('max_sold') && $request->max_sold > 0)
-        {
-            $filtered_max_sold = $request->max_sold;
-            // $products = $products->where('sold', '<=', $request->max_sold);
-        }
         
         $daterange = 0;
         if($request->has('daterange') && $request->daterange != 0)
@@ -77,180 +66,76 @@ class SoldReportController extends Controller
             $daterange = $request->daterange;
         }
         
-        $min_sold = 0;
-        $max_sold = products::max('sold');
-
-        $forExport = $products;
-        $forView   = $products;
-
-        if($request->has('btnExport'))
+        $filtered_min_sold = 0;
+        if($request->has('min_sold') && $request->min_sold > 0)
         {
-            // return $forExport->get()->count();
-            // DB::enableQueryLog();
-            // $products = $forExport->get();
-            $products = $forExport->paginate(600);
-            // return $forExport->get()->count();
+            $filtered_min_sold = $request->min_sold;
+        }
+        
+        $filtered_max_sold = 0;
+        if($request->has('max_sold') && $request->max_sold > 0)
+        {
+            $filtered_max_sold = $request->max_sold;
+        }
+        
+        $daysRange = 0;
+        if($request->has('daysRange') && $request->daysRange > 0)
+        {
+            $daysRange = $request->daysRange;
 
-            // dd(DB::getQueryLog());            
-
-            // ini_set('max_execution_time', 300);
-
-            // $products->chunk(200, function($prds)
-            // {
-            //     foreach($prds as $product)
-            //     {
-            //         $orderIds = order_details::where('SKU','=',$product->asin)->pluck('order_id');
-                    
-            //         $product->sales30days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(30), Carbon::now()])->sum('quantity');
-            //         $product->sales60days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(60), Carbon::now()])->sum('quantity');
-            //         $product->sales90days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(90), Carbon::now()])->sum('quantity');
-            //         $product->sales120days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(120), Carbon::now()])->sum('quantity');
-            //         $product->totalSold = orders::whereIn('id', $orderIds)->sum('quantity');
-            //     }
-            // });
-
-            foreach($products as $product)
+            if($request->daysRange == 30)
             {
-                $orderIds = order_details::where('SKU','=',$product->asin)->pluck('order_id');
-                
-                $product->sales30days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(30), Carbon::now()])->sum('quantity');
-                $product->sales60days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(60), Carbon::now()])->sum('quantity');
-                $product->sales90days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(90), Carbon::now()])->sum('quantity');
-                $product->sales120days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(120), Carbon::now()])->sum('quantity');
-                $product->totalSold = orders::whereIn('id', $orderIds)->sum('quantity');
+                $products = $products->whereBetween('30days', [$filtered_min_sold, $filtered_max_sold]);
             }
 
-            $daysRange = 0;
-            if($request->has('daysRange') && $request->daysRange)
+            if($request->daysRange == 60)
             {
-                $daysRange = $request->daysRange;
-                $filtered = $products->reject(function ($value, $key) use($request, $filtered_min_sold, $filtered_max_sold) {
-                    // Log::debug('Rejecting value '. $value);
-                    
-                    if($request->daysRange == 30)
-                    {
-                        // Log::debug('Entered into 30 days filter');
-                        // Log::debug('value->sales30days : ' . $value->sales30days . ' filtered_min_sold : ' . $filtered_min_sold . ' filtered_max_sold :  ' . $filtered_max_sold);
-                        if($value->sales30days < $filtered_min_sold || $value->sales30days > $filtered_max_sold)
-                        {
-                            return true;
-                        }
-                    }
-
-                    if($request->daysRange == 60)
-                    {
-                        // Log::debug('Entered into 60 days filter');
-                        if($value->sales60days < $filtered_min_sold || $value->sales60days > $filtered_max_sold)
-                        {
-                            return true;
-                        }
-                    }
-
-                    if($request->daysRange == 90)
-                    {
-                        if($value->sales90days < $filtered_min_sold || $value->sales90days > $filtered_max_sold)
-                        {
-                            return true;
-                        }
-                    }
-
-                    if($request->daysRange == 120)
-                    {
-                        if($value->sales120days < $filtered_min_sold || $value->sales120days > $filtered_max_sold)
-                        {
-                            return true;
-                        }
-                    }
-                });
-                // $ps = $this->paginateWithoutKey($filtered);
-            } 
-
-            return Excel::download(new SoldReportExport($filtered), 'Sold Report.xlsx');
-        }else{
-
-            $ps   = $forView->paginate(100);
-
-            foreach($ps as $product)
-            {
-                $orderIds = order_details::where('SKU','=',$product->asin)->pluck('order_id');
-                
-                $product->sales30days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(30), Carbon::now()])->sum('quantity');
-                $product->sales60days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(60), Carbon::now()])->sum('quantity');
-                $product->sales90days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(90), Carbon::now()])->sum('quantity');
-                $product->sales120days = orders::whereIn('id', $orderIds)->whereBetween('date', [Carbon::now()->subDays(120), Carbon::now()])->sum('quantity');
-                $product->totalSold = orders::whereIn('id', $orderIds)->sum('quantity');
+                $products = $products->whereBetween('60days', [$filtered_min_sold, $filtered_max_sold]);
             }
 
-            $daysRange = 0;
-            if($request->has('daysRange') && $request->daysRange)
+            if($request->daysRange == 90)
             {
-                $daysRange = $request->daysRange;
-                $filtered = $ps->reject(function ($value, $key) use($request, $filtered_min_sold, $filtered_max_sold) {
-                    // Log::debug('Rejecting value '. $value);
-                    
-                    if($request->daysRange == 30)
-                    {
-                        // Log::debug('Entered into 30 days filter');
-                        // Log::debug('value->sales30days : ' . $value->sales30days . ' filtered_min_sold : ' . $filtered_min_sold . ' filtered_max_sold :  ' . $filtered_max_sold);
-                        if($value->sales30days < $filtered_min_sold || $value->sales30days > $filtered_max_sold)
-                        {
-                            return true;
-                        }
-                    }
+                $products = $products->whereBetween('90days', [$filtered_min_sold, $filtered_max_sold]);
+            }
 
-                    if($request->daysRange == 60)
-                    {
-                        // Log::debug('Entered into 60 days filter');
-                        if($value->sales60days < $filtered_min_sold || $value->sales60days > $filtered_max_sold)
-                        {
-                            return true;
-                        }
-                    }
-
-                    if($request->daysRange == 90)
-                    {
-                        if($value->sales90days < $filtered_min_sold || $value->sales90days > $filtered_max_sold)
-                        {
-                            return true;
-                        }
-                    }
-
-                    if($request->daysRange == 120)
-                    {
-                        if($value->sales120days < $filtered_min_sold || $value->sales120days > $filtered_max_sold)
-                        {
-                            return true;
-                        }
-                    }
-                });
-
-                $ps = $this->paginateWithoutKey($filtered);
-            } 
-
-            return view('report.soldReport', [
-                'products' => $ps, 
-                'stores' => $stores, 
-                'fromDate' => $fromDate, 
-                'toDate' => $toDate, 
-                'daterange' => $daterange, 
-                'storeName'=> $storeName,
-                'min_sold' => $min_sold, 
-                'max_sold' => $max_sold, 
-                'filtered_min_sold' => $filtered_min_sold,
-                'filtered_max_sold' => $filtered_max_sold,
-                'daysRange' => $daysRange
-                ]
-            );
-
-
+            if($request->daysRange == 120)
+            {
+                $products = $products->whereBetween('120days', [$filtered_min_sold, $filtered_max_sold]);
+            }
 
         }
 
+        $min_sold = 0;
+        $max_sold = products::max('sold');
+
+        if($request->has('btnExport'))
+        {
+            $products = $products->get();
+            return Excel::download(new SoldReportExport($products), 'Sold Report.xlsx');
+        }
+        
+        $products   = $products->paginate(100);
+
+        return view('report.soldReport', [
+            'products' => $products, 
+            'stores' => $stores, 
+            'fromDate' => $fromDate, 
+            'toDate' => $toDate, 
+            'daterange' => $daterange, 
+            'storeName'=> $storeName,
+            'min_sold' => $min_sold, 
+            'max_sold' => $max_sold, 
+            'filtered_min_sold' => $filtered_min_sold,
+            'filtered_max_sold' => $filtered_max_sold,
+            'daysRange' => $daysRange
+            ]
+        );
     }
+
+
 
     public function paginateWithoutKey($items, $perPage = 100, $page = null, $options = [])
     {
-
         $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
 
         $items = $items instanceof Collection ? $items : Collection::make($items);
