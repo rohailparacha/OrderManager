@@ -6,6 +6,8 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 
 use App\products;
 use App\blacklist;
+use DB;
+use App\accounts; 
 
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -29,6 +31,12 @@ class InformedExport implements FromCollection,WithHeadings,ShouldAutoSize
         $offset = $this->offset;
         
         $products = products::select()->offset($offset)->limit(5000)->get();         
+        $accounts = accounts::all(); 
+        $accArray = array();
+        foreach($accounts as $acc)
+        {
+            $accArray[$acc->store] = $acc->informed_id;
+        }
 
         $dataArray = array();
 
@@ -39,7 +47,7 @@ class InformedExport implements FromCollection,WithHeadings,ShouldAutoSize
                 continue; 
             $dataArray[]=  [
                 "SKU"=>$product->asin,
-                "MARKETPLACE_ID"=>'148680',
+                "MARKETPLACE_ID"=>$accArray[$product->account],
                 "LISTING_TYPE"=>'',
                 "STRATEGY_ID"=>$strategy,
                 "COST"=>$product->lowestPrice,
@@ -62,10 +70,10 @@ class InformedExport implements FromCollection,WithHeadings,ShouldAutoSize
 
     public function getStrategy($price)
     {
-        $ord = DB::select( DB::raw("SELECT * FROM `informed_settings` WHERE ".$price." between minAmount and maxAmount") );
+        $ord = DB::select( DB::raw("SELECT * FROM `informed_settings` WHERE ".$price." between minAmount and maxAmount limit 1") );
 
-        if(!empty($ord) && count($ord)>0)
-            return $ord->strategy_id; 
+        if(!empty($ord) && count($ord)>0)            
+            return $ord[0]->strategy_id; 
         else
             return 0;
     }

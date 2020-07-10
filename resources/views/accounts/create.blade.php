@@ -73,6 +73,17 @@
                                         </span>
                                     @endif
                                 </div>
+
+                                <div class="form-group{{ $errors->has('informed') ? ' has-danger' : '' }}">
+                                    <label class="form-control-label" for="input-email">{{ __('Informed Id') }}</label>
+                                    <input type="text" name="informed" id="input-email" class="form-control form-control-alternative{{ $errors->has('informed') ? ' is-invalid' : '' }}" placeholder="{{ __('Informed Account Id') }}" value="{{ old('informed') }}" required>
+
+                                    @if ($errors->has('informed'))
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $errors->account_add->first('informed') }}</strong>
+                                        </span>
+                                    @endif
+                                </div>
                                 
                                 <div class="form-group{{ $errors->has('manager') ? ' has-danger' : '' }}">
                                 <label class="form-control-label" for="input-role">{{ __('Select Manager:') }}</label>

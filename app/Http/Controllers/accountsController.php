@@ -51,13 +51,15 @@ class accountsController extends Controller
             'username' => $request->username,
             'password'    => $request->password,
             'scaccount'    => $request->scaccount,
+            'informed' => $request->informed
         ];
 
         $rules = [
             'store'    => 'required',
             'username' => 'required',
             'password' => 'required',
-            'scaccount' => 'required'        
+            'scaccount' => 'required',
+            'informed' => 'required'        
         ];
 
         $validator = Validator::make($input,$rules);
@@ -73,9 +75,10 @@ class accountsController extends Controller
         $id  =$request->id;
         $manager  =$request->manager;
         $lag = $request->lag;
+        $informed = $request->informed;
         $scaccount = $request->scaccount;
       
-        $account = accounts::where('id', $id)->update(['store'=>$store, 'username'=>$username, 'password'=>$password, 'manager_id'=>$manager, 'lagTime'=>$lag ,'scaccount_id'=>$scaccount]);
+        $account = accounts::where('id', $id)->update(['store'=>$store, 'username'=>$username, 'password'=>$password, 'manager_id'=>$manager, 'lagTime'=>$lag ,'scaccount_id'=>$scaccount, 'informed_id'=>$informed]);
 
         if($account)
         {
@@ -109,13 +112,15 @@ class accountsController extends Controller
             'username' => $request->username,
             'password'    => $request->password,
             'scaccount'    => $request->scaccount,
+            'informed' => $request->informed
         ];
 
         $rules = [
             'store'    => 'required',
             'username' => 'required|unique:accounts',
             'password' => 'required',
-            'scaccount' => 'required'         
+            'scaccount' => 'required',
+            'informed' => 'required'       
     ];
 
         $validator = Validator::make($input,$rules);
@@ -130,9 +135,10 @@ class accountsController extends Controller
         $password  =$request->password;
         $manager  =$request->manager;
         $lag = $request->lag;
+        $informed = $request->informed;
         $scaccount = $request->scaccount;
 
-        $account = accounts::insert(['store'=>$store, 'username'=>$username, 'password'=>$password, 'manager_id'=>$manager, 'lagTime'=>$lag,'scaccount_id'=>$scaccount]);
+        $account = accounts::insert(['store'=>$store, 'username'=>$username, 'password'=>$password, 'manager_id'=>$manager, 'lagTime'=>$lag,'scaccount_id'=>$scaccount, 'informed_id'=>$informed]);
 
         if($account)
         {
