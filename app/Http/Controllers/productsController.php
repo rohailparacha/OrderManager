@@ -154,9 +154,10 @@ class productsController extends Controller
 
     public function getFile()
     {
-        $filename = date("d-m-Y")."-".time()."-sa-api-export.xlsx";
-        return Excel::download(new SellerActiveExport(), $filename);   
+        $filename = date("d-m-Y")."-".time()."-sa-api-export.csv";
+        return Excel::download(new SellerActiveExport(), $filename);  
     }
+
 
     public function exportAsins(Request $request)
     {
@@ -164,6 +165,7 @@ class productsController extends Controller
         $filename = date("d-m-Y")."-".time()."-asins-export.csv";
         return Excel::download(new AsinsExport($i), $filename);   
     }
+
     
     public function uploadSubmit(Request $request)
     {
@@ -366,6 +368,7 @@ class productsController extends Controller
         
         return redirect()->route('products');  
     }
+
 
 
 }

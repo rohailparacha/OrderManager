@@ -22,6 +22,7 @@ class CreateAccountsTable extends Migration
             $table->string('manager_id');
             $table->integer('lagTime')->default(0);            
             $table->foreign('scaccount_id')->references('id')->on('sc_accounts');
+            $table->integer('informed_id');
         });
     }
 

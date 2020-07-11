@@ -63,6 +63,7 @@ class orderController extends Controller
 
     public function autoship(Request $request)
     {        
+        $client = new client(); 
         $pageNum =  $request->page; 
         
         $perPage =  $request->count;
@@ -175,16 +176,43 @@ class orderController extends Controller
                                 if($order->flag=='8')
                                 {
                                    
-                                 $html = file_get_contents($baseUrl.'&itemId='.$order->itemId.'&orderId='.trim($number));   
+                                 
+                                 $response = $client->request('GET', $baseUrl.'&itemId='.$order->itemId.'&orderId='.trim($number),
+                                 [   
+                     
+                                 ]);    
+                                 
+                                 
+                                 $statusCode = $response->getStatusCode();
+                                 
+                                 $html = $response->getBody()->getContents();   
                                 }
                                 else
-                                {
-                                    $html = file_get_contents($baseUrl.'&itemId=klpjsskrrrpoqn&orderId='.trim($number).'&shipmentId='.$this->getShipment($order->poNumber));    
+                                {                                    
+                                    $response = $client->request('GET', $baseUrl.'&itemId=klpjsskrrrpoqn&orderId='.trim($number).'&shipmentId='.$this->getShipment($order->poNumber),
+                                    [   
+                        
+                                    ]);    
+                                    
+                                    
+                                    $statusCode = $response->getStatusCode();
+                                    
+                                    $html = $response->getBody()->getContents();   
                                 }
                                 
                             }
-                            else
-                                $html = file_get_contents($baseUrl.'&itemId=klpjsskrrrpoqn&orderId='.trim($number));
+                            else                                
+                                {
+                                    $response = $client->request('GET', $baseUrl.'&itemId=klpjsskrrrpoqn&orderId='.trim($number),
+                                    [   
+                        
+                                    ]);    
+                                    
+                                    
+                                    $statusCode = $response->getStatusCode();
+                                    
+                                    $html = $response->getBody()->getContents();   
+                                }
                                 
                            
                             
@@ -372,7 +400,7 @@ class orderController extends Controller
     public function getAmazonDetails(Request $request)
     {
         $order = orders::where('poNumber',$request->po)->get()->first();
-
+        $client = new client(); 
         
         $field = 'carrierRelatedInfo-container';
         
@@ -388,9 +416,16 @@ class orderController extends Controller
             try{
             $baseUrl = "https://www.amazon.com/progress-tracker/package/ref=ppx_yo_dt_b_track_package?_encoding=UTF8&itemId=klpjsskrrrpoqn&orderId=";
 
-            $html = file_get_contents($baseUrl.$order->poNumber);    
-           
+            
+            $response = $client->request('GET', $baseUrl.$order->poNumber,
+            [   
 
+            ]);    
+            
+            
+            $statusCode = $response->getStatusCode();
+            
+            $html = $response->getBody()->getContents();  
             
             
             $html = str_replace('&','&amp;',$html);
@@ -1959,7 +1994,6 @@ class orderController extends Controller
                 $temp['orderId'] = $order->$att;
                 
                 $att = 'DateOrdered';           
-               
                 $dateTime = new \DateTime ($order->$att);
                 $dateTime->setTimezone(new \DateTimeZone('America/Los_Angeles'));
                 $temp['date'] = $dateTime->format('Y-m-d H:i:s'); 
@@ -2104,8 +2138,9 @@ class orderController extends Controller
                     
                     $fulfillmentOrders[]=$tempOrder;
 
-                    products::where('asin',$temp2['SKU'])->increment('sold', $temp2['quantity'] );
-                    products::where('asin',$temp2['SKU'])->increment('30days', $temp2['quantity'] );
+            
+                     products::where('asin',$temp2['SKU'])->increment('sold', $temp2['quantity'] );
+                     products::where('asin',$temp2['SKU'])->increment('30days', $temp2['quantity'] );
                     products::where('asin',$temp2['SKU'])->increment('60days', $temp2['quantity'] );
                     products::where('asin',$temp2['SKU'])->increment('90days', $temp2['quantity'] );
                     products::where('asin',$temp2['SKU'])->increment('120days', $temp2['quantity'] );
@@ -2473,7 +2508,7 @@ class orderController extends Controller
         return redirect()->route('newOrders');
     }
 
-    public static function getIranTime($date)
+  public static function getIranTime($date)
     {
         
         $datetime = new \DateTime($date);        

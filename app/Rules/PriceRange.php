@@ -33,7 +33,10 @@ class PriceRange implements Rule
     {
         //
         $id = $this->id;
-        $ord = DB::select( DB::raw("SELECT * FROM `informed_settings` WHERE ".$value." between minAmount and maxAmount and id != ".$id) );
+        if(empty($id))
+            $ord = DB::select( DB::raw("SELECT * FROM `informed_settings` WHERE ".$value." between minAmount and maxAmount") );
+        else
+            $ord = DB::select( DB::raw("SELECT * FROM `informed_settings` WHERE ".$value." between minAmount and maxAmount and id != ".$id) );
         if(count($ord)>0)
             return false;
         else

@@ -1,7 +1,28 @@
 @extends('layouts.app', ['title' => __('Marketplace Accounts Management')])
 
 @section('content')
-    @include('layouts.headers.cards')
+@include('layouts.headers.cards')
+
+<style>
+td,th {
+  white-space: normal !important; 
+  word-wrap: break-word;
+  padding-left:1rem!important;
+  padding-right:1rem!important;  
+}
+table {
+  table-layout: fixed;
+}
+
+@media (min-width: 768px)
+{
+    .main-content .container-fluid
+    {
+        padding-right: 12px !important;
+        padding-left: 12px !important;
+    }
+}
+</style>
 
     <div class="container-fluid mt--7">
     @if(Session::has('error_msg'))
@@ -40,13 +61,14 @@
                         <table class="table align-items-center table-flush">
                             <thead class="thead-light">
                                 <tr>
-                                    <th scope="col">{{ __('Store Name') }}</th>
-                                    <th scope="col">{{ __('Username') }}</th>
-                                    <th scope="col">{{ __('Password') }}</th>
-                                    <th scope="col">{{ __('Lag Time') }}</th>
-                                    <th scope="col">{{ __('SC Account') }}</th>
-                                    <th scope="col">{{ __('Manager') }}</th>
-                                    <th scope="col"></th>
+                                    <th scope="col" width="11%">{{ __('Store Name') }}</th>
+                                    <th scope="col" width="7%">{{ __('User') }}</th>
+                                    <th scope="col" width="50%">{{ __('Password') }}</th>
+                                    <th scope="col" width="5%">{{ __('Lag Time') }}</th>
+                                    <th scope="col" width="8%">{{ __('SC Account') }}</th>
+                                    <th scope="col" width="7%">{{ __('Informed Id') }}</th>
+                                    <th scope="col" width="7%">{{ __('Manager') }}</th>
+                                    <th scope="col" width="5%"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -56,7 +78,8 @@
                                         <td>{{ $account->username }}</td>
                                         <td>{{ $account->password }}</td>
                                         <td>{{ $account->lagTime }}</td>
-                                        <td>{{ $account->name }}</td>                                    
+                                        <td>{{ $account->name }}</td>
+                                        <td>{{ $account->informed_id }}</td>                                    
                                         <td>{{ $account->manager }}</td>                                        
                                         <td class="text-right">
                                             <div class="dropdown">

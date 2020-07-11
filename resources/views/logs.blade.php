@@ -69,11 +69,12 @@ table {
                                 <tr>
                                     <th scope="col" width="12%">{{ __('Start Time') }}</th>
                                     <th scope="col" width="12%">{{ __('Finished Time') }}</th>
-                                    <th scope="col" width="12%">{{ __('Total Identifiers') }}</th>
-                                    <th scope="col" width="12%">{{ __('Total Errors') }}</th>
-                                    <th scope="col" width="12%">{{ __('Total Successful') }}</th>
-                                    <th scope="col" width="12%">{{ __('Status') }}</th>
-                                    <th scope="col" width="28%">{{ __('Error') }}</th>                                   
+                                    <th scope="col" width="10%">{{ __('Total Identifiers') }}</th>
+                                    <th scope="col" width="10%">{{ __('Total Errors') }}</th>
+                                    <th scope="col" width="10%">{{ __('Total Successful') }}</th>
+                                    <th scope="col" width="10%">{{ __('Stage') }}</th>
+                                    <th scope="col" width="10%">{{ __('Status') }}</th>
+                                    <th scope="col" width="26%">{{ __('Error') }}</th>                                   
                                 </tr>
                             </thead>
                             <tbody>
@@ -85,11 +86,12 @@ table {
                                             {{ $provider::getIranTime(date_format(date_create($log->date_completed), 'm/d/Y H:i:s')) }}
                                         @endif
                                         </td>                                                                                                               
-                                        <td width="12%">{{ $log->identifiers }}</td>
-                                        <td width="12%">{{ $log->errorItems }}</td>
-                                        <td width="12%">{{ $log->successItems }}</td>
-                                        <td width="12%">{{ $log->status }}</td>
-                                        <td width="28%">{{ $log->error }}</td>                                        
+                                        <td width="10%">{{ $log->identifiers }}</td>
+                                        <td width="10%">{{ $log->errorItems }}</td>
+                                        <td width="10%">{{ $log->successItems }}</td>
+                                        <td width="10%">{{ $log->stage }}</td>
+                                        <td width="10%">{{ $log->status }}</td>
+                                        <td width="26%">{{ $log->error }}</td>                                        
                                     </tr>
                                 @endforeach
                             </tbody>
