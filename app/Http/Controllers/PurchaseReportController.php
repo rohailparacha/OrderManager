@@ -55,7 +55,7 @@ class PurchaseReportController extends Controller
 
             }
         }else{
-            $fromDate = Carbon::now()->subDays(6);
+            $fromDate = Carbon::now()->subDays(7);
             $toDate = Carbon::now();
         }
         
