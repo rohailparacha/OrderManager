@@ -17,7 +17,7 @@ class SellerActiveExport implements FromCollection,WithHeadings,ShouldAutoSize
     {
         //
         $products = products::leftJoin('accounts','products.account','=','accounts.store')
-        ->select(['products.*','accounts.lagTime'])
+        ->select(['products.*','accounts.lagTime'])        
         ->orderBy('account')->get(); 
 
         $dataArray = array();

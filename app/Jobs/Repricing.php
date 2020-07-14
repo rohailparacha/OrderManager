@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 use App\categories;
+use Excel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -9,11 +10,12 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
-use App\strategies;
 use App\logs;
 use App\products;
 use App\accounts;
 use App\Jobs\Repricing;
+use App\Jobs\Informed;
+use App\Exports\InformedExport;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\File; 
  use Redirect;
@@ -35,12 +37,14 @@ class Repricing implements ShouldQueue
     public $status;
     public $collection;
     private $recordId; 
-    
+    private $offset;
+    private $prodCount;
     public function __construct($collection, $status)
     {
         //
         $this->collection = $collection; 
         $this->status = $status; 
+        $this->offset = -1;
     }
 
     /**
@@ -53,6 +57,7 @@ class Repricing implements ShouldQueue
         $status = $this->status; 
 
         $collection = $this->collection; 
+        $this->prodCount = count(products::all());
         
         if($status=='new')
             $this->newProducts($collection);
@@ -69,24 +74,14 @@ class Repricing implements ShouldQueue
         
         $products = products::all();
         
-        $strategies = strategies::all(); 
-        
-        
-        $stArr = array();
-        foreach($strategies as $strategy)
-        {
-            $stArr[$strategy->id] = $strategy->code;
-        }
-
         $dataArray = array(); 
         foreach($products as $product)
         {
             try{
             $asin = $product->asin;
-            $account = $product->account;
-            $strategy = $stArr[$product->strategy_id];
+            $account = $product->account;            
             $action = 'add';
-            $dataArray[]= ['asin'=>$asin, 'account'=>$account, 'strategy'=>$strategy, 'action'=>$action];    
+            $dataArray[]= ['asin'=>$asin, 'account'=>$account, 'action'=>$action];    
             }
             catch(\Exception $ex)
             {
@@ -101,10 +96,10 @@ class Repricing implements ShouldQueue
         $temp = $collection->chunk(5000);
         foreach($temp as $col)
         {
-            $this->getProducts($col);
+            $this->getProducts($col);            
         }        
         
-        logs::where('id',$this->recordId)->where('status','In Progress')->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Completed']);
+        
 
     }
 
@@ -117,6 +112,7 @@ class Repricing implements ShouldQueue
 
         foreach($temp as $col)
         {
+            $this->newProd($col);
             $this->getProducts($col);
         }        
        
@@ -124,18 +120,10 @@ class Repricing implements ShouldQueue
         
     }
 
-    public function getProducts($collection)
+    public function newProd($col)
     {
-        $this->deleteIdentifiers();         
-        $iteration = 0;                 
-
-        $temp = $collection->chunk(1000);
-        
-        foreach($temp as $col)
-        {
-           
-            foreach($col as $product)
-            {                
+        foreach($col as $product)
+        {                
                 
                 if(strtolower($product['action'])=='delete')
                 {
@@ -167,53 +155,25 @@ class Repricing implements ShouldQueue
                     
                     
                     
-                }
+            }                
+        }
 
-                elseif(strtolower($product['action'])=='modify')
-                {
-                    $strategy = strategies::where('code',$product['strategy'])->get()->first();                
-                    
-                    if(empty($strategy))
-                    continue; 
+    }
 
-                    try{
-                    
-                        $productUpdate = products::where('asin',$product['asin'])->get()->first();
+    public function getProducts($collection)
+    {   
+        $this->offset = $this->offset + 1;
 
-                        if($strategy->type==1)
-                            $price = ($productUpdate->lowestPrice + $strategy->value) / (1 - $strategy->breakeven/100);
-                        else
-                            $price = ($productUpdate->lowestPrice * (1 + $strategy->value)) / (1 - $strategy->breakeven/100);
-                        
-                        if($productUpdate->lowestPrice==0)                            
-                            $prod = products::where('asin',$product['asin'])->update(['strategy_id'=>$strategy->id]);
-                        else
-                            $prod = products::where('asin',$product['asin'])->update(['strategy_id'=>$strategy->id, 'price'=>$price]);
-                            
-                        if($prod)
-                        {
-                            logs::where('id',$this->recordId)->increment('identifiers');
-                            logs::where('id',$this->recordId)->increment('successItems');
-                        }
-                            
-                        else
-                        {
-                            
-                            logs::where('id',$this->recordId)->increment('identifiers');
-                            logs::where('id',$this->recordId)->increment('errorItems');
-                        
-                        }
-
-                    }   
-                    catch(\Exception $ex)
-                    {
-
-                    }
-                }
-            }
-
+        $this->deleteIdentifiers();         
         
-
+        $iteration = 0;                 
+         
+        $temp = $collection->chunk(1000);
+        
+        foreach($temp as $col)
+        {
+        
+            logs::where('id',$this->recordId)->update(['stage'=>'SyncCentric']);    
             $client = new client(); 
             
             $endPoint = "https://v3.synccentric.com/api/v3/products";
@@ -283,9 +243,7 @@ class Repricing implements ShouldQueue
     }
 
     public function deleteProductFile($id)
-    {        
-
-        $temp = products::where('id','=',$id)->delete();        
+    {                  
         $sc_id =products::where('id','=',$id)->get()->first();
 
         try{
@@ -297,6 +255,7 @@ class Repricing implements ShouldQueue
         {
 
         } 
+        $temp = products::where('id','=',$id)->delete();      
         return $temp;         
     }
 
@@ -497,16 +456,16 @@ class Repricing implements ShouldQueue
 
     public function saveImage($sku, $url)
     {
-        // try
-        // {
-        //     $filename = basename($url);
-        //     $extension =  File::extension($url);
-        //     Image::make($url)->save(public_path('images/amazon/' . $sku.'.jpg'));
-        // }
-        // catch(\Exception $ex)
-        // {
+        try
+        {
+            $filename = basename($url);
+            $extension =  File::extension($url);
+            Image::make($url)->save(public_path('images/amazon/' . $sku.'.jpg'));
+        }
+        catch(\Exception $ex)
+        {
 
-        // }
+        }
     }
 
     public function jsonFileParsing($url, $collection)
@@ -539,6 +498,9 @@ class Repricing implements ShouldQueue
             else
             {
                 $body = json_decode($response1->getBody()->getContents()); 
+                
+             
+
                 $errors = "";
                 try{
                 $errors = json_encode($body->errors);
@@ -569,18 +531,11 @@ class Repricing implements ShouldQueue
                                 {
                                     
                                 //update  
-                                $strategy = strategies::where('id',$exists->strategy_id)->get()->first();
-                                if($strategy->type==1)
-                                        $price = ($LFBAP + $strategy->value) / (1 - $strategy->breakeven/100);
-                                else
-                                        $price = ($LFBAP * (1 + $strategy->value)) / (1 - $strategy->breakeven/100);
                                 
-                                if($LFBAP==0)                                    
-                                    $insert = products::where('asin',$asin)->update(['upc'=>$upc,'sc_id'=>$sc_id, 'image'=>$image, 'lowestPrice'=>$LFBAP, 'title'=>$title, 'totalSellers'=>$totalSellers]);
-                                else
-                                    $insert = products::where('asin',$asin)->update(['upc'=>$upc,'sc_id'=>$sc_id, 'image'=>$image, 'lowestPrice'=>$LFBAP, 'price' =>$price, 'title'=>$title, 'totalSellers'=>$totalSellers]);
-
-                                $this->saveImage($asin,$image);        
+                                $insert = products::where('asin',$asin)->update(['upc'=>$upc,'sc_id'=>$sc_id, 'image'=>$image, 'lowestPrice'=>$LFBAP, 'title'=>$title, 'totalSellers'=>$totalSellers]);
+                   
+                                if($this->status=='new')
+                                    $this->saveImage($asin,$image);        
                                 }
                                 else
                                 {
@@ -594,31 +549,23 @@ class Repricing implements ShouldQueue
                                     {
                                             if($product['asin']==$asin)
                                             {
-                                                $account = $product['account'];
-                                                $code = $product['strategy'];
+                                                $account = $product['account'];                                                
                                     
                                                 break;
                                             }
                                     }
-                                    
-                                
-                                    $strategy = strategies::where('code',$code)->get()->first(); 
-                    
-                                    if($strategy->type==1)
-                                        $price = ($LFBAP + $strategy->value) / (1 - $strategy->breakeven/100);
-                                    else
-                                        $price = ($LFBAP * (1 + $strategy->value)) / (1 - $strategy->breakeven/100);
-                                    
-                                    if($LFBAP==0)
-                                        $price = 14.99;   
+                                                        
             
                                     $this->count++;
                                     
                                     $insert = products::updateOrCreate(
                                         ['asin'=>$asin],    
-                                        ['upc'=>$upc,'sc_id'=>$sc_id, 'image'=>$image, 'lowestPrice'=>$LFBAP, 'price' =>$price, 'title'=>$title, 'totalSellers'=>$totalSellers, 'account'=>$account, 'strategy_id'=>$strategy->id, 'created_at' => Carbon::now()->toDateString() ]
-                                    );
-                                    $this->saveImage($asin,$image);        
+                                        [
+                                            'upc'=>$upc,'sc_id'=>$sc_id, 'image'=>$image, 'lowestPrice'=>$LFBAP, 'title'=>$title, 'totalSellers'=>$totalSellers, 'account'=>$account, 'created_at' => Carbon::now()->toDateString() 
+                                        ]
+                                    );    
+                                                                                 
+                                        $this->saveImage($asin,$image);     
                                 }
             
             
@@ -633,7 +580,8 @@ class Repricing implements ShouldQueue
                         }
                         
                         
-
+           
+                        $this->submitFeed();
                        
                         
                     }
@@ -654,7 +602,6 @@ class Repricing implements ShouldQueue
             }
 
 
-           
     }
 
     public function deleteIdentifiers()
@@ -704,8 +651,112 @@ class Repricing implements ShouldQueue
         catch (\GuzzleHttp\Exception\ClientException $e) {
             $response = $e->getResponse();
             $responseBodyAsString = $response->getBody()->getContents();           
+            
         }      
                      
     }
+
+  
+    public function submitFeed()
+    {   
+        $client = new client();
+
+        $filename = date("d-m-Y")."-".time()."-import.csv";
+        
+        
+
+        if($this->status=='new')
+            Excel::store(new InformedExport( $this->prodCount + ($this->offset * 5000)), $filename,'local');      
+        else
+            Excel::store(new InformedExport($this->offset * 5000), $filename,'local');   
+        
+        $endPoint ='https://api.informed.co/v1/feed';
+
+        $key= env('INFORMED_TOKEN', '');
+        try{
+            logs::where('id',$this->recordId)->update(['stage'=>'Informed']);      
+            $promise = $client->requestAsync('POST', $endPoint,
+            [
+            'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json', 'x-api-key' => $key],
+            'body' => fopen(storage_path('app/'.$filename), 'r')
+            ]);    
+            
+            $promise->then(
+                function (ResponseInterface $res) {
+                   return $res;                                     
+                },
+                function (RequestException $e) {
+                   return $e;
+                }
+            );
+    
+            $response1 = $promise->wait();
+            $status = $response1->getStatusCode();                                  
+            $body =  json_decode($response1->getBody()->getContents());
+
+            $id= $body->FeedSubmissionID;
+            $this->getFeedStatus($id);               
+           
+        }
+        catch (\GuzzleHttp\Exception\ClientException $e) {
+            $response = $e->getResponse();
+            $responseBodyAsString = $response->getBody()->getContents();             
+            logs::where('id',$this->recordId)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Failed','error'=>$responseBodyAsString]);                                       
+        }     
+    
+    }
+
+    public function getFeedStatus($id)
+    {   
+        $client = new client();
+
+        $endPoint ='https://api.informed.co/v1/feed/submissions/'.$id;
+        $key= env('INFORMED_TOKEN', '');
+        try{
+            $promise = $client->requestAsync('GET', $endPoint,
+            [
+                'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json', 'x-api-key' => $key]
+            ]);    
+            
+            $promise->then(
+                function (ResponseInterface $res) {
+                   return $res;                                     
+                },
+                function (RequestException $e) {
+                   return $e;
+                }
+            );
+    
+            $response1 = $promise->wait();
+            $status = $response1->getStatusCode();                                  
+            $body =  json_decode($response1->getBody()->getContents());
+
+           $status = $body->Status;
+           $percentage = $body->ProcessedPercent;
+           
+           if($status=='Completed' || $status= 'CompletedWithErrors')
+           {
+            
+           
+            if($this->status=='new')            
+                Informed::dispatch(( $this->prodCount + ($this->offset * 5000)),$this->recordId)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
+
+            else
+                 Informed::dispatch($this->offset * 5000,$this->recordId)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
+           }
+           else
+           { 
+               sleep(30);
+               $this->getFeedStatus($id);              
+           }
+        }
+        catch (\GuzzleHttp\Exception\ClientException $e) {
+            $response = $e->getResponse();
+            $responseBodyAsString = $response->getBody()->getContents();             
+            logs::where('id',$this->recordId)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Failed','error'=>$responseBodyAsString]);                                       
+        }           
+        
+    }
+
     
 }

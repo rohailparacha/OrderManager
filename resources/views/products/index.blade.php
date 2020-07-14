@@ -294,8 +294,7 @@ catch{
                                     <th scope="col" width="20%">{{ __('Title') }}</th>
                                     <th scope="col" width="8%">{{ __('Total FBA Sellers') }}</th>
                                     <th scope="col" width="8%">{{ __('Lowest FBA Price') }}</th>
-                                    <th scope="col" width="8%">{{ __('Price') }}</th>
-                                    <th scope="col" width="8%">{{ __('Pricing Strategy') }}</th> 
+                                    <th scope="col" width="8%">{{ __('Price') }}</th>                                    
                                     <th scope="col" width="8%">{{ __('Link') }}</th>                                    
                                     <th scope="col" width="8%">{{ __('Action') }}</th>
                                 </tr>
@@ -311,8 +310,7 @@ catch{
                                         <td width="20%">{{ $product->title }}</td>
                                         <td width="8%"  class="specifictd">{{ $product->totalSellers }}</td>
                                         <td width="8%" class="specifictd">{{ number_format((float)$product->lowestPrice, 2, '.', '') }}</td>
-                                        <td width="8%" class="specifictd">{{ number_format((float)$product->price, 2, '.', '') }}</td>
-                                        <td width="8%" class="specifictd">{{ $strategyCodes[$product->strategy_id] }}</td>
+                                        <td width="8%" class="specifictd">{{ number_format((float)$product->price, 2, '.', '') }}</td>                                        
                                         <td width="8%" class="specifictd"><a href="https://amazon.com/dp/{{$product->asin}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a></td>
                                         <td width="8%" class="specifictd">
                                         <a class="btn btn-primary btn-sm" href="deleteProduct/{{$product->id}}" onclick="return confirm('Are you sure you want to delete this product?')">Delete</a>

@@ -7,6 +7,7 @@ use Validator;
 use Redirect; 
 use Response; 
 use Session;
+use App\products;
 use GuzzleHttp\Client;
 
 class keepaController extends Controller
@@ -19,7 +20,7 @@ class keepaController extends Controller
 
     //
     public function index()
-    {
+    {        
         return view('keepa.index');
     }
 

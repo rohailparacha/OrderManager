@@ -50,6 +50,7 @@ class Informed implements ShouldQueue
     public function handle()
     {                
         $this->exportRequest();
+        logs::where('id',$this->recordId)->where('status','In Progress')->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Completed']);
     }
 
     public function updatePrices($offset, $limit)
@@ -99,7 +100,7 @@ class Informed implements ShouldQueue
             $data['Locations'][]= $temp2; 
             
             $data['ProductSites'] = array();
-            $temp['Site'] = "Walmart";
+            $temp['Site'] = "Walmart";        
             $temp['Price'] = $product->price;
             $temp['LeadtimeToShip'] = $product->lagTime;
             $temp['FloorPrice'] = 0;
@@ -313,7 +314,7 @@ class Informed implements ShouldQueue
         foreach($data as $product)
         {
             try{            
-            $update = products::where('sku',$product['SKU'])->update(['price'=>$product['CURRENT_PRICE']]);
+            $update = products::where('asin',$product['SKU'])->where('lowestPrice','!=',0)->update(['price'=>$product['CURRENT_PRICE']]);
             }
             catch(\Exception $ex)
             {
@@ -321,7 +322,7 @@ class Informed implements ShouldQueue
             }
         }
 
-        $this->updatePrices($this->offset, 5000);
+       //$this->updatePrices($this->offset, 5000);
     }
     
 }

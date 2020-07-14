@@ -36,7 +36,7 @@ class InformedExport implements FromCollection,WithHeadings,ShouldAutoSize
         foreach($accounts as $acc)
         {
             $accArray[$acc->store] = $acc->informed_id;
-        }
+        }        
 
         $dataArray = array();
 
@@ -45,9 +45,21 @@ class InformedExport implements FromCollection,WithHeadings,ShouldAutoSize
             $strategy = $this->getStrategy($product->lowestPrice);
             if($strategy == 0 )
                 continue; 
+
+            $market_id = '';
+
+            foreach($accArray as $key=>$value)
+            {
+                if(strtolower($key)== strtolower($product->account))
+                    $market_id = $value; 
+            }
+
+            if(empty($market_id))
+                continue; 
+
             $dataArray[]=  [
                 "SKU"=>$product->asin,
-                "MARKETPLACE_ID"=>$accArray[$product->account],
+                "MARKETPLACE_ID"=>$market_id,
                 "LISTING_TYPE"=>'',
                 "STRATEGY_ID"=>$strategy,
                 "COST"=>$product->lowestPrice,
