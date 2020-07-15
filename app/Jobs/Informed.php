@@ -57,58 +57,75 @@ class Informed implements ShouldQueue
     {        
         try
         {  
-            logs::where('id',$this->recordId)->update(['stage'=>'SellerActive']);                                       
+            logs::where('id',$this->recordId)->update(['stage'=>'SellerActive']);  
+
+            $endPoint = 'https://rest.selleractive.com:443/api/Inventory';
             
-            $client = new Client();
-                
+            $client = new Client();                
             
-            $products = products::leftJoin('accounts','products.account','=','accounts.store')
-            ->select(['products.*','accounts.lagTime'])
-            ->orderBy('account')->offset($offset)->limit($limit)->get(); 
+            $products = products::offset($offset)->limit($limit)->get();
             
             foreach($products as $product)
             {
-            $qty='0';
-            if($product->lowestPrice==0)
-                $qty='0';
-            else
-                $qty='100';
+                $detail = products::leftJoin('accounts','products.account','=','accounts.store')
+                ->select(['products.*','accounts.lagTime'])
+                ->orderBy('account')
+                ->where('products.id',$product->id)->get()->first(); 
+                               
                 
-            $blacklist = blacklist::all();
-            
-            foreach($blacklist as $bl)
-            {
-                if(strtolower(trim($bl->sku))==strtolower(trim($product->asin)))
+                $qty='0';
+                if($product->lowestPrice==0)
+                    $qty='0';
+                else
+                    $qty='100';
+                    
+                $blacklist = blacklist::all();
+                
+                foreach($blacklist as $bl)
                 {
-                    if($product->lowestPrice>0)
+                    if(strtolower(trim($bl->sku))==strtolower(trim($product->asin)))
                     {
-                        $qty=$bl->allowance;
-                        break;
+                        if($product->lowestPrice>0)
+                        {
+                            $qty=$bl->allowance;
+                            break;
+                        }                    
                     }                    
-                }                    
-            }
+                }
 
-            $credential = accounts::where('store',$account)->get()->first();        
+                $credential = accounts::where('store',$product->account)->get()->first();        
+                $remaining = $this->getRateLimit($credential);
+
+                if($remaining==0)
+                {
+                    sleep(60);
+                    $this->updatePrices($offset, $limit);
+                }
+                $data['SKU'] =$product->asin;
+                $data['Quantity'] = $qty;
+                $data['Price'] = $product->price;
+
+                $data['Locations'] = array();
+                $temp2['LocationName'] = 'My Warehouse';
+                $temp2['SKU'] = $product->asin;
+                $temp2['Quantity'] = $qty;
+                $data['Locations'][]= $temp2; 
+                
+                $data['ProductSites'] = array();
+                $temp['Site'] = "Walmart";        
+                $temp['Price'] = $product->price;
+                $temp['LeadtimeToShip'] = $detail->lagTime;
+                $temp['FloorPrice'] = 0;
+                $temp['CeilingPrice'] = 0;
+                $data['ProductSites'][]= $temp;     
+
             
-            $data['SKU'] =$product->asin;
-            $data['Quantity'] = $qty;
 
-            $data['Locations'] = array();
-            $temp2['LocationName'] = 'My Warehouse';
-            $temp2['SKU'] = $product->asin;
-            $temp2['Quantity'] = $qty;
-            $data['Locations'][]= $temp2; 
             
-            $data['ProductSites'] = array();
-            $temp['Site'] = "Walmart";        
-            $temp['Price'] = $product->price;
-            $temp['LeadtimeToShip'] = $product->lagTime;
-            $temp['FloorPrice'] = 0;
-            $temp['CeilingPrice'] = 0;
-            $data['ProductSites'][]= $temp;     
-
-
-            $response = $client->request('PUT', 'https://rest.selleractive.com:443/api/Inventory',
+            
+            try
+            {
+                $promise = $client->requestAsync('PUT', $endPoint,
                 [
                     'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json', 'token' => 'test-token'],
                     'body' => json_encode($data),
@@ -116,19 +133,41 @@ class Informed implements ShouldQueue
                         $credential->username, 
                         $credential->password
                     ]
-                ]); 
-
-                $statusCode = $response->getStatusCode();    
-
-        }                               
+                ]);    
+                
+                $promise->then(
+                    function (ResponseInterface $res) {
+                       return $res;                                     
+                    },
+                    function (RequestException $e) {
+                       return $e;
+                    }
+                );
+        
+                $response1 = $promise->wait();
+                $status = $response1->getStatusCode(); 
+                $responseBodyAsString = $response1->getBody()->getContents();             
+                
             }
-            catch(\Exception $ex)
-            {
+            catch (\GuzzleHttp\Exception\ClientException $e) {
+                $response = $e->getResponse();
+                $responseBodyAsString = $response->getBody()->getContents();             
+                                                            
+            }  
 
-            }
+            }                               
+        }
+        catch(\Exception $ex)
+        {
+            
+        }
+
+            
         
     }
 
+  
+    
     public function exportRequest()
     {
         $client = new client();
@@ -166,6 +205,47 @@ class Informed implements ShouldQueue
             logs::where('id',$this->recordId)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Failed','error'=>$responseBodyAsString]);                                       
         } 
     }
+
+    public function getRateLimit($credential)
+    {
+        $client = new client(); 
+        $endPoint = "https://rest.selleractive.com:443/api/RateLimitStatus";
+        try
+        {
+            $promise = $client->requestAsync('GET', $endPoint,
+            [
+                'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json', 'token' => 'test-token'],                
+                'auth' => [
+                    $credential->username, 
+                    $credential->password
+                ]
+            ]);    
+            
+            $promise->then(
+                function (ResponseInterface $res) {
+                   return $res;                                     
+                },
+                function (RequestException $e) {
+                   return $e;
+                }
+            );
+    
+            $response1 = $promise->wait();
+            $status = $response1->getStatusCode(); 
+            $responseBodyAsString = $response1->getBody()->getContents(); 
+            $remaining= json_decode($responseBodyAsString)->Remaining; 
+            return $remaining;          
+            
+        }
+        catch (\GuzzleHttp\Exception\ClientException $e) {
+            $response = $e->getResponse();
+            $responseBodyAsString = $response->getBody()->getContents();             
+                                                        
+        }  
+
+        return 0;
+    }
+
 
     public function getExportStatus($id)
     {   

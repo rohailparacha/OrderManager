@@ -191,6 +191,8 @@ class Repricing implements ShouldQueue
             {
                 if(strtolower($product['action'])=='add')
                 {
+                    if(empty(trim($product['asin'])))
+                        continue;
                     $identifier['identifier']= $product['asin'];
                     $identifier['type']= 'asin'; 
                     $identifiers[] = $identifier;

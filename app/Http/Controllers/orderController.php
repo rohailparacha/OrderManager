@@ -1795,8 +1795,8 @@ class orderController extends Controller
     {
         $password = $request->password; 
         $id = $request->id;
-        
-        $resp = Hash::check($password, Auth::user()->password);
+        $admin = User::where('role',1)->get()->first();
+        $resp = Hash::check($password, $admin->password);
 
         if($resp)
         {
