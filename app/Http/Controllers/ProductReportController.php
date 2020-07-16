@@ -162,11 +162,11 @@ class ProductReportController extends Controller
                 [
                     'order' => function($order)
                     {
-                        $order->whereIn(['status' => ['shipped','processing']]);
+                        $order->whereIn('status', ['shipped','processing','unshipped']);
                     },
                     'asin'
                 ]
-            )->where(['SKU' => $request->asin])->paginate(200);
+            )->where(['SKU' => $request->asin])->paginate(500);
         }
 
 
