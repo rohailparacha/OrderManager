@@ -776,7 +776,7 @@ class returnsController extends Controller
            else
              {
                 Session::flash('error_msg', __('Invalid File Extension'));
-                return redirect()->route('ebayProducts');
+                return redirect()->route('returns');
              }
             
 
@@ -869,7 +869,7 @@ class returnsController extends Controller
            else
              {
                 Session::flash('error_msg', __('Invalid File Extension'));
-                return redirect()->route('ebayProducts');
+                return redirect()->route('returns');
              }
             
 

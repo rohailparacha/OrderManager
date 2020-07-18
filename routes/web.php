@@ -46,6 +46,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('assign','orderController@assign')->name('orderassign')->middleware('admin');
 	Route::post('assignOrder','orderController@assignOrder')->middleware('admin');
 	Route::any('orderexport','orderController@export')->name('orderexport')->middleware('admin');	
+	Route::any('autofulfillexport','orderController@autofulfillexport')->name('autofulfillexport')->middleware('admin');	
 	Route::get('test','orderController@newBCE');
 
 	Route::post('autoship','orderController@autoship')->name('autoship')->middleware('admin');

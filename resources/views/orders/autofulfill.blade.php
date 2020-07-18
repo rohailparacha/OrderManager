@@ -69,7 +69,7 @@ var query = {
             }
 
 
-var url = "/orderexport?" + $.param(query)
+var url = "/autofulfillexport?" + $.param(query)
 
 window.location = url;
 

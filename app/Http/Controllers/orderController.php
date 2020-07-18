@@ -25,6 +25,7 @@ use App\bank_accounts;
 use App\accounting_categories;
 use App\categories;
 use App\Exports\OrdersExport;
+use App\Exports\AutoFulfillExport;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use Hash;
@@ -395,6 +396,18 @@ class orderController extends Controller
 
         $filename = date("d-m-Y")."-".time()."-orders.xlsx";
         return Excel::download(new OrdersExport($storeFilter,$marketFilter,$stateFilter,$amountFilter,$sourceFilter), $filename);
+    }
+
+    public function autofulfillexport(Request $request)
+    {
+        $storeFilter = $request->storeFilter;
+        $marketFilter = $request->marketFilter;
+        $stateFilter = $request->stateFilter;
+        $amountFilter = $request->amountFilter; 
+        $sourceFilter = $request->sourceFilter; 
+
+        $filename = date("d-m-Y")."-".time()."-autofulfill-orders.xlsx";
+        return Excel::download(new AutoFulfillExport($storeFilter,$marketFilter,$stateFilter,$amountFilter,$sourceFilter), $filename);
     }
 
 

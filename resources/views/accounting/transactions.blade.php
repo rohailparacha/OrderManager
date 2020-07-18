@@ -298,7 +298,7 @@ catch{
                                 <select class="form-control" name="categoryFilter" style="margin-right:0%;width:180px;">
                                     <option value="0">Select Category</option>
                                     @foreach($categories as $category)
-                                        <option value='{{$category->id}}' {{ isset($categoryFilter) && $category->id == $categoryFilter?"selected":"" }}>{{$category->category}}</option>
+                                        <option value='{{$category->id}}' {{ isset($categoryFilter) && $category->id == $categoryFilter?"selected":"" }}>{{$category->type}} - {{$category->category}}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -530,7 +530,7 @@ catch{
                    <select class="form-control" id="catTbx"  style="">                                
                         <option value="0">Select Category</option>                                                   
                         @foreach($categories as $category)                                                 
-                            <option value="{{$category->id}}">{{$category->category}}</option>
+                            <option value="{{$category->id}}">{{$category->type}} - {{$category->category}}</option>
                         @endforeach
                     </select>
                    </div>
