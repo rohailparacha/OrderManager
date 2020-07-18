@@ -213,6 +213,7 @@ catch{
                                     <th scope="col" width="8%">{{ __('Qty') }}</th>                                   
                                     <th scope="col" width="10%">{{ __('Total Purchase Amount') }}</th>
                                      <th scope="col" width="10%">{{ __('Total Amount') }}</th>
+                                    <th scope="col" width="11%">{{ __('Net') }}</th>
                                     <th scope="col" width="11%">{{ __('Flag') }}</th>
                                     <th scope="col" width="8%">{{ __('Action') }}</th>
                                     <th scope="col" width="3%"></th>
@@ -233,7 +234,15 @@ catch{
                                         <td width="10%">{{number_format((float)$order->lowestPrice , 2, '.', '')}}</td>
                                          
                                         <td width="10%">{{ number_format((float)$order->totalAmount +(float)$order->shippingPrice , 2, '.', '') }}</td>
-                                       
+                                        
+                                        @if((number_format(((float)$order->totalAmount +(float)$order->shippingPrice) *0.85 , 2, '.', '') - number_format((float)$order->lowestPrice , 2, '.', '')) < ($order->quantity * 5))
+                                        <td width="10%" style="color:red;">
+                                        {{ number_format(((float)$order->totalAmount +(float)$order->shippingPrice) *0.85 , 2, '.', '') - number_format((float)$order->lowestPrice , 2, '.', '') }}
+                                        @else
+                                        <td width="10%">
+                                        {{ number_format(((float)$order->totalAmount +(float)$order->shippingPrice) *0.85 , 2, '.', '') - number_format((float)$order->lowestPrice , 2, '.', '') }}
+                                        @endif
+                                        </td>
                                         <td width="11%">
                                         @if($order->flag==0)
                                         <span></span>

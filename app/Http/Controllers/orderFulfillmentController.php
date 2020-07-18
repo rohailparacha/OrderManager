@@ -139,7 +139,7 @@ class orderFulfillmentController extends Controller
                 $test->orWhere('orders.status','shipped');
             }) 
             ->orderBy('orders.status', 'DESC')
-            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.id AS cancelledId'])
+            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.created_at AS ordercreatedate','cancelled_orders.id AS cancelledId'])
             ->paginate(100);
         }
 
@@ -161,7 +161,7 @@ class orderFulfillmentController extends Controller
                 $test->orWhere('orders.orders.','shipped');
             }) 
             ->orderBy('orders.status', 'DESC')
-            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.id AS cancelledId'])
+            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.created_at AS ordercreatedate','cancelled_orders.id AS cancelledId'])
             ->paginate(100);
         }
             
@@ -344,7 +344,7 @@ class orderFulfillmentController extends Controller
                 $test->orWhere('orders.status','shipped');
             }) 
             ->orderBy('orders.status', 'DESC')
-            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.id AS cancelledId'])
+            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.created_at AS ordercreatedate','cancelled_orders.id AS cancelledId'])
             ->paginate(100);
         }
 
@@ -366,7 +366,7 @@ class orderFulfillmentController extends Controller
                 $test->orWhere('orders.orders.','shipped');
             }) 
             ->orderBy('orders.status', 'DESC')
-            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.id AS cancelledId'])
+            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.created_at AS ordercreatedate','cancelled_orders.id AS cancelledId'])
             ->paginate(100);
         }
             
@@ -419,6 +419,8 @@ class orderFulfillmentController extends Controller
         $pricecheck = false;
         $storecheck = false;
         $qtyrangecheck = false;
+        $dailyamtcheck = false;
+        $dailyordercheck = false;
         $stores=array();
         
             $input = [
@@ -442,7 +444,13 @@ class orderFulfillmentController extends Controller
         
         if(!empty($request->pricecheck))
             $pricecheck = true;
-
+        
+        if(!empty($request->dailyamtcheck))
+            $dailyamtcheck = true;
+        
+        if(!empty($request->dailyordercheck))
+            $dailyordercheck = true;
+        
         if(!empty($request->storecheck))
             $storecheck = true;
             
@@ -463,6 +471,12 @@ class orderFulfillmentController extends Controller
 
         if(!empty($request->maxPrice))
             $maxPrice = $request->maxPrice;
+
+        if(!empty($request->maxDailyOrder))
+            $maxDailyOrder = $request->maxDailyOrder;
+
+        if(!empty($request->maxDailyAmount))
+            $maxDailyAmount = $request->maxDailyAmount;
             
         $minAmount = trim(explode('-',$amountFilter)[0]);
         $maxAmount = trim(explode('-',$amountFilter)[1]);
@@ -475,10 +489,10 @@ class orderFulfillmentController extends Controller
         if(empty($settings))
             settings::insert(['minAmount'=>$minAmount,'maxAmount'=>$maxAmount,
             'quantityRangeCheck'=>$qtyrangecheck,'minQty'=>$minQty,'maxQty'=>$maxQty,
-            'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice]);
+            'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice ,'maxDailyOrder'=>$maxDailyOrder, 'maxDailyAmount'=>$maxDailyAmount,'dailyAmountCheck'=>$dailyamtcheck, 'dailyOrderCheck'=>$dailyordercheck]);
         else
             settings::where('id',$settings->id)->update(['minAmount'=>$minAmount,'maxAmount'=>$maxAmount,
-            'quantityRangeCheck'=>$qtyrangecheck,'minQty'=>$minQty,'maxQty'=>$maxQty,'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice]);
+            'quantityRangeCheck'=>$qtyrangecheck,'minQty'=>$minQty,'maxQty'=>$maxQty,'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice,'maxDailyOrder'=>$maxDailyOrder, 'maxDailyAmount'=>$maxDailyAmount,'dailyAmountCheck'=>$dailyamtcheck, 'dailyOrderCheck'=>$dailyordercheck]);
 
         Session::flash('success_msg', __('Settings successfully updated'));
         return redirect()->route('orderFulfillmentSetting');

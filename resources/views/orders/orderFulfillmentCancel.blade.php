@@ -115,8 +115,9 @@ $(document).ready(function(){
                         <table class="table align-items-center table-flush">
                             <thead class="thead-light">
                                 <tr>
+                                    <th scope="col">Date</th>
                                     <th scope="col">{{ __('Purchase Order Id') }}</th>                                   
-                              
+
                                     <th scope="col">{{ __('Status') }}</th>
                                     
                                     <th scope="col">{{ __('View') }}</th>
@@ -125,7 +126,10 @@ $(document).ready(function(){
                             </thead>
                             <tbody>
                                 @foreach ($orders as $order)
-                                    <tr>                                        
+                                    <tr>
+                                        <td>  
+                                        {{ $provider::getIranTime(date_format(date_create($order->ordercreatedate), 'm/d/Y H:i:s')) }}
+                                        </td>                                      
                                         <td>{{ $order->afpoNumber }}</td>
                                         <td>{{$order->orderStatus}}</td>
                                         

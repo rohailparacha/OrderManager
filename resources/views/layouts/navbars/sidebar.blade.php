@@ -114,14 +114,7 @@
                                     {{ __('Order Fulfillment Cancel Alert') }}
                                 </a>
                             </li>
-
-                            @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(6,json_decode(auth()->user()->assigned_pages))))                       
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('returns') }}">
-                                    {{ __('Return Center') }}
-                                </a>
-                            </li>
-                            @endif
+                            
 
                             @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(6,json_decode(auth()->user()->assigned_pages))))                       
                             <li class="nav-item">
@@ -138,9 +131,37 @@
 
                 
                 <!--  new sidebar end -->                
+                @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(6,json_decode(auth()->user()->assigned_pages))))                       
+                <li class="nav-item">
+                    <a class="nav-link active" href="#navbar-examples" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                        <i class="fa fa-exchange-alt text-primary" ></i>
+                        <span class="nav-link-text text-primary" >{{ __('Return Center') }}</span>
+                    </a>
+
+                    <div class="collapse show" id="navbar-examples">
+                        <ul class="nav nav-sm flex-column">                            
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('returns') }}">
+                                    {{ __('Waiting For Return') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('refunds') }}">
+                                    {{ __('Waiting For Refund') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('completed') }}">
+                                    {{ __('Completed') }}
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </li>
                 
-                
-                
+                @endif
                 <li class="nav-item">
                     <a class="nav-link active" href="#navbar-examples" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
                         <i class="fa fa-users text-primary" ></i>

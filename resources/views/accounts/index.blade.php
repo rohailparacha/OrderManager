@@ -61,13 +61,15 @@ table {
                         <table class="table align-items-center table-flush">
                             <thead class="thead-light">
                                 <tr>
-                                    <th scope="col" width="11%">{{ __('Store Name') }}</th>
-                                    <th scope="col" width="7%">{{ __('User') }}</th>
-                                    <th scope="col" width="50%">{{ __('Password') }}</th>
+                                    <th scope="col" width="10%">{{ __('Store Name') }}</th>
+                                    <th scope="col" width="6%">{{ __('User') }}</th>
+                                    <th scope="col" width="38%">{{ __('Password') }}</th>
+                                    <th scope="col" width="8%">{{ __('Quantity') }}</th>
+                                    <th scope="col" width="8%">{{ __('Max Listing Buffer') }}</th>
                                     <th scope="col" width="5%">{{ __('Lag Time') }}</th>
                                     <th scope="col" width="8%">{{ __('SC Account') }}</th>
                                     <th scope="col" width="7%">{{ __('Informed Id') }}</th>
-                                    <th scope="col" width="7%">{{ __('Manager') }}</th>
+                                    <th scope="col" width="8%">{{ __('Manager') }}</th>
                                     <th scope="col" width="5%"></th>
                                 </tr>
                             </thead>
@@ -77,7 +79,9 @@ table {
                                         <td>{{ $account->store }}</td>
                                         <td>{{ $account->username }}</td>
                                         <td>{{ $account->password }}</td>
-                                        <td>{{ $account->lagTime }}</td>
+                                        <td style="text-align:center;">{{ $account->quantity }}</td>
+                                        <td style="text-align:center;">{{ $account->maxListingBuffer }}</td>
+                                        <td style="text-align:center;">{{ $account->lagTime }}</td>
                                         <td>{{ $account->name }}</td>
                                         <td>{{ $account->informed_id }}</td>                                    
                                         <td>{{ $account->manager }}</td>                                        

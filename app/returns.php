@@ -11,5 +11,5 @@ class returns extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['created_at','order_id','sellOrderId','reason','carrier','trackingNumber','label'];
+    protected $fillable = ['created_at','order_id','sellOrderId','reason','carrier','trackingNumber','label','returnDate','refundDate'];
 }

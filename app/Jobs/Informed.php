@@ -77,7 +77,7 @@ class Informed implements ShouldQueue
                 if($product->lowestPrice==0)
                     $qty='0';
                 else
-                    $qty='100';
+                    $qty=empty($product->quantity)?'100':$product->quantity;
                     
                 $blacklist = blacklist::all();
                 
@@ -118,8 +118,8 @@ class Informed implements ShouldQueue
                 $temp['FloorPrice'] = 0;
                 $temp['CeilingPrice'] = 0;
                 $data['ProductSites'][]= $temp;     
-
-            
+                
+                $maxListing=empty($product->maxListingBuffer)?'2':$product->maxListingBuffer;
 
             
             

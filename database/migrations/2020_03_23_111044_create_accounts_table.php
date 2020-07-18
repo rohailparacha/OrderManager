@@ -23,6 +23,8 @@ class CreateAccountsTable extends Migration
             $table->integer('lagTime')->default(0);            
             $table->foreign('scaccount_id')->references('id')->on('sc_accounts');
             $table->integer('informed_id');
+            $table->integer('maxListingBuffer')->default(2);
+            $table->integer('quantity')->default(100);
         });
     }
 

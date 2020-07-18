@@ -74,6 +74,28 @@
                                     @endif
                                 </div>
 
+                                <div class="form-group{{ $errors->has('quantity') ? ' has-danger' : '' }}">
+                                    <label class="form-control-label" for="input-email">{{ __('Quantity') }}</label>
+                                    <input type="text" name="quantity" id="input-email" class="form-control form-control-alternative{{ $errors->has('quantity') ? ' is-invalid' : '' }}" placeholder="{{ __('Quantity') }}" value="{{ old('quantity') }}" required>
+
+                                    @if ($errors->has('quantity'))
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $errors->account_add->first('quantity') }}</strong>
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <div class="form-group{{ $errors->has('maxListing') ? ' has-danger' : '' }}">
+                                    <label class="form-control-label" for="input-email">{{ __('Max Listing Buffer') }}</label>
+                                    <input type="text" name="maxListing" id="input-email" class="form-control form-control-alternative{{ $errors->has('maxListing') ? ' is-invalid' : '' }}" placeholder="{{ __('Max Listing Buffer') }}" value="{{ old('maxListing') }}" required>
+
+                                    @if ($errors->has('maxListing'))
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $errors->account_add->first('maxListing') }}</strong>
+                                        </span>
+                                    @endif
+                                </div>
+
                                 <div class="form-group{{ $errors->has('informed') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="input-email">{{ __('Informed Id') }}</label>
                                     <input type="text" name="informed" id="input-email" class="form-control form-control-alternative{{ $errors->has('informed') ? ' is-invalid' : '' }}" placeholder="{{ __('Informed Account Id') }}" value="{{ old('informed') }}" required>

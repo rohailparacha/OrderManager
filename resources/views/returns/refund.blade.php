@@ -5,6 +5,21 @@
 @inject('provider', 'App\Http\Controllers\orderController')
 
 <script src="{{ asset('argon') }}/js/jquery.printPage.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<script>
+$(function() {
+  $('input[name="daterange"]').daterangepicker({
+    opens: 'left'
+  }, function(start, end, label) {
+    console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
+  });
+});
+</script>
+
 <style>
 td.prodtd,th.prodth {
   white-space: normal !important; 
@@ -216,22 +231,13 @@ $(document).ready(function(){
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-4">
-                                <h3 class="mb-0">{{ __('Return Center') }}</h3>
+                                <h3 class="mb-0">{{ __('Waiting For Refund') }}</h3>
                             </div>
-                            <div class="col-8" style="float:right; ">
-                            <form class="form-inline" action="/returnsupload" method="post" enctype="multipart/form-data" style="float:right;">
-                            {{ csrf_field() }}
-                                <div class="form-group">
-                                    <input type="file" class="form-control" name="file" />                
+                            <div class="col-8" style="float:right; ">                                
+                                @if(!empty($search) && $search==1)
+                                        <a href="{{ route($route) }}"class="btn btn-primary btn-md" style="float:right;">Go Back</a>
+                                @endif                               
                             
-                                    <input type="submit" class="btn btn-primary" value="Import" style="margin-left:10px;"/>
-                                    <input type="button" id="btnAddCat" class="btn btn-primary" value="Add Return"/>      
-                                    @if(!empty($search) && $search==1)
-                                        <a href="{{ route($route) }}"class="btn btn-primary btn-md">Go Back</a>
-                                    @endif                               
-                                </div>
-                            
-                            </form>
                             
                             </div> 
                               
@@ -247,7 +253,7 @@ $(document).ready(function(){
                             <div style="width:100%; padding-bottom:2%;">
                                 <div class="form-group">
                                     
-                                <div style="padding-right:5%;">
+                                <div style="padding-right:1%;">
                                 <select class="form-control" name="statusFilter" style="margin-right:0%;width:180px;">
                                     <option value="0">Status</option>
                                     <option value="1" {{ isset($statusFilter) && $statusFilter=="1"?"selected":"" }}>New</option>
@@ -256,7 +262,7 @@ $(document).ready(function(){
                                 </select>
                                 </div>
 
-                                <div style="padding-right:5%;">
+                                <div style="padding-right:1%;">
                                 <select class="form-control" name="labelFilter" style="margin-right:0%;width:180px;">
                                     <option value="0">Label</option>
                                     <option value="1" {{ isset($labelFilter) && $labelFilter=="1"?"selected":"" }}>Yes</option>
@@ -264,7 +270,7 @@ $(document).ready(function(){
                                 </select>
                                 </div>
 
-                                <div style="padding-right:5%;">
+                                <div style="padding-right:1%;">
                                 <select class="form-control" name="storeFilter" style="margin-right:0%;width:180px;">
                                     <option value="0">Store Name</option>
                                     @foreach($stores as $store)
@@ -273,6 +279,21 @@ $(document).ready(function(){
                                     
                                     
                                 </select>
+                                </div>
+
+                                <div style="padding-right:1%;">
+                                <select class="form-control" name="accountFilter" style="margin-right:0%;width:180px;">
+                                    <option value="0">Select Account</option>
+                                    @foreach($accounts as $account)
+                                    <option value="{{$account->id}}" {{ isset($accountFilter) && $accountFilter==$account->id?"selected":"" }}>{{$account->email}}</option>
+                                    @endforeach
+                                    
+                                    
+                                </select>
+                                </div>
+
+                                <div style="padding-right: 1%; float:right; width=170px; ">                                
+                                    <input class="form-control" type="text" name="daterange" value="{{$dateRange ?? ''}}" />
                                 </div>
                                    
                                                                         
@@ -309,6 +330,7 @@ $(document).ready(function(){
                             <thead class="thead-light">
                                 <tr>
                                     <th scope="col" class="prodth">{{ __('Date') }}</th>
+                                    
                                     <th scope="col" class="prodth">{{ __('Buyer Name') }}</th>
                                     <th scope="col" class="prodth">{{ __('Sell Order Number') }}</th>
                                     <th scope="col" class="prodth">{{ __('Sell Amount') }}</th>
@@ -320,9 +342,7 @@ $(document).ready(function(){
                                     <th scope="col" class="prodth">{{ __('Return Reason') }}</th>                                        
                                     <th scope="col" class="prodth">{{ __('Carrier') }}</th>   
                                     <th scope="col" class="prodth">{{ __('Tracking Number') }}</th>  
-                                    <th scope="col" class="prodth">{{ __('Label') }}</th>
-                                    
-                                    <th scope="col" class="prodth">{{ __('Return') }}</th>                                                                         
+                                    <th scope="col" class="prodth">{{ __('Label') }}</th>                                                                                                        
                                     <th scope="col" class="prodth">{{ __('Refund') }}</th>                                                                         
                                     <th scope="col" class="prodth"></th>
                                 </tr>
@@ -330,7 +350,11 @@ $(document).ready(function(){
                             <tbody>
                                 @foreach ($returns as $return)
                                     <tr>
-                                        <td width="10%">{{ $provider::getIranTime(date_format(date_create($return->created_at), 'm/d/Y H:i:s')) }}</td>
+                                        @if(!empty($return->returnDate))
+                                        <td width="10%">{{ $provider::getIranTime(date_format(date_create($return->returnDate), 'm/d/Y H:i:s')) }}</td>
+                                        @else
+                                        <td width="10%"></td>
+                                        @endif
                                         <td class="prodtd">{{ $return->buyerName }}</td>                                        
                                         <td class="prodtd"><a href="orderDetails/{{$return->order_id}}" target='_blank'>{{ $return->sellOrderId }}</a></td>
                                         <td class="prodtd">{{number_format((float)$return->totalAmount , 2, '.', '')}}</td>
@@ -383,12 +407,7 @@ $(document).ready(function(){
                                             <button class="btn btn-primary btn-sm" disabled>{{ __('Label') }}</button>
                                             @endif
                                         </td>                                        
-                                        
-                                        @if($return->status!='refunded' && $return->status!='returned')
-                                        <td class="prodtd"><a  href="./updateStatus?status=1&id={{$return->id}}"  class="btn btn-primary btn-sm">Return</a></td>
-                                        @else                                    
-                                            <td class="prodtd">Returned</td>    
-                                        @endif
+                                                                                
                                         
                                         @if($return->status=='returned')
                                         <td class="prodtd"><a href="updateStatus?status=2&id={{$return->id}}" class="btn btn-primary btn-sm">Refund</a></td>    

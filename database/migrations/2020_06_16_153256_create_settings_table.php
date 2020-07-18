@@ -30,6 +30,12 @@ class CreateSettingsTable extends Migration
             $table->integer('discount')->default(0);
 
             $table->integer('maxPrice')->default(0);
+
+            $table->integer('maxDailyOrder')->default(0);
+            $table->boolean('dailyOrderCheck')->default(false);
+
+            $table->integer('maxDailyAmount')->default(0);
+            $table->boolean('dailyAmountCheck')->default(false);
         });
     }
 

@@ -10,5 +10,5 @@ class cancelled_orders extends Model
     protected $table = 'cancelled_orders';
     public $timestamps = false;
 
-    protected $fillable = ['id','order_id','status'];
+    protected $fillable = ['created_at','id','order_id','status'];
 }

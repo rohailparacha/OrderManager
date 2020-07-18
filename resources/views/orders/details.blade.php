@@ -776,6 +776,20 @@ td {
                         <div class="card-header bg-dark"><H3 style="color:white!important;">Processed</H3> </div>                            
                         <div class="card-body"><button id="btnProcess" class="btn btn-primary btn-md" disabled>Process</button></div>
                         @endif    
+                        
+                        </div>
+            
+                        <div class="card">
+                        <div class="card-body">
+                        <div class="row">
+                        <div class="col-lg-6"><strong>Ship Due:</strong><span style="display:block;">
+                        {{ date_format(date_create($order->dueShip), 'm/d/Y') }}
+                        </span></div>
+                        <div class="col-lg-6"><strong>Delivery Due:</strong><span style="display:block;">
+                        {{ date_format(date_create($order->dueDelivery), 'm/d/Y') }}
+                        </span></div>
+                        </div>
+                        </div>
                         </div>
                     </div>
                     

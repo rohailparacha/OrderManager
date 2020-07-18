@@ -147,7 +147,42 @@ $( function() {
                                 </div>
 
                                 <br><br>
+                                <label class="form-control-label" for="input-name">{{ __('Max Daily Order:') }}</label>                                
 
+                                <div class="row">
+                                <div class="col-sm-1 form-group" style="max-width:2%;margin-top: 0.6rem;">                                    
+                                    <input  type="checkbox" id="vehicle1" name="dailyordercheck" {{!empty($settings->dailyOrderCheck) && $settings->dailyOrderCheck==true?'checked':''}}>  
+                                </div>
+                                <div class="col-sm-6 form-group">
+                                    <div class="i-checks">
+                                        <label class="control-label"> 
+                                        <input type="text" name="maxDailyOrder" id="input-name" class="form-control form-inline" placeholder="{{ __('Max Daily Order') }}" value="{{ empty($settings->maxDailyOrder)?'':$settings->maxDailyOrder  }}" autofocus>
+                                    </div>
+                                </div>
+                                </div>
+                                @error('maxDailyOrder')
+                                            <div class="permissions" style="color:red;">{{ $message }}</div>
+                                @enderror
+
+                                <br><br>
+                                <label class="form-control-label" for="input-name">{{ __('Max Daily Amount:') }}</label>                                
+
+                                <div class="row">
+                                <div class="col-sm-1 form-group" style="max-width:2%;margin-top: 0.6rem;">                                    
+                                    <input  type="checkbox" id="vehicle1" name="dailyamtcheck" {{!empty($settings->dailyAmountCheck) && $settings->dailyAmountCheck==true?'checked':''}}>  
+                                </div>
+                                <div class="col-sm-6 form-group">
+                                    <div class="i-checks">
+                                        <label class="control-label"> 
+                                        <input type="text" name="maxDailyAmount" id="input-name" class="form-control form-inline" placeholder="{{ __('Max Daily Amount') }}" value="{{ empty($settings->maxDailyAmount)?'':$settings->maxDailyAmount  }}" autofocus>
+                                    </div>
+                                </div>
+                                </div>
+                                @error('maxDailyAmount')
+                                            <div class="permissions" style="color:red;">{{ $message }}</div>
+                                @enderror
+                                
+                                <br><br>
                                 
                                 <label class="form-control-label" for="input-name">{{ __('Discount:') }}</label>                                
 
@@ -180,8 +215,8 @@ $( function() {
                                             <div class="permissions" style="color:red;">{{ $message }}</div>
                                 @enderror
                                 
-                                
                                 <br><br>
+
                                 </div>
                                
                                 <div class="text-center">

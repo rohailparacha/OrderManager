@@ -5,7 +5,7 @@ use App\walmart_products;
 use App\orders;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use Carbon\Carbon;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -87,6 +87,7 @@ Route::post('autofulfill_update', function(Request $request) {
         'itemId'=>$record['itemId'],
         'afpoNumber'=>$record['afpoNumber'],
         'account_id'=>'Cindy',
+        'of_bce_created_at'=>Carbon::now(),
         'status'=>'processing'
         ]);
 

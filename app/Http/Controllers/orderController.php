@@ -7,6 +7,7 @@ use App\blacklist;
 use App\settings;
 use App\walmart_products;
 use DB;
+use Carbon\Carbon;
 use App\User;
 use App\returns;
 use App\states;
@@ -1667,6 +1668,7 @@ class orderController extends Controller
                     $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
                     }) 
+                ->whereNull('returns.status')
                 ->orderBy('created_at','desc')
                 ->paginate(100);
             }
@@ -1689,8 +1691,11 @@ class orderController extends Controller
                     $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
                     $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
-                    })          
-                ->whereIn('orders.storeName',$strArray)             
+                    })    
+                ->whereNull('returns.status')     
+                 
+                ->whereIn('orders.storeName',$strArray)  
+                ->orderBy('created_at','desc')           
                 ->paginate(100);
             }
         
@@ -1704,7 +1709,9 @@ class orderController extends Controller
                     $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
                     })    
-                ->where('orders.uid',auth()->user()->id)                
+                ->where('orders.uid',auth()->user()->id)  
+                ->whereNull('returns.status')   
+                ->orderBy('created_at','desc')           
                 ->paginate(100);
             }
 
@@ -1743,7 +1750,201 @@ class orderController extends Controller
              $stores = accounts::all();         
 
              $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
-            return view('returns',compact('returns','accounts','stores','search','route'));
+            return view('returns.return',compact('returns','accounts','stores','search','route'));
+        }
+
+        else if($route == 'refunds')
+        {
+         
+            if(auth()->user()->role==1)
+            {
+                $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
+                ->select(['orders.*','returns.*'])
+                ->where(function($test) use ($query){
+                    $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
+                    }) 
+                ->where('returns.status','returned')
+                ->orderBy('returnDate','desc')
+                ->paginate(100);
+            }
+    
+            elseif(auth()->user()->role==2)
+            {
+                
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+    
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }
+                                
+                $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
+                ->select(['orders.*','returns.*'])       
+                ->where(function($test) use ($query){
+                    $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
+                    })          
+                ->where('returns.status','returned')
+                ->whereIn('orders.storeName',$strArray)
+                ->orderBy('returnDate','desc')             
+                ->paginate(100);
+            }
+        
+            else
+            {
+                $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
+                ->select(['orders.*','returns.*'])
+                ->where(function($test) use ($query){
+                    $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
+                    })    
+                ->where('orders.uid',auth()->user()->id)  
+                ->where('returns.status','returned')       
+                ->orderBy('returnDate','desc')       
+                ->paginate(100);
+            }
+
+            foreach($returns as $return)
+            {
+                $order_details = order_details::where('order_id',$return->order_id)->get(); 
+                if(empty($order_details))
+                    continue;
+                
+                
+                foreach($order_details as $detail)
+                {
+                    $amz = products::where('asin',$detail->SKU)->get()->first(); 
+                    if(empty($amz))
+                        {
+                            $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
+                            if(empty($ebay))
+                                $sources[]= 'N/A'; 
+                            else
+                                $sources[]= 'Ebay'; 
+
+                        }
+                    else
+                                $sources[]= 'Amazon'; 
+
+                    $b = array_unique($sources); 
+
+                    if(count($b)==1)
+                        $return->source = $b[0];
+                    else
+                        $return->source = 'Mix';
+                }
+            }
+            
+            $accounts = gmail_accounts::all();
+             $stores = accounts::all();         
+
+             $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
+            return view('returns.refund',compact('returns','accounts','stores','search','route'));
+        }
+
+        else if($route == 'completed')
+        {
+         
+            if(auth()->user()->role==1)
+            {
+                $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
+                ->select(['orders.*','returns.*'])
+                ->where(function($test) use ($query){
+                    $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
+                    }) 
+                ->where('returns.status','refunded')
+                ->orderBy('refundDate','desc')
+                ->paginate(100);
+            }
+    
+            elseif(auth()->user()->role==2)
+            {
+                
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+    
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }
+                                
+                $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
+                ->select(['orders.*','returns.*'])       
+                ->where(function($test) use ($query){
+                    $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
+                    }) 
+                ->where('returns.status','refunded')         
+                ->whereIn('orders.storeName',$strArray)   
+                ->orderBy('refundDate','desc')          
+                ->paginate(100);
+            }
+        
+            else
+            {
+                $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
+                ->select(['orders.*','returns.*'])
+                ->where(function($test) use ($query){
+                    $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
+                    })    
+                ->where('orders.uid',auth()->user()->id)   
+                ->where('returns.status','refunded')       
+                ->orderBy('refundDate','desc')      
+                ->paginate(100);
+            }
+
+            foreach($returns as $return)
+            {
+                $order_details = order_details::where('order_id',$return->order_id)->get(); 
+                if(empty($order_details))
+                    continue;
+                
+                
+                foreach($order_details as $detail)
+                {
+                    $amz = products::where('asin',$detail->SKU)->get()->first(); 
+                    if(empty($amz))
+                        {
+                            $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
+                            if(empty($ebay))
+                                $sources[]= 'N/A'; 
+                            else
+                                $sources[]= 'Ebay'; 
+
+                        }
+                    else
+                                $sources[]= 'Amazon'; 
+
+                    $b = array_unique($sources); 
+
+                    if(count($b)==1)
+                        $return->source = $b[0];
+                    else
+                        $return->source = 'Mix';
+                }
+            }
+            
+            $accounts = gmail_accounts::all();
+             $stores = accounts::all();         
+
+             $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
+            return view('returns.complete',compact('returns','accounts','stores','search','route'));
         }
 
         else if($route == 'product.report')
@@ -2033,7 +2234,17 @@ class orderController extends Controller
                 $temp['country'] =$order->$att;   
 
                 $att = 'PostalCode';
-                $temp['postalCode'] =$order->$att;   
+                $temp['postalCode'] =$order->$att;
+                
+                $att = 'LatestShipDate';
+                $dateTime = new \DateTime ($order->$att);
+                $dateTime->setTimezone(new \DateTimeZone('America/Los_Angeles'));
+                $temp['dueShip'] = $dateTime->format('Y-m-d H:i:s');                 
+
+                $att = 'LatestDeliveryDate';
+                $dateTime = new \DateTime ($order->$att);
+                $dateTime->setTimezone(new \DateTimeZone('America/Los_Angeles'));
+                $temp['dueDelivery'] = $dateTime->format('Y-m-d H:i:s');             
 
                 
 

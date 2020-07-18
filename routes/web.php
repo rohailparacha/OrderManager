@@ -121,7 +121,9 @@ Route::group(['middleware' => 'auth'], function () {
 
 
 	//return center
-	Route::get('/returns', 'returnsController@index')->name('returns')->middleware('admin');
+	Route::get('/waitingReturns', 'returnsController@index')->name('returns')->middleware('admin');
+	Route::get('/waitingRefunds', 'returnsController@refunds')->name('refunds')->middleware('admin');
+	Route::get('/completedReturns', 'returnsController@completed')->name('completed')->middleware('admin');
 	Route::post('/addreturn', 'returnsController@addReturn')->middleware('admin');
 	Route::post('/editreturn', 'returnsController@editReturn')->middleware('admin');
 	Route::delete('/deleteReturn/{id}','returnsController@deleteReturn')->name('deleteReturn')->middleware('admin');
@@ -131,6 +133,8 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('labelPrint/{id}','returnsController@labelPrint');
 	Route::get('labelDelete/{id}','returnsController@labelDelete');
 	Route::any('returnFilter','returnsController@returnFilter')->middleware('admin');
+	Route::any('refundFilter','returnsController@refundFilter')->middleware('admin');
+	Route::any('completedFilter','returnsController@completedFilter')->middleware('admin');
     
     //accounting
 

@@ -30,7 +30,7 @@ class SellerActiveExport implements FromCollection,WithHeadings,ShouldAutoSize
             if($product->lowestPrice==0)
                 $qty='0';
             else
-                $qty='100';
+                $qty=empty($product->quantity)?'100':$product->quantity;
                 
             $blacklist = blacklist::all();
             
@@ -53,7 +53,7 @@ class SellerActiveExport implements FromCollection,WithHeadings,ShouldAutoSize
                 "SellerSKU"=>$product->asin,
                 "Price"=>$product->price,
                 "Location"=>'My Warehouse',
-                "MaxListing Buffer"=>"2",
+                "MaxListing Buffer"=>empty($product->maxListingBuffer)?'2':$product->maxListingBuffer,
                 "Leadtime to Ship"=>$product->lagTime,
                 'Price (minimum)'=>'0',
                 'Price (maximum)'=>'0',

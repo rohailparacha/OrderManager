@@ -17,6 +17,8 @@ class CreateReturnsTable extends Migration
             $table->id();
             $table->unsignedBigInteger('order_id');
             $table->timestamp('created_at')->nullable();
+            $table->timestamp('returnDate')->nullable();
+            $table->timestamp('refundDate')->nullable();
             $table->string('sellOrderId');
             $table->string('reason');
             $table->string('carrier');
