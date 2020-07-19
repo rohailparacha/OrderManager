@@ -11,6 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\logs;
+use App\log_batches;
 use App\products;
 use App\accounts;
 use App\Jobs\Repricing;
@@ -39,6 +40,8 @@ class Repricing implements ShouldQueue
     private $recordId; 
     private $offset;
     private $prodCount;
+    public $batchId;
+
     public function __construct($collection, $status)
     {
         //
@@ -99,7 +102,7 @@ class Repricing implements ShouldQueue
             $this->getProducts($col);            
         }        
         
-        
+        logs::where('id',$this->recordId)->where('status','In Progress')->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Completed']);
 
     }
 
@@ -665,8 +668,6 @@ class Repricing implements ShouldQueue
 
         $filename = date("d-m-Y")."-".time()."-import.csv";
         
-        
-
         if($this->status=='new')
             Excel::store(new InformedExport( $this->prodCount + ($this->offset * 5000)), $filename,'local');      
         else
@@ -676,7 +677,9 @@ class Repricing implements ShouldQueue
 
         $key= env('INFORMED_TOKEN', '');
         try{
-            logs::where('id',$this->recordId)->update(['stage'=>'Informed']);      
+            
+            $this->batchId = log_batches::insertGetId(['log_id'=>$this->recordId,'name'=>'Batch - '.($this->offset +1),'date_started'=>date('Y-m-d H:i:s'),'stage'=>'Informed','status'=>'In Progress']);   
+
             $promise = $client->requestAsync('POST', $endPoint,
             [
             'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json', 'x-api-key' => $key],
@@ -739,12 +742,13 @@ class Repricing implements ShouldQueue
            if($status=='Completed' || $status= 'CompletedWithErrors')
            {
             
-           
+            log_batches::where('id',$this->batchId)->update(['totalItems'=>$body->SuccessCount+$body->ErrorCount, 'successItems'=>$body->SuccessCount,'errorItems'=> $body->ErrorCount]);    
+
             if($this->status=='new')            
-                Informed::dispatch(( $this->prodCount + ($this->offset * 5000)),$this->recordId)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
+                Informed::dispatch(( $this->prodCount + ($this->offset * 5000)),$this->recordId, $this->batchId)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
 
             else
-                 Informed::dispatch($this->offset * 5000,$this->recordId)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
+                 Informed::dispatch($this->offset * 5000,$this->recordId, $this->batchId)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
            }
            else
            { 
@@ -755,7 +759,7 @@ class Repricing implements ShouldQueue
         catch (\GuzzleHttp\Exception\ClientException $e) {
             $response = $e->getResponse();
             $responseBodyAsString = $response->getBody()->getContents();             
-            logs::where('id',$this->recordId)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Failed','error'=>$responseBodyAsString]);                                       
+            log_batches::where('id',$this->batchId)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Failed','error'=>$responseBodyAsString]);                                       
         }           
         
     }

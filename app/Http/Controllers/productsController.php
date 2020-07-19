@@ -7,6 +7,7 @@ use App\strategies;
 use App\logs;
 use App\products;
 use App\accounts;
+use App\log_batches;
 use App\Jobs\Repricing;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\File; 
@@ -43,7 +44,13 @@ class productsController extends Controller
         return view('logs',compact('logs'));
     }
 
-    
+    public function getLogBatches(Request $request)
+    {
+        $id = $request['id'];
+        $logs = log_batches::where('log_id',$id)->orderBy('date_started','asc')->get();
+        return json_encode($logs);
+    }
+
     public function getTemplate()
     {
         //PDF file is stored under project/public/download/info.pdf
