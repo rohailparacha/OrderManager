@@ -739,7 +739,7 @@ class Repricing implements ShouldQueue
            $status = $body->Status;
            $percentage = $body->ProcessedPercent;
            
-           if($status=='Completed' || $status= 'CompletedWithErrors')
+           if($status=='Completed' || $status== 'CompletedWithErrors')
            {
             
             log_batches::where('id',$this->batchId)->update(['totalItems'=>$body->SuccessCount+$body->ErrorCount, 'successItems'=>$body->SuccessCount,'errorItems'=> $body->ErrorCount]);    
