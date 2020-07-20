@@ -72,7 +72,6 @@ class Repricing implements ShouldQueue
 
     public function repricing()
     {
-      
         $this->recordId = logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress']);
         
         $products = products::all();

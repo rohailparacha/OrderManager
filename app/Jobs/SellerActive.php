@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use App\strategies;
 use App\logs;
 use App\log_batches;
+
 use App\products;
 use App\accounts;
 use App\blacklist;
@@ -35,13 +36,20 @@ class SellerActive implements ShouldQueue
      * @return void
      */
     public $account;
-    public $products;
+    public $offset;
+    public $limit; 
     public $id; 
-    public function __construct($products, $account, $id)
+    public $success;
+    public $failure;
+
+    public function __construct($offset, $limit,  $account, $id)
     {
-        $this->products = $products; 
+        $this->offset = $offset; 
+        $this->limit = $limit; 
         $this->account = $account;
         $this->id = $id;
+        $this->success= 0;
+        $this->failure= 0;
     }
 
     /**
@@ -51,10 +59,11 @@ class SellerActive implements ShouldQueue
      */
     public function handle()
     {                
-        $this->updatePrices($this->products, $this->account);
-        $lastId = accounts::max('id');
-        if($this->account->id == $lastId)
-            log_batches::where('id',$this->id)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Completed']);           
+        $products = products::offset($this->offset)->limit($this->limit)->get();
+        $this->updatePrices($products, $this->account);                
+        
+
+        
     }
 
     public function updatePrices($products, $account)
@@ -65,12 +74,15 @@ class SellerActive implements ShouldQueue
             
             $client = new Client();  
 
+        
+            $account = accounts::where('id',$account)->get()->first(); 
             $credential = $account;              
-            
             foreach($products as $product)
-            {
+            {                
                 if(strtolower(trim($product->account))!=strtolower(trim($account->store)))
                     continue; 
+                    
+               
 
                 $detail = products::leftJoin('accounts','products.account','=','accounts.store')
                 ->select(['products.*','accounts.lagTime'])
@@ -102,11 +114,7 @@ class SellerActive implements ShouldQueue
 
                 $remaining = $this->getRateLimit($credential);
 
-                if($remaining['remaining']<100)
-                {
-                    sleep($remaining['reset']);
-                    $this->updatePrices($offset, $limit);
-                }
+                
                 
                 $data['SKU'] =$product->asin;
                 $data['Quantity'] = $qty;
@@ -127,31 +135,13 @@ class SellerActive implements ShouldQueue
                 $data['ProductSites'][]= $temp;     
                 
                 $maxListing=empty($product->maxListingBuffer)?'2':$product->maxListingBuffer;
-
-            
-            
-            try
-            {                                
                 
-                $response = $client->request('PUT', $endPoint,
-                [
-                    'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json', 'token' => 'test-token'],
-                    'body' => json_encode($data),
-                    'auth' => [
-                        $credential->username, 
-                        $credential->password
-                    ]
-                ]);    
-                                               
-                $status = $response->getStatusCode(); 
-                $responseBodyAsString = $response->getBody()->getContents();             
-               
-            }
-            catch (\GuzzleHttp\Exception\ClientException $e) {
-                $response = $e->getResponse();
-                $responseBodyAsString = $response->getBody()->getContents();             
-                                                            
-            }  
+                if($remaining['remaining']<100)
+                {
+                    sleep($remaining['reset']);                    
+                }
+                $this->update($endPoint,$data, $credential);
+                
 
             }                               
         }
@@ -160,9 +150,55 @@ class SellerActive implements ShouldQueue
             
         }
 
-            
+        $lastId = accounts::max('id');
+        if($account->id == $lastId)
+            log_batches::where('id',$this->id)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Completed']);           
         
-    }    
+        log_batches::where('id',$this->id)->increment('totalItems',($this->success + $this->failure));
+        log_batches::where('id',$this->id)->increment('successItems',($this->success));
+        log_batches::where('id',$this->id)->increment('errorItems',($this->failure));
+    }
+    
+    public function update($endPoint,$data, $credential)
+    {
+        $client = new client(); 
+        try
+        {                                
+            
+            $promise = $client->requestAsync('PUT', $endPoint,
+            [
+                'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json', 'token' => 'test-token'],                
+                'body' => json_encode($data),
+                'auth' => [
+                    $credential->username, 
+                    $credential->password
+                ]
+            ]);    
+            
+            $promise->then(
+                function (ResponseInterface $res) {
+                   return $res;                                     
+                },
+                function (RequestException $e) {
+                   return $e;
+                }
+            );
+    
+            $response1 = $promise->wait();
+            $status = $response1->getStatusCode(); 
+            
+            if($status==200)
+                $this->success = $this->success + 1;
+            else
+                $this->failure = $this->failure + 1; 
+        }
+        catch (\GuzzleHttp\Exception\ClientException $e) {
+            $response = $e->getResponse();
+            $responseBodyAsString = $response->getBody()->getContents();  
+                                  
+            $this->failure = $this->failure + 1;                                                   
+        }
+    }
 
     public function getRateLimit($credential)
     {

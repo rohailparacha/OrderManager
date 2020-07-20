@@ -5,9 +5,10 @@ use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\strategies;
 use App\logs;
+use App\log_batches;
+use Carbon\Carbon;
 use App\products;
 use App\accounts;
-use App\log_batches;
 use App\Jobs\Repricing;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\File; 
@@ -40,17 +41,46 @@ class productsController extends Controller
     
     public function getLogs()
     {
-        $logs = logs::select()->orderBy('date_started', 'desc')->paginate(100);         
+        $logs = logs::select()->orderBy('date_started', 'desc')->paginate(100);
+         foreach($logs as $log)
+        {
+            if(!empty($log->date_started))
+            {
+                $log->date_started = Carbon::createFromFormat('Y-m-d H:i:s', $log->date_started, 'UTC')
+            ->setTimezone('America/Los_Angeles');     
+            }
+            
+            if(!empty($log->date_completed))
+            {
+                $log->date_completed = Carbon::createFromFormat('Y-m-d H:i:s', $log->date_completed, 'UTC')
+            ->setTimezone('America/Los_Angeles');       
+            }
+            
+        }
         return view('logs',compact('logs'));
     }
 
     public function getLogBatches(Request $request)
-    {
-        $id = $request['id'];
-        $logs = log_batches::where('log_id',$id)->orderBy('date_started','asc')->get();
-        return json_encode($logs);
-    }
-
+        {
+            $id = $request['id'];
+            $logs = log_batches::where('log_id',$id)->orderBy('date_started','asc')->get();
+             foreach($logs as $log)
+        {
+           if(!empty($log->date_started))
+            {
+                $log->date_started = Carbon::createFromFormat('Y-m-d H:i:s', $log->date_started, 'UTC')
+            ->setTimezone('America/Los_Angeles')->format('m/d/Y H:i:s');     
+            }
+            
+            if(!empty($log->date_completed))
+            {
+                $log->date_completed = Carbon::createFromFormat('Y-m-d H:i:s', $log->date_completed, 'UTC')
+            ->setTimezone('America/Los_Angeles')->format('m/d/Y H:i:s');
+            } 
+        }
+            return json_encode($logs);
+        }
+    
     public function getTemplate()
     {
         //PDF file is stored under project/public/download/info.pdf
@@ -85,7 +115,7 @@ class productsController extends Controller
     }
 
 
-    public static function getIranTime($date)
+     public static function getIranTime($date)
     {
         
         $datetime = new \DateTime($date);        
@@ -161,10 +191,9 @@ class productsController extends Controller
 
     public function getFile()
     {
-        $filename = date("d-m-Y")."-".time()."-sa-api-export.csv";
-        return Excel::download(new SellerActiveExport(), $filename);  
+        $filename = date("d-m-Y")."-".time()."-sa-api-export.xlsx";
+        return Excel::download(new SellerActiveExport(), $filename);   
     }
-
 
     public function exportAsins(Request $request)
     {
@@ -172,7 +201,6 @@ class productsController extends Controller
         $filename = date("d-m-Y")."-".time()."-asins-export.csv";
         return Excel::download(new AsinsExport($i), $filename);   
     }
-
     
     public function uploadSubmit(Request $request)
     {
@@ -375,7 +403,6 @@ class productsController extends Controller
         
         return redirect()->route('products');  
     }
-
 
 
 }

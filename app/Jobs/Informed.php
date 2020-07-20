@@ -53,9 +53,8 @@ class Informed implements ShouldQueue
      */
     public function handle()
     {                        
-
-        $this->exportRequest();        
         
+        $this->exportRequest();        
         log_batches::where('id',$this->batchId)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Completed']);           
 
 
@@ -67,13 +66,11 @@ class Informed implements ShouldQueue
         $name = log_batches::where('id',$this->batchId)->get()->first(); 
         $id = log_batches::insertGetId(['log_id'=>$this->recordId,'name'=>$name->name,'date_started'=>date('Y-m-d H:i:s'),'stage'=>'SellerActive','status'=>'In Progress']);   
         
-        $accounts = accounts::all(); 
-
-        $products = products::offset($offset)->limit($limit)->orderBy('account')->get();
+        $accounts = accounts::all();         
 
         foreach($accounts as $account)
         {
-            SellerActive::dispatch($products, $account, $id)->onConnection('informed')->onQueue('informed');   
+            SellerActive::dispatch($offset,$limit, $account->id, $id)->onConnection('informed')->onQueue('informed');   
         }                
                     
     }
