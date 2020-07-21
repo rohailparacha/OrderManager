@@ -734,7 +734,7 @@ class returnsController extends Controller
     public function deleteReturn($id)
     {
         returns::where('id',$id)->delete();        
-        return redirect()->route('returns')->withStatus(__('Return successfully deleted.'));
+        return redirect()->back()->withStatus(__('Return successfully deleted.'));
     }
 
     public function uploadSubmit(Request $request)
@@ -752,7 +752,7 @@ class returnsController extends Controller
         if($validator->fails())
         {
             Session::flash('error_msg', __('File is required'));
-            return redirect()->route('returns');
+            return redirect()->back();
         }
 
         if($request->hasFile('file'))
@@ -776,7 +776,7 @@ class returnsController extends Controller
            else
              {
                 Session::flash('error_msg', __('Invalid File Extension'));
-                return redirect()->route('returns');
+                return redirect()->back();
              }
             
 
@@ -794,7 +794,7 @@ class returnsController extends Controller
         $this->createReturns($collection);
         $newCount = returns::all()->count(); 
         Session::flash('success_msg',$newCount - $oldCount .' Returns Added Succsesfully');
-        return redirect()->route('returns');
+        return redirect()->back();
     }
 
     public function labelPrint($id)
@@ -824,7 +824,7 @@ class returnsController extends Controller
         
         $order = orders::where('id',$return->order_id)->get()->first();
         
-        return redirect()->route('returns')->withStatus(__('Label was deleted for order: '). $order->poNumber);
+        return redirect()->back()->withStatus(__('Label was deleted for order: '). $order->poNumber);
     }
 
     public function uploadLabel(Request $request)
@@ -845,7 +845,7 @@ class returnsController extends Controller
         if($validator->fails())
         {
             Session::flash('error_msg', __('File is required'));
-            return redirect()->route('returns');
+            return redirect()->back();
         }
 
         if($request->hasFile('file'))
@@ -869,7 +869,7 @@ class returnsController extends Controller
            else
              {
                 Session::flash('error_msg', __('Invalid File Extension'));
-                return redirect()->route('returns');
+                return redirect()->back();
              }
             
 
@@ -882,7 +882,7 @@ class returnsController extends Controller
         $return  = returns::where('id',$id)->get()->first(); 
         $order = orders::where('id',$return->order_id)->get()->first();
         Session::flash('success_msg','Label was uploaded for order: '.$order->poNumber);
-        return redirect()->route('returns');
+        return redirect()->back();
     }
 
     public function createReturns($collection)
