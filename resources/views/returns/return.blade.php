@@ -233,7 +233,7 @@ $(document).ready(function(){
                                 <h3 class="mb-0">{{ __('Waiting For Return') }}</h3>
                             </div>
                             <div class="col-8" style="float:right; ">
-                            <f class="form-inline" action="/returnsupload" method="post" enctype="multipart/form-data" style="float:right;">
+                            <form class="form-inline" action="/returnsupload" method="post" enctype="multipart/form-data" style="float:right;">
                             {{ csrf_field() }}
                                 <div class="form-group">
                                     <input type="file" class="form-control" name="file" />                
@@ -245,7 +245,7 @@ $(document).ready(function(){
                                     @endif                               
                                 </div>
                             
-                            </f
+                            </form>
                             
                             </div> 
                               

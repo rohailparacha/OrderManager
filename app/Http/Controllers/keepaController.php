@@ -7,7 +7,6 @@ use Validator;
 use Redirect; 
 use Response; 
 use Session;
-use App\products;
 use GuzzleHttp\Client;
 
 class keepaController extends Controller
