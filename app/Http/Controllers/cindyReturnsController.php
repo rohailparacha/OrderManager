@@ -18,7 +18,7 @@ use App\ebay_products;
 use Excel;
 use Response;
 
-class returnsController extends Controller
+class cindyReturnsController extends Controller
 {
     //
     public function index()
@@ -26,8 +26,8 @@ class returnsController extends Controller
             if(auth()->user()->role==1)
             {
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
+                ->where('orders.flag','8')
                 ->select(['orders.*','returns.*'])
-                ->where('orders.flag','!=','8')  
                 ->orderBy('created_at','desc')
                 ->whereNull('returns.status')                
                 ->paginate(100);
@@ -45,10 +45,10 @@ class returnsController extends Controller
                 }
                                 
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
-                ->select(['orders.*','returns.*']) 
-                ->where('orders.flag','!=','8')                 
+                ->select(['orders.*','returns.*'])                
                 ->whereIn('orders.storeName',$strArray)      
                 ->whereNull('returns.status')     
+                ->where('orders.flag','8')
                 ->orderBy('created_at','desc')
                 ->paginate(100);
             }
@@ -58,7 +58,7 @@ class returnsController extends Controller
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])
                 ->where('orders.uid',auth()->user()->id)  
-                ->where('orders.flag','!=','8')                
+                ->where('orders.flag','8')              
                 ->whereNull('returns.status')
                 ->orderBy('created_at','desc')
                 ->paginate(100);
@@ -106,7 +106,7 @@ class returnsController extends Controller
             $from = date("m/d/Y", strtotime($startDate));  
             $to = date("m/d/Y", strtotime($endDate));  
             $dateRange = $from .' - ' .$to;
-            return view('returns.return',compact('returns','accounts','stores','dateRange'));
+            return view('cindy.return',compact('returns','accounts','stores','dateRange'));
     }
     public function refunds()
     {
@@ -115,7 +115,7 @@ class returnsController extends Controller
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])
                 ->where('returns.status','returned')    
-                ->where('orders.flag','!=','8')       
+                ->where('orders.flag','8')     
                 ->orderBy('returnDate','desc')
                 ->paginate(100);
             }
@@ -133,9 +133,9 @@ class returnsController extends Controller
                                 
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])                
-                ->whereIn('orders.storeName',$strArray)    
+                ->whereIn('orders.storeName',$strArray)
+                ->where('orders.flag','8')    
                 ->where('returns.status','returned')  
-                ->where('orders.flag','!=','8')  
                 ->orderBy('returnDate','desc')       
                 ->paginate(100);
             }
@@ -146,7 +146,7 @@ class returnsController extends Controller
                 ->select(['orders.*','returns.*'])
                 ->where('orders.uid',auth()->user()->id)  
                 ->where('returns.status','returned')  
-                ->where('orders.flag','!=','8')  
+                ->where('orders.flag','8')
                 ->orderBy('returnDate','desc')                    
                 ->paginate(100);
             }
@@ -193,7 +193,7 @@ class returnsController extends Controller
             $from = date("m/d/Y", strtotime($startDate));  
             $to = date("m/d/Y", strtotime($endDate));  
             $dateRange = $from .' - ' .$to;
-            return view('returns.refund',compact('returns','accounts','stores','dateRange'));
+            return view('cindy.refund',compact('returns','accounts','stores','dateRange'));
     }
 
 
@@ -203,8 +203,8 @@ class returnsController extends Controller
             {
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])
-                ->where('returns.status','refunded')  
-                ->where('orders.flag','!=','8')         
+                ->where('returns.status','refunded') 
+                ->where('orders.flag','8')        
                 ->orderBy('refundDate','desc')
                 ->paginate(100);
             }
@@ -222,8 +222,8 @@ class returnsController extends Controller
                                 
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])         
-                ->where('returns.status','refunded')    
-                ->where('orders.flag','!=','8')              
+                ->where('returns.status','refunded')  
+                ->where('orders.flag','8')              
                 ->whereIn('orders.storeName',$strArray)  
                 ->orderBy('refundDate','desc')           
                 ->paginate(100);
@@ -233,8 +233,8 @@ class returnsController extends Controller
             {
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])
-                ->where('returns.status','refunded')      
-                ->where('orders.flag','!=','8')     
+                ->where('returns.status','refunded')    
+                ->where('orders.flag','8')     
                 ->where('orders.uid',auth()->user()->id)  
                 ->orderBy('refundDate','desc')              
                 ->paginate(100);
@@ -282,7 +282,7 @@ class returnsController extends Controller
             $from = date("m/d/Y", strtotime($startDate));  
             $to = date("m/d/Y", strtotime($endDate));  
             $dateRange = $from .' - ' .$to;
-            return view('returns.complete',compact('returns','accounts','stores','dateRange'));
+            return view('cindy.complete',compact('returns','accounts','stores','dateRange'));
     }
 
 
@@ -394,8 +394,8 @@ class returnsController extends Controller
             {
                 
                 $returns = $returns->orderBy('created_at','desc')
+                ->where('orders.flag','8')
                 ->whereNull('returns.status')
-                ->where('orders.flag','!=','8')  
                 ->paginate(100);
             }
     
@@ -413,7 +413,7 @@ class returnsController extends Controller
                 $returns = $returns
                 ->whereIn('orders.storeName',$strArray)    
                 ->whereNull('returns.status')
-                ->where('orders.flag','!=','8')  
+                ->where('orders.flag','8')
                 ->orderBy('created_at','desc')
                 ->paginate(100);
             }
@@ -424,7 +424,7 @@ class returnsController extends Controller
                 $returns = $returns
                 ->where('orders.uid',auth()->user()->id)                
                 ->whereNull('returns.status')
-                ->where('orders.flag','!=','8')  
+                ->where('orders.flag','8')
                 ->orderBy('created_at','desc')
                 ->paginate(100);
             }
@@ -435,7 +435,7 @@ class returnsController extends Controller
 
             $returns  = $returns->appends('statusFilter',$statusFilter)->appends('labelFilter',$labelFilter)->appends('storeFilter',$storeFilter)->appends('accountFilter',$accountFilter)->appends('daterange',$dateRange);
 
-            return view('returns.return',compact('returns','accounts','stores','statusFilter','labelFilter','storeFilter','accountFilter','dateRange'));
+            return view('cindy.return',compact('returns','accounts','stores','statusFilter','labelFilter','storeFilter','accountFilter','dateRange'));
                  
     }
     public function refundFilter(Request $request)
@@ -503,7 +503,7 @@ class returnsController extends Controller
                 
                 $returns = $returns->orderBy('returnDate','desc')
                 ->where('returns.status','returned')
-                ->where('orders.flag','!=','8')  
+                ->where('orders.flag','8')
                 ->paginate(100);
             }
     
@@ -521,7 +521,7 @@ class returnsController extends Controller
                 $returns = $returns
                 ->whereIn('orders.storeName',$strArray)    
                 ->where('returns.status','returned')
-                ->where('orders.flag','!=','8')  
+                ->where('orders.flag','8')
                 ->orderBy('returnDate','desc')
                 ->paginate(100);
             }
@@ -531,8 +531,8 @@ class returnsController extends Controller
 
                 $returns = $returns
                 ->where('orders.uid',auth()->user()->id)  
-                ->where('returns.status','returned')   
-                ->where('orders.flag','!=','8')             
+                ->where('returns.status','returned') 
+                ->where('orders.flag','8')             
                 ->orderBy('returnDate','desc')
                 ->paginate(100);
             }
@@ -543,7 +543,7 @@ class returnsController extends Controller
 
             $returns  = $returns->appends('statusFilter',$statusFilter)->appends('labelFilter',$labelFilter)->appends('storeFilter',$storeFilter)->appends('accountFilter',$accountFilter)->appends('daterange',$dateRange);
 
-            return view('returns.return',compact('returns','accounts','stores','statusFilter','labelFilter','storeFilter','accountFilter','dateRange'));
+            return view('cindy.return',compact('returns','accounts','stores','statusFilter','labelFilter','storeFilter','accountFilter','dateRange'));
                  
     }
 
@@ -612,7 +612,7 @@ class returnsController extends Controller
                 
                 $returns = $returns->orderBy('refundDate','desc')
                 ->where('returns.status','refunded')
-                ->where('orders.flag','!=','8')  
+                ->where('orders.flag','8')
                 ->paginate(100);
             }
     
@@ -630,7 +630,7 @@ class returnsController extends Controller
                 $returns = $returns
                 ->whereIn('orders.storeName',$strArray) 
                 ->where('returns.status','refunded')   
-                ->where('orders.flag','!=','8')  
+                ->where('orders.flag','8')
                 ->orderBy('refundDate','desc')
                 ->paginate(100);
             }
@@ -640,8 +640,8 @@ class returnsController extends Controller
 
                 $returns = $returns
                 ->where('orders.uid',auth()->user()->id)    
-                ->where('returns.status','refunded')    
-                ->where('orders.flag','!=','8')          
+                ->where('returns.status','refunded') 
+                ->where('orders.flag','8')           
                 ->orderBy('refundDate','desc')
                 ->paginate(100);
             }
@@ -652,7 +652,7 @@ class returnsController extends Controller
 
             $returns  = $returns->appends('statusFilter',$statusFilter)->appends('labelFilter',$labelFilter)->appends('storeFilter',$storeFilter)->appends('accountFilter',$accountFilter)->appends('daterange',$dateRange);
 
-            return view('returns.return',compact('returns','accounts','stores','statusFilter','labelFilter','storeFilter','accountFilter','dateRange'));
+            return view('cindy.return',compact('returns','accounts','stores','statusFilter','labelFilter','storeFilter','accountFilter','dateRange'));
                  
     }
 

@@ -38,15 +38,13 @@ Route::group(['middleware' => 'auth'], function () {
 	
 	Route::post('getManualBce','orderController@getManualBce')->middleware('admin');
 	Route::get('cancelOrder/{id}','orderController@cancelOrder')->name('cancelOrder');	
-	Route::get('sync','orderController@syncOrders')->name('sync')->middleware('admin');
-	Route::get('autoFulfill','orderController@autoFulfill')->name('autoFulfill')->middleware('admin');	
+	Route::get('sync','orderController@syncOrders')->name('sync')->middleware('admin');	
 	Route::any('search','orderController@search')->name('search');
 	Route::get('orderDetails/{id}','orderController@details')->name('orderDetails');
 	Route::post('updateOrder','orderController@updateOrder')->name('updateOrder');
 	Route::get('assign','orderController@assign')->name('orderassign')->middleware('admin');
 	Route::post('assignOrder','orderController@assignOrder')->middleware('admin');
 	Route::any('orderexport','orderController@export')->name('orderexport')->middleware('admin');	
-	Route::any('autofulfillexport','orderController@autofulfillexport')->name('autofulfillexport')->middleware('admin');	
 	Route::get('test','orderController@newBCE');
 
 	Route::post('autoship','orderController@autoship')->name('autoship')->middleware('admin');
@@ -63,7 +61,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('getAmzDetails','orderController@getAmazonDetails')->middleware('admin');
 	Route::get('orderFlag/{id}/{flag}','orderController@orderFlag')->middleware('admin');
 	Route::any('orderFilter','orderController@filter')->middleware('admin');
-	Route::any('autoFulfillFilter','orderController@autoFulfillFilter')->middleware('admin');
+	
 	
 	Route::any('assignFilter','orderController@assignFilter')->middleware('admin');
 
@@ -180,12 +178,10 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('/orderFulfillmentSetting', 'orderFulfillmentController@index')->name('orderFulfillmentSetting');
 	Route::post('/storeSettings', 'orderFulfillmentController@storeSettings')->name('storeSettings');
 	Route::any('/orderFulfillmentExport', 'orderFulfillmentController@export')->name('orderFulfillmentExport');
-	Route::get('autofulfillconversions','orderFulfillmentController@autofulfillconversions')->name('autofulfillconversions')->middleware('admin');	
-	Route::get('autofulfillCancel','orderFulfillmentController@autofulfillCancel')->name('autofulfillCancel')->middleware('admin');	
 	Route::delete('deleteCancelled/{id}','orderFulfillmentController@deleteCancelled')->name('deleteCancelled')->middleware('admin');	
 	Route::delete('deleteConversion/{id}','orderFulfillmentController@deleteConversion')->name('deleteConversion')->middleware('admin');	
 	Route::any('/orderCancelledExport', 'orderFulfillmentController@orderCancelledExport')->name('orderCancelledExport');
-	Route::get('autoFulfillProcess','orderFulfillmentController@autoFulfillProcess')->name('autoFulfillProcess')->middleware('admin');	
+	
 	Route::post('updateBCE','orderFulfillmentController@updateBCE')->name('updateBCE');
 
 	//Walmart Products
@@ -218,5 +214,33 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('keepa','keepaController@index')->middleware('admin');
 	Route::post('getkeepa','keepaController@getResponse')->middleware('admin');
 
+	//cindy orders
+	Route::get('autoFulfillProcess','orderFulfillmentController@autoFulfillProcess')->name('autoFulfillProcess')->middleware('admin');	
+	
+	Route::get('autofulfillconversions','orderFulfillmentController@autofulfillconversions')->name('cindybce')->middleware('admin');	
+	Route::get('autofulfillProcessed','orderFulfillmentController@autofulfillProcessed')->name('cindyprocessed')->middleware('admin');	
+
+	Route::get('autofulfillCancel','orderFulfillmentController@autofulfillCancel')->name('cindycancel')->middleware('admin');		
+	Route::get('autoFulfill','orderFulfillmentController@autoFulfill')->name('cindynew')->middleware('admin');	
+	Route::any('autofulfillexport','orderFulfillmentController@autofulfillexport')->name('autofulfillexport')->middleware('admin');	
+	Route::any('autoFulfillFilter','orderFulfillmentController@autoFulfillFilter')->middleware('admin');
+	Route::any('cindysearch','orderFulfillmentController@search')->name('cindysearch');
+
+	//Cindy Returns
+	
+	Route::get('/autofulfillReturnPending', 'cindyReturnsController@index')->name('cindyreturn')->middleware('admin');
+	Route::get('/autofulfillRefundPending', 'cindyReturnsController@refunds')->name('cindyrefund')->middleware('admin');
+	Route::get('/autofulfillCompletedReturns', 'cindyReturnsController@completed')->name('cindycompleted')->middleware('admin');
+	Route::post('/autofulfillAddreturn', 'cindyReturnsController@addReturn')->middleware('admin');
+	Route::post('/autofulfillEditreturn', 'cindyReturnsController@editReturn')->middleware('admin');
+	Route::delete('/autofulfillDeleteReturn/{id}','cindyReturnsController@deleteReturn')->name('autofulfillDeleteReturn')->middleware('admin');
+	Route::post('autofulfillReturnsupload','cindyReturnsController@uploadSubmit');
+	Route::post('autofulfillUploadLabel','cindyReturnsController@uploadLabel');
+	Route::get('autofulfillUpdateStatus','cindyReturnsController@updateStatus');
+	Route::get('autofulfillLabelPrint/{id}','cindyReturnsController@labelPrint');
+	Route::get('autofulfillLabelDelete/{id}','cindyReturnsController@labelDelete');
+	Route::any('autofulfillReturnFilter','cindyReturnsController@returnFilter')->middleware('admin');
+	Route::any('autofulfillRefundFilter','cindyReturnsController@refundFilter')->middleware('admin');
+	Route::any('autofulfillCompletedFilter','cindyReturnsController@completedFilter')->middleware('admin');
 });
 

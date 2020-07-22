@@ -4,7 +4,7 @@
 @include('layouts.headers.cards')
 @inject('provider', 'App\Http\Controllers\orderController')
 
-<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+<script src="{{ asset('argon') }}/js/jquery.printPage.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
@@ -230,8 +230,10 @@ $(document).ready(function(){
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-4">
-                                <h3 class="mb-0">{{ __('Waiting For Refund') }}</h3>
+                                <h3 class="mb-0">{{ __('Cindy - Completed') }}</h3>
                             </div>
+                            
+                            
                             <div class="col-8" style="float:right; ">                                
                                 @if(!empty($search) && $search==1)
                                         <a href="{{ route($route) }}"class="btn btn-primary btn-md" style="float:right;">Go Back</a>
@@ -247,7 +249,7 @@ $(document).ready(function(){
 
                     <div class="row" style="margin-left:0px!important;">
                         <div class="col-12 text-center" id="filters">
-                        <form action="refundFilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
+                        <form action="autofulfillCompletedFilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
                             @csrf
                             <div style="width:100%; padding-bottom:2%;">
                                 <div class="form-group">
@@ -329,7 +331,6 @@ $(document).ready(function(){
                             <thead class="thead-light">
                                 <tr>
                                     <th scope="col" class="prodth">{{ __('Date') }}</th>
-                                    
                                     <th scope="col" class="prodth">{{ __('Buyer Name') }}</th>
                                     <th scope="col" class="prodth">{{ __('Sell Order Number') }}</th>
                                     <th scope="col" class="prodth">{{ __('Sell Amount') }}</th>
@@ -341,16 +342,15 @@ $(document).ready(function(){
                                     <th scope="col" class="prodth">{{ __('Return Reason') }}</th>                                        
                                     <th scope="col" class="prodth">{{ __('Carrier') }}</th>   
                                     <th scope="col" class="prodth">{{ __('Tracking Number') }}</th>  
-                                    <th scope="col" class="prodth">{{ __('Label') }}</th>                                                                                                        
-                                    <th scope="col" class="prodth">{{ __('Refund') }}</th>                                                                         
+                                    <th scope="col" class="prodth">{{ __('Label') }}</th>                                    
                                     <th scope="col" class="prodth"></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($returns as $return)
                                     <tr>
-                                        @if(!empty($return->returnDate))
-                                        <td width="10%">{{ $provider::getIranTime(date_format(date_create($return->returnDate), 'm/d/Y H:i:s')) }}</td>
+                                        @if(!empty($return->refundDate))
+                                        <td width="10%">{{ $provider::getIranTime(date_format(date_create($return->refundDate), 'm/d/Y H:i:s')) }}</td>
                                         @else
                                         <td width="10%"></td>
                                         @endif
@@ -406,15 +406,7 @@ $(document).ready(function(){
                                             <button class="btn btn-primary btn-sm" disabled>{{ __('Label') }}</button>
                                             @endif
                                         </td>                                        
-                                                                                
                                         
-                                        @if($return->status=='returned')
-                                        <td class="prodtd"><a href="updateStatus?status=2&id={{$return->id}}" class="btn btn-primary btn-sm">Refund</a></td>    
-                                        @elseif($return->status=='refunded')         
-                                            <td class="prodtd">Refunded</td>    
-                                        @else
-                                            <td class="prodtd"></td>    
-                                        @endif
                                   
                                         <td class="text-right prodtd">
                                             <div class="dropdown">
@@ -431,9 +423,9 @@ $(document).ready(function(){
                                                                 {{ __('Delete') }}
                                                             </button>
 
-                                                            <a class="dropdown-item labelPrint" href="/labelPrint/{{$return->id}}">{{ __('Print Label') }}</a>
+                                                            <a class="dropdown-item labelPrint" href="/autofulfillLabelPrint/{{$return->id}}">{{ __('Print Label') }}</a>
 
-                                                            <a class="dropdown-item" href="/labelDelete/{{$return->id}}">{{ __('Delete Label') }}</a>
+                                                            <a class="dropdown-item" href="/autofulfillLabelDelete/{{$return->id}}">{{ __('Delete Label') }}</a>
 
                                                             @endif
                                                         </form>                                                       

@@ -97,7 +97,7 @@ $(document).ready(function(){
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-6">
-                                <h3 class="mb-0">{{ __('Order Fulfillment BCE Conversions') }}</h3>                                
+                                <h3 class="mb-0">{{ __('Cindy - BCE Pending') }}</h3>                                
                             </div>  
                             <div class="col-6" style="text-align:right;">
                             <a href="orderFulfillmentExport" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px;">Export</a>       

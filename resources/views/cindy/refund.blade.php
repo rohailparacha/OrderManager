@@ -129,7 +129,7 @@ $(document).ready(function(){
             
             $.ajax({                
             type: 'post',
-            url: '/addreturn',
+            url: '/autofulfillAddreturn',
             data: {
             'sellOrder': sellOrder,
             'tracking':tracking,
@@ -182,7 +182,7 @@ $(document).ready(function(){
             $.ajax({
                 
             type: 'post',
-            url: '/editreturn',
+            url: '/autofulfillEditreturn',
             data: {
             'id':pid,
             'sellOrder': sellOrder,
@@ -230,7 +230,7 @@ $(document).ready(function(){
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-4">
-                                <h3 class="mb-0">{{ __('Waiting For Refund') }}</h3>
+                                <h3 class="mb-0">{{ __('Cindy - Waiting For Refund') }}</h3>
                             </div>
                             <div class="col-8" style="float:right; ">                                
                                 @if(!empty($search) && $search==1)
@@ -247,7 +247,7 @@ $(document).ready(function(){
 
                     <div class="row" style="margin-left:0px!important;">
                         <div class="col-12 text-center" id="filters">
-                        <form action="refundFilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
+                        <form action="autofulfillRefundFilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
                             @csrf
                             <div style="width:100%; padding-bottom:2%;">
                                 <div class="form-group">
@@ -409,7 +409,7 @@ $(document).ready(function(){
                                                                                 
                                         
                                         @if($return->status=='returned')
-                                        <td class="prodtd"><a href="updateStatus?status=2&id={{$return->id}}" class="btn btn-primary btn-sm">Refund</a></td>    
+                                        <td class="prodtd"><a href="autofulfillUpdateStatus?status=2&id={{$return->id}}" class="btn btn-primary btn-sm">Refund</a></td>    
                                         @elseif($return->status=='refunded')         
                                             <td class="prodtd">Refunded</td>    
                                         @else
@@ -431,9 +431,9 @@ $(document).ready(function(){
                                                                 {{ __('Delete') }}
                                                             </button>
 
-                                                            <a class="dropdown-item labelPrint" href="/labelPrint/{{$return->id}}">{{ __('Print Label') }}</a>
+                                                            <a class="dropdown-item labelPrint" href="/autofulfillLabelPrint/{{$return->id}}">{{ __('Print Label') }}</a>
 
-                                                            <a class="dropdown-item" href="/labelDelete/{{$return->id}}">{{ __('Delete Label') }}</a>
+                                                            <a class="dropdown-item" href="/autofulfillLabelDelete/{{$return->id}}">{{ __('Delete Label') }}</a>
 
                                                             @endif
                                                         </form>                                                       

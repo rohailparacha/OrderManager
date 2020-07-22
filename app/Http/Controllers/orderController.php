@@ -398,18 +398,7 @@ class orderController extends Controller
         return Excel::download(new OrdersExport($storeFilter,$marketFilter,$stateFilter,$amountFilter,$sourceFilter), $filename);
     }
 
-    public function autofulfillexport(Request $request)
-    {
-        $storeFilter = $request->storeFilter;
-        $marketFilter = $request->marketFilter;
-        $stateFilter = $request->stateFilter;
-        $amountFilter = $request->amountFilter; 
-        $sourceFilter = $request->sourceFilter; 
-
-        $filename = date("d-m-Y")."-".time()."-autofulfill-orders.xlsx";
-        return Excel::download(new AutoFulfillExport($storeFilter,$marketFilter,$stateFilter,$amountFilter,$sourceFilter), $filename);
-    }
-
+  
 
     public function getAmazonDetails(Request $request)
     {
@@ -647,131 +636,7 @@ class orderController extends Controller
         return view('orders.new',compact('orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
     }
 
-    public function autoFulfillFilter(Request $request)
-    {
-        
-        if($request->has('storeFilter'))
-            $storeFilter = $request->get('storeFilter');
-        if($request->has('marketFilter'))
-            $marketFilter = $request->get('marketFilter');  
-        if($request->has('stateFilter'))
-            $stateFilter = $request->get('stateFilter');
-        if($request->has('amountFilter'))
-            $amountFilter = $request->get('amountFilter');
-        if($request->has('sourceFilter'))
-            $sourceFilter = $request->get('sourceFilter');
-        //now show orders
-
-
-        $minAmount = trim(explode('-',$amountFilter)[0]);
-        $maxAmount = trim(explode('-',$amountFilter)[1]);
-            
-        $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
-        ->leftJoin('products','order_details.SKU','=','products.asin')
-        ->leftJoin('ebay_products','order_details.SKU','=','ebay_products.sku')
-        ->select(['orders.*',DB::raw('IFNULL( products.lowestPrice, 0) + IFNULL( ebay_products.ebayPrice, 0) as lowestPrice'),'products.asin','ebay_products.sku']);
-        
-        if(!empty($storeFilter)&& $storeFilter !=0)
-        {
-            $storeName = accounts::select()->where('id',$storeFilter)->get()->first();
-            $orders = $orders->where('storeName',$storeName->store);
-        }
-       
-
-        if(!empty($marketFilter)&& $marketFilter !=0)
-        {                            
-            if($marketFilter==1)
-                $orders = $orders->where('marketplace','Amazon');
-            elseif($marketFilter==2)
-                $orders = $orders->where('marketplace','eBay');
-            elseif($marketFilter==3)
-                $orders = $orders->where('marketplace','Walmart');
-                      
-        }
-
-        if(!empty($sourceFilter)&& $sourceFilter !=0)
-        {                            
-            if($sourceFilter==1)
-                $orders = $orders->whereNotNull('products.asin');
-            elseif($sourceFilter==2)
-                $orders = $orders->whereNotNull('ebay_products.sku');                                
-        }
-
-
-        
-        $orders = $orders->whereBetween(DB::raw('IFNULL( products.lowestPrice, 0) + IFNULL( ebay_products.ebayPrice, 0)'),[$minAmount,$maxAmount]);
-
-        if(!empty($stateFilter)&& $stateFilter !='0')
-        {           
-            $orders = $orders->where('state',$stateFilter);
-        }
-                
-        if(auth()->user()->role==1)
-            $orders = $orders->where('flag','8')->where('status','unshipped')->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
-        elseif(auth()->user()->role==2)
-        {
-            $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
-                $strArray  = array();
-    
-                foreach($stores as $str)
-                {
-                    $strArray[]= $str->store;
-                }
-                
-                $orders = $orders->where('flag','8')->where('status','unshipped')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
-        }
-            
-        else
-            $orders = $orders->where('flag','8')->where('status','unshipped')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
-        
-        $orders = $orders->appends('storeFilter',$storeFilter)->appends('stateFilter',$stateFilter)->appends('marketFilter',$marketFilter)->appends('amountFilter',$amountFilter)->appends('sourceFilter',$sourceFilter);
-
-        
-        $stores = accounts::select(['id','store'])->get();
-        $states = states::select()->distinct()->get();
-
-     
-        
-        $maxPrice = ceil(orders::where('status','unshipped')->where('flag','8')->max('totalAmount'));
-        foreach($orders as $order)
-        {
-            $order->lowestPrice = $this->getLowestPrice($order->id);
-            $order->shippingPrice = $this->getTotalShipping($order->id);
-            
-
-            $sources = array();
-                $order_details = order_details::where('order_id',$order->id)->get(); 
-                if(empty($order_details))
-                    continue;
-                
-                
-                foreach($order_details as $detail)
-                {
-
-                    $amz = products::where('asin',$detail->SKU)->get()->first(); 
-                    if(empty($amz))
-                        {
-                            $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
-                            if(empty($ebay))
-                                $sources[]= 'N/A'; 
-                            else
-                                $sources[]= 'Ebay'; 
-
-                        }
-                    else
-                                $sources[]= 'Amazon'; 
-
-                    $b = array_unique($sources); 
-
-                    if(count($b)==1)
-                        $order->source = $b[0];
-                    else
-                        $order->source = 'Mix';
-                }
-        }     
-        
-        return view('orders.autofulfill',compact('orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
-    }
+   
 
     public function assignFilter(Request $request)
     {
@@ -998,7 +863,7 @@ class orderController extends Controller
                         }
                 }
                 $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-                return view('orders.autofulfill',compact('orders','stores','states','maxAmount','minAmount','maxPrice','search','route'));
+                return view('cindy.new',compact('orders','stores','states','maxAmount','minAmount','maxPrice','search','route'));
             
         }
 
@@ -2817,84 +2682,7 @@ class orderController extends Controller
         return view('orders.new',compact('orders','stores','states','maxAmount','minAmount','maxPrice'));
     }
 
-    public function autoFulfill()
-    {  
-            if(auth()->user()->role==1)
-            {
-                $orders = orders::select()->where('status','unshipped')->orderBy('date', 'ASC')->where('flag','8')->paginate(100);
-            }
-    
-            elseif(auth()->user()->role==2)
-            {
-                
-                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
-                $strArray  = array();
-    
-                foreach($stores as $str)
-                {
-                    $strArray[]= $str->store;
-                }
-                
-                $orders = orders::select()->where('status','unshipped')->whereIn('storeName',$strArray)->where('flag','8')->orderBy('date', 'ASC')->paginate(100);
-                
-            }
-        
-            else
-            {
-                $orders = orders::select()
-                ->where('status','unshipped')
-                ->where('flag','8')
-                ->where('uid',auth()->user()->id)
-                ->orderBy('date', 'ASC')
-                ->paginate(100);
-            }
-
-        $stores = accounts::select(['id','store'])->get();
-        $states = states::select()->distinct()->get();
-        
-        $maxAmount = ceil(orders::where('status','unshipped')->where('flag','8')->max('totalAmount'));
-
-        $minAmount = 0; 
-        $maxPrice = $maxAmount;
-
-        foreach($orders as $order)
-        {
-            $order->lowestPrice = $this->getLowestPrice($order->id);
-            $order->shippingPrice = $this->getTotalShipping($order->id);
-            $sources = array();
-                $order_details = order_details::where('order_id',$order->id)->get(); 
-                if(empty($order_details))
-                    continue;
-                
-                
-                foreach($order_details as $detail)
-                {
-
-                    $amz = products::where('asin',$detail->SKU)->get()->first(); 
-                    if(empty($amz))
-                        {
-                            $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
-                            if(empty($ebay))
-                                $sources[]= 'N/A'; 
-                            else
-                                $sources[]= 'Ebay'; 
-
-                        }
-                    else
-                                $sources[]= 'Amazon'; 
-
-                    $b = array_unique($sources); 
-
-                    if(count($b)==1)
-                        $order->source = $b[0];
-                    else
-                        $order->source = 'Mix';
-                }
-        }
-            
-        return view('orders.autofulfill',compact('orders','stores','states','maxAmount','minAmount','maxPrice'));
-    }
-
+   
     public function getLowestPrice($id)
     {
 

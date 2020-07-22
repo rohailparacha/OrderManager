@@ -249,7 +249,7 @@ $(document).ready(function(){
 
                     <div class="row" style="margin-left:0px!important;">
                         <div class="col-12 text-center" id="filters">
-                        <form action="returnFilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
+                        <form action="completedFilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
                             @csrf
                             <div style="width:100%; padding-bottom:2%;">
                                 <div class="form-group">
