@@ -310,7 +310,7 @@ class orderController extends Controller
                                $resp='';
                                if($order->flag=='8')
                                {    
-                                    $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId]);
+                                    $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at' =>Carbon::now()]);
                                }
                                else
                                {
@@ -346,11 +346,12 @@ class orderController extends Controller
 
                                 $this->shipOrder($order->id, $trackingId, $carrierId->name, 'new'); 
                                 try{
-                                if($order->flag=='8')
+                                if($order->flag=='8' || $order->flag=='9' || $order->flag=='10')
                                 {
-                                    $this->updateSheetTracking($trackingId, $order->sellOrderId, $carrierId->name);
+                                    $this->updateSheetTracking($trackingId, $order->sellOrderId, $carrierId->name, $order->flag);
                                 }
-                                    $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId, 'status'=>'shipped']);     
+                                
+                                $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId, 'status'=>'shipped']);     
                                 
                                 
                                 $shippedCounter++;  
@@ -773,147 +774,7 @@ class orderController extends Controller
         
         $search = 1;
 
-        if($route == 'autoFulfill')
-        {            
-             
-            if(auth()->user()->role==1)
-            {            
-
-                $orders = orders::select()->where('flag','8')->where('status','unshipped')                
-                ->where(function($test) use ($query){
-                    $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
-                    $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
-                })                
-                ->orderBy('date', 'ASC')->paginate(100);
-            }
-    
-            elseif(auth()->user()->role==2)
-            {
-                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
-                $strArray  = array();
-    
-                foreach($stores as $str)
-                {
-                    $strArray[]= $str->store;
-                }
-                                
-                
-                $orders = orders::select()->where('flag','8')->where('status','unshipped')->whereIn('storeName',$strArray)
-                ->where(function($test) use ($query){
-                    $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
-                    $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
-                })                
-                ->orderBy('date', 'ASC')->paginate(100);
-                
-            }
-
-            else
-            {
-            $orders = orders::select()->where('flag','8')->where('status','unshipped')->where('uid',auth()->user()->id)
-            ->where(function($test) use ($query){
-                $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
-                $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
-            })                
-            ->orderBy('date', 'ASC')->paginate(100);
-            }
-
-
-
-
-
-                $stores = accounts::select(['id','store'])->get();
-                $states = states::select()->distinct()->get();
-                
-                $maxAmount = ceil(orders::where('status','unshipped')->where('flag','8')->max('totalAmount'));
-                $minAmount = 0; 
-                $maxPrice = $maxAmount;
-
-                foreach($orders as $order)
-                {
-                    $order->lowestPrice = $this->getLowestPrice($order->id);
-                    $order->shippingPrice = $this->getTotalShipping($order->id);
-                    $sources = array();
-                        $order_details = order_details::where('order_id',$order->id)->get(); 
-                        if(empty($order_details))
-                            continue;
-                        
-                        
-                        foreach($order_details as $detail)
-                        {
-        
-                            $amz = products::where('asin',$detail->SKU)->get()->first(); 
-                            if(empty($amz))
-                                {
-                                    $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
-                                    if(empty($ebay))
-                                        $sources[]= 'N/A'; 
-                                    else
-                                        $sources[]= 'Ebay'; 
-        
-                                }
-                            else
-                                        $sources[]= 'Amazon'; 
-        
-                            $b = array_unique($sources); 
-        
-                            if(count($b)==1)
-                                $order->source = $b[0];
-                            else
-                                $order->source = 'Mix';
-                        }
-                }
-                $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-                return view('cindy.new',compact('orders','stores','states','maxAmount','minAmount','maxPrice','search','route'));
-            
-        }
-
-        else if ($route=='autofulfillCancel')
-        {
-            if(auth()->user()->role==1)            
-        {
-            $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('flag','8')
-            ->where(function($test){
-                $test->where('orders.status','processing');
-                $test->orWhere('orders.status','shipped');
-            })
-            ->where('afpoNumber', 'LIKE', '%'.$query.'%')            
-            ->orderBy('orders.status', 'DESC')
-            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.id AS cancelledId'])
-            ->paginate(100);
-        }
-
-        elseif(auth()->user()->role==2)
-        {
-            $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
-            $strArray  = array();
-
-            foreach($stores as $str)
-            {
-                $strArray[]= $str->store;
-            }
-            
-            $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('flag','8')
-            ->whereIn('storeName',$strArray)
-            ->where(function($test){
-                $test->where('orders.status','processing');
-                $test->orWhere('orders.orders.','shipped');
-            }) 
-            ->where('afpoNumber', 'LIKE', '%'.$query.'%')
-            ->orderBy('orders.status', 'DESC')
-            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.id AS cancelledId'])
-            ->paginate(100);
-        }
-            
-            else
-                $orders = array();
-            
-            $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-            return view('orders.orderFulfillmentCancel',compact('orders','search','route'));
-        }
-
-        else if ($route=='transactions')
+        if ($route=='transactions')
         {
                 $transactions = transactions::select(['transactions.*', 'bank_accounts.name', 'accounting_categories.category'])
             ->leftJoin('bank_accounts','bank_accounts.id','=','transactions.bank_id')
@@ -2185,6 +2046,9 @@ class orderController extends Controller
                     $tempOrder["ASIN"] = $temp2['SKU'];        
                     
                     $tempOrder["qty"] =   $temp['quantity'];
+                    $tempOrder["date"] =   $temp['date'];
+                    $tempOrder["dueShip"] =   $temp['dueShip'];
+                    $tempOrder["country"] =   $temp['country'];
             
                     $product = products::where('asin',$temp2['SKU'])->get()->first();
             
@@ -2206,6 +2070,7 @@ class orderController extends Controller
                     $tempOrder["discountPayment"] = number_format((float) $tempOrder["discountPayment"], 2, '.', '');
                     
                     $tempOrder["discountFactor"] = $setting->discount;
+                    $tempOrder["maxFactor"] = $setting->maxPrice;
 
                     $tempOrder["name"] = $temp['buyerName'];
                     
@@ -2230,13 +2095,13 @@ class orderController extends Controller
             
                      products::where('asin',$temp2['SKU'])->increment('sold', $temp2['quantity'] );
                      products::where('asin',$temp2['SKU'])->increment('30days', $temp2['quantity'] );
-                    products::where('asin',$temp2['SKU'])->increment('60days', $temp2['quantity'] );
-                    products::where('asin',$temp2['SKU'])->increment('90days', $temp2['quantity'] );
-                    products::where('asin',$temp2['SKU'])->increment('120days', $temp2['quantity'] );
+                     products::where('asin',$temp2['SKU'])->increment('60days', $temp2['quantity'] );
+                     products::where('asin',$temp2['SKU'])->increment('90days', $temp2['quantity'] );
+                     products::where('asin',$temp2['SKU'])->increment('120days', $temp2['quantity'] );
                 }
 
                 try{
-                    order_details::insert($details);   
+                   order_details::insert($details);   
                     $this->autoFlag($orderId);            
                 }
                 catch(\Exception $ex)
@@ -2248,17 +2113,35 @@ class orderController extends Controller
             
 
                 $page++; 
+               
         }
         
-        $sendOrders['data'] = $this->parseFulfillment($fulfillmentOrders);
         
-        $body = json_encode($sendOrders); 
+        $sendCindyOrders['data'] = $this->parseFulfillment($fulfillmentOrders,'cindy');
+        $sendSamuelOrders['data'] = $this->parseFulfillment($fulfillmentOrders,'samuel');
+        $sendJonathanOrders['data'] = $this->parseFulfillment($fulfillmentOrders,'jonathan');
         
-   
+        $endPoint = env('CINDY_TOKEN', '');
+        if(!empty($endPoint))
+            $this->sendToGoogle($endPoint, $sendCindyOrders);
+
+        $endPoint = env('SAMUEL_TOKEN', '');
+        if(!empty($endPoint))
+            $this->sendToGoogle($endPoint, $sendSamuelOrders);
+
+        $endPoint = env('JONATHAN_TOKEN', '');
+        if(!empty($endPoint))
+            $this->sendToGoogle($endPoint, $sendJonathanOrders);
         
-        try{
-        
-            $endPoint = env('GAPI_TOKEN', '');
+    }
+
+    public function sendToGoogle($endpoint, $orders)
+    {
+        $client = new client(); 
+
+        $body = json_encode($orders); 
+                
+        try{                    
 
             $response = $client->request('POST', $endPoint,
             [
@@ -2267,24 +2150,28 @@ class orderController extends Controller
             ]);    
             
             $statusCode = $response->getStatusCode();
-        
+
             $body = json_decode($response->getBody()->getContents());    
+          
         }
         catch(\Exception $ex)
         {
-
+           
         }
-        
-    
-      
     }
 
-    public function updateSheetTracking($tracking, $sellOrderId, $carrier)
+    public function updateSheetTracking($tracking, $sellOrderId, $carrier, $flag)
     {
         
         try{
             $client = new client(); 
-            $endPoint = env('GAPI_TOKEN', '');
+            
+            if($flag=='8')
+                $endPoint = env('CINDY_TOKEN', '');
+            elseif($flag=='9')
+                $endPoint = env('SAMUEL_TOKEN', '');
+            elseif($flag=='10')
+                $endPoint = env('JONATHAN_TOKEN', '');
 
             $response = $client->request('GET', $endPoint,
             [
@@ -2302,7 +2189,7 @@ class orderController extends Controller
         }
     }
 
-    public function parseFulfillment($fulfillmentOrders)
+    public function parseFulfillment($fulfillmentOrders, $flag)
     {
         $freshOrders = array();
         
@@ -2317,10 +2204,10 @@ class orderController extends Controller
                 $freshOrders[$order['referenceNumber']] = $order; 
         }
 
-        return $this->removeDuplicates($freshOrders);
+        return $this->removeDuplicates($freshOrders, $flag);
     }
 
-    public function removeDuplicates($freshOrders)
+    public function removeDuplicates($freshOrders, $flag)
     {        
         $finalOrders = array();
         foreach($freshOrders as $order)
@@ -2340,16 +2227,18 @@ class orderController extends Controller
         return $this->checkCriteria($finalOrders);
     }
 
-    public function checkCriteria($orders)
+    public function checkCriteria($orders, $flag)
     {
         $googleOrders = array();
 
-        $settings = settings::get()->first(); 
+        $settings = settings::where('name',$flag)->get()->first(); 
 
         
         $amtCheck = $settings->amountCheck; 
         $strCheck = $settings->storesCheck; 
         $quantityRangeCheck = $settings->quantityRangeCheck; 
+        $dailyAmountCheck = $settings->dailyAmountCheck; 
+        $dailyOrderCheck = $settings->dailyOrderCheck; 
 
         $minQty = $settings->minQty; 
         $maxQty = $settings->maxQty; 
@@ -2358,6 +2247,11 @@ class orderController extends Controller
         $maxAmount = $settings->maxAmount; 
         
         $stores = $settings->stores; 
+
+        $maxDailyOrders = $settings->maxDailyOrder; 
+        $maxDailyAmount = $settings->maxDailyAmount; 
+
+        $amt = 0; 
 
         foreach($orders as $order)
         {
@@ -2387,6 +2281,30 @@ class orderController extends Controller
                 else
                     $flag= false; 
             }
+
+            $dailyOrders = orders::where('flag','8')->whereDate('date',Carbon::today())->get();
+            
+            if($dailyAmountCheck)
+            {
+                foreach($dailyOrders as $order)
+                {
+                    $amt += $this->getDiscountPayment($order->id);                    
+                }   
+
+                if($amt>= $maxDailyAmount)
+                    $flag = false;  
+                else
+                    $flag = true; 
+            }
+
+            if($dailyOrderCheck)
+            {
+                if(count($dailyOrders)>=$maxDailyOrders)
+                    $flag = false; 
+                else
+                    $flag = true; 
+            }
+
             
             if($flag)
             {
@@ -2398,7 +2316,19 @@ class orderController extends Controller
         return $googleOrders;
     }
 
-    
+    public function getDiscountPayment($orderId)
+    {
+        $amt=0;
+        $orderDetails = order_details::where('order_id',$orderId)->get();
+        foreach($orderDetails as $detail)
+        {
+            $product = products::where('asin',$detail->SKU)->get()->first();  
+            $amt += empty($product->lowestPrice)?0:$product->lowestPrice * $detail->quantity * (1- $settings->discount/100);
+        }
+
+        return $amt;
+        
+    }
 
     public function updateOrder(Request $request)
     {  

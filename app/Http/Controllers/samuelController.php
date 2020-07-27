@@ -12,7 +12,7 @@ use App\returns;
 use App\gmail_accounts;
 use App\ebay_products; 
 use App\order_details;
-use App\Exports\AutoFulfillExport;
+use App\Exports\SamuelExport;
 use Session;
 use Redirect;
 use Validator;
@@ -102,7 +102,7 @@ class samuelController extends Controller
         
     }
 
-    public function autofulfillexport(Request $request)
+    public function samuelexport(Request $request)
     {
         $storeFilter = $request->storeFilter;
         $marketFilter = $request->marketFilter;
@@ -111,7 +111,7 @@ class samuelController extends Controller
         $sourceFilter = $request->sourceFilter; 
 
         $filename = date("d-m-Y")."-".time()."-autofulfill-orders.xlsx";
-        return Excel::download(new AutoFulfillExport($storeFilter,$marketFilter,$stateFilter,$amountFilter,$sourceFilter), $filename);
+        return Excel::download(new SamuelExport($storeFilter,$marketFilter,$stateFilter,$amountFilter,$sourceFilter), $filename);
     }
 
 
