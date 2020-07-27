@@ -229,7 +229,7 @@ class orderController extends Controller
                             try{
                                 $elem = $doc->getElementById('primaryStatus');
                                 $stat =  $elem->nodeValue;                             
-                                if(trim($stat)=='Delayed, not yet shipped' && $order->flag=='8')
+                                if(trim($stat)=='Delayed, not yet shipped' && ($order->flag=='8' ||$order->flag=='9'||$order->flag=='10'))
                                 {
                                     $insert = cancelled_orders::updateOrCreate(
                                         ['order_id'=>$order->id,],    
@@ -238,7 +238,7 @@ class orderController extends Controller
                                     
                                 }
                                                                     
-                                if(trim($stat)=='Order cancelled' && $order->flag=='8')
+                                if(trim($stat)=='Order cancelled' && ($order->flag=='8' ||$order->flag=='9'||$order->flag=='10'))
                                 {
                                     $insert = cancelled_orders::updateOrCreate(
                                         ['order_id'=>$order->id,],    
@@ -308,7 +308,7 @@ class orderController extends Controller
                             if($carrierId->id == $amzCarrier->id && $order->marketplace == 'Walmart' && $this->startsWith($trackingId,'TBA'))
                             {                                
                                $resp='';
-                               if($order->flag=='8')
+                               if($order->flag=='8'  ||$order->flag=='9'||$order->flag=='10')
                                {    
                                     $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at' =>Carbon::now()]);
                                }
