@@ -1,7 +1,7 @@
 @extends('layouts.app', ['title' => __('Order Fulfillment Settings')])
 
 @section('content')
-    @include('users.partials.header', ['title' => __('Cindy - Order Fulfillment Settings')])   
+    @include('users.partials.header', ['title' => __('Samuel - Order Fulfillment Settings')])   
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/js/bootstrap-multiselect.min.js"></script>
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/css/bootstrap-multiselect.css">
@@ -69,10 +69,10 @@ $( function() {
                 <div class="card bg-secondary shadow">
                    
                     <div class="card-body">
-                        <form method="post" action="/storeSettings" autocomplete="off">
+                        <form method="post" action="/samuelStoreSettings" autocomplete="off">
                             @csrf
                             
-                            <h3 class=" text-muted mb-4">{{ __('Cindy - Settings') }}</h3>
+                            <h3 class=" text-muted mb-4">{{ __('Samuel - Settings') }}</h3>
                         
 
                                 <div style="padding-right:3%;">
@@ -216,10 +216,11 @@ $( function() {
                                 @enderror
                                 
                                 <br><br>
+
                                 <label class="form-control-label" for="input-name">{{ __('Priority:') }}</label>                                
 
                                 <div class="row">
-
+                                
                                 <div class="col-sm-6 form-group">
                                     <div class="i-checks">
                                         <label class="control-label"> 
@@ -230,8 +231,9 @@ $( function() {
                                 @error('priority')
                                             <div class="permissions" style="color:red;">{{ $message }}</div>
                                 @enderror
-
+                                
                                 <br><br>
+
                                 </div>
                                
                                 <div class="text-center">

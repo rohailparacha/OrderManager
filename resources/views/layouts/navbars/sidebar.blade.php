@@ -188,6 +188,120 @@
                                 </a>
                             </li>
                             
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('orderFulfillmentSetting') }}">
+                                    {{ __('Cindy - Order Fulfillment Setting') }}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link active" href="#samuel" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                        <i class="fa fa-sort text-primary" ></i>
+                        <span class="nav-link-text text-primary" >{{ __('Samuel') }}</span>
+                    </a>
+
+                    <div class="collapse show" id="samuel">
+                        <ul class="nav nav-sm flex-column">                            
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('samuelnew') }}">
+                                    {{ __('New Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('samuelprocessed') }}">
+                                    {{ __('Processed Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('samuelbce') }}">
+                                    {{ __('BCE Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('samuelcancel') }}">
+                                    {{ __('Cancel Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('samuelreturn') }}">
+                                    {{ __('Return Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('samuelrefund') }}">
+                                    {{ __('Refund Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('samuelcompleted') }}">
+                                    {{ __('Completed Returns') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('samuelSetting') }}">
+                                    {{ __('Samuel - Order Fulfillment Setting') }}
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link active" href="#jonathan" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                        <i class="fa fa-sort text-primary" ></i>
+                        <span class="nav-link-text text-primary" >{{ __('Jonathan') }}</span>
+                    </a>
+
+                    <div class="collapse show" id="jonathan">
+                        <ul class="nav nav-sm flex-column">                            
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('jonathannew') }}">
+                                    {{ __('New Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathanprocessed') }}">
+                                    {{ __('Processed Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathanbce') }}">
+                                    {{ __('BCE Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathancancel') }}">
+                                    {{ __('Cancel Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathanreturn') }}">
+                                    {{ __('Return Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathanrefund') }}">
+                                    {{ __('Refund Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathancompleted') }}">
+                                    {{ __('Completed Returns') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('jonathanSetting') }}">
+                                    {{ __('Jonathan - Order Fulfillment Setting') }}
+                                </a>
+                            </li>
+                            
                         </ul>
                     </div>
                 </li>
@@ -309,11 +423,7 @@
                                 </a>
                             </li>
 
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('orderFulfillmentSetting') }}">
-                                    {{ __('Order Fulfillment Setting') }}
-                                </a>
-                            </li>
+                            
 
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('scaccounts') }}">

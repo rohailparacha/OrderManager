@@ -33,6 +33,39 @@
                 </div>
             </div>
         </form>
+
+        @elseif(request()->route()->getName() =='samuelprocessed'||request()->route()->getName()=='samuelnew'||request()->route()->getName()=='samuelbce'||request()->route()->getName()=='samuelreturn'||request()->route()->getName()=='samuelcancel'||request()->route()->getName()=='samuelrefund'||request()->route()->getName()=='samuelcompleted')
+        <form method="post" action="samuelsearch" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
+
+        @csrf
+            <div class="form-group mb-0">
+                <div class="input-group input-group-alternative">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    </div>
+                    <input class="form-control" placeholder="Search" name="searchQuery" id="searchQuery" type="text">
+                    <input class="form-control" name="route" type="hidden" value={{ request()->route()->getName()}}>
+                </div>
+            </div>
+        </form>
+
+        @elseif(request()->route()->getName() =='jonathanprocessed'||request()->route()->getName()=='jonathannew'||request()->route()->getName()=='jonathanbce'||request()->route()->getName()=='jonathanreturn'||request()->route()->getName()=='jonathancancel'||request()->route()->getName()=='jonathanrefund'||request()->route()->getName()=='jonathancompleted')
+        <form method="post" action="jonathansearch" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
+
+        @csrf
+            <div class="form-group mb-0">
+                <div class="input-group input-group-alternative">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    </div>
+                    <input class="form-control" placeholder="Search" name="searchQuery" id="searchQuery" type="text">
+                    <input class="form-control" name="route" type="hidden" value={{ request()->route()->getName()}}>
+                </div>
+            </div>
+        </form>
+
+
+
         @elseif(request()->route()->getName()=='ebayProducts' || request()->route()->getName()=='walmartProducts')
         <form method="post" action="../search" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
         @csrf

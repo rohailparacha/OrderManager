@@ -1,7 +1,7 @@
 @extends('layouts.app', ['title' => __('Order Fulfillment Settings')])
 
 @section('content')
-    @include('users.partials.header', ['title' => __('Cindy - Order Fulfillment Settings')])   
+    @include('users.partials.header', ['title' => __('Jonathan - Order Fulfillment Settings')])   
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/js/bootstrap-multiselect.min.js"></script>
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/css/bootstrap-multiselect.css">
@@ -69,10 +69,10 @@ $( function() {
                 <div class="card bg-secondary shadow">
                    
                     <div class="card-body">
-                        <form method="post" action="/storeSettings" autocomplete="off">
+                        <form method="post" action="/jonathanStoreSettings" autocomplete="off">
                             @csrf
                             
-                            <h3 class=" text-muted mb-4">{{ __('Cindy - Settings') }}</h3>
+                            <h3 class=" text-muted mb-4">{{ __('Jonathan - Settings') }}</h3>
                         
 
                                 <div style="padding-right:3%;">

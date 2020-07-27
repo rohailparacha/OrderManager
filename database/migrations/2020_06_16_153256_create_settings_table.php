@@ -36,6 +36,9 @@ class CreateSettingsTable extends Migration
 
             $table->integer('maxDailyAmount')->default(0);
             $table->boolean('dailyAmountCheck')->default(false);
+
+            $table->integer('priority')->nullable();
+            $table->string('name');
         });
     }
 

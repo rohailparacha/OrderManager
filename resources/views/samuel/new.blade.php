@@ -99,7 +99,7 @@ catch{
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-6">
-                                <h3 class="mb-0">{{ __('Cindy - Auto Fulfill Orders') }}</h3>
+                                <h3 class="mb-0">{{ __('Samuel - Auto Fulfill Orders') }}</h3>
                             </div>  
                             
                             <div class="col-6" style="text-align:right;">
@@ -108,7 +108,7 @@ catch{
                                 @endif
                                 @if(auth()->user()->role==1 || auth()->user()->role==2)
                                 <a href="sync" class="btn btn-primary btn-md">Sync</a>
-                                <a href="autoFulfillProcess" class="btn btn-primary btn-md">Process Orders</a>
+                                <a href="samuelProcess" class="btn btn-primary btn-md">Process Orders</a>
                                  @endif
                             </div>                      
                                

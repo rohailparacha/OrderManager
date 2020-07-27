@@ -23,7 +23,7 @@ use Response;
 
 use Illuminate\Http\Request;
 
-class orderFulfillmentController extends Controller
+class jonathanController extends Controller
 {
     //
 
@@ -35,8 +35,8 @@ class orderFulfillmentController extends Controller
     public function index()
     {
         $stores = accounts::all();
-        $settings = settings::where('name','cindy')->get()->first();
-        return view('orderFulfillmentSettings',compact('stores','settings'));
+        $settings = settings::where('name','jonathan')->get()->first();
+        return view('jonathanSettings',compact('stores','settings'));
     }
 
     public function getLowestPrice($id)
@@ -127,7 +127,7 @@ class orderFulfillmentController extends Controller
         $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',false)->where('flag','8')
+            $orders = orders::select()->where('converted',false)->where('flag','10')
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
@@ -148,7 +148,7 @@ class orderFulfillmentController extends Controller
             $orders = orders::select()->where('converted',false)
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
-            ->where('flag','8')->whereIn('storeName',$strArray)
+            ->where('flag','10')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
             ->orderBy('status', 'DESC')->paginate(100);
@@ -182,7 +182,7 @@ class orderFulfillmentController extends Controller
         if(auth()->user()->role==1)            
         {
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('flag','8')
+            ->where('flag','10')
             ->where(function($test){
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.status','shipped');
@@ -203,7 +203,7 @@ class orderFulfillmentController extends Controller
             }
             
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('flag','8')
+            ->where('flag','10')
             ->whereIn('storeName',$strArray)
             ->where(function($test){
                 $test->where('orders.status','processing');
@@ -232,7 +232,7 @@ class orderFulfillmentController extends Controller
     public function autofulfillProcessed()
     {    
         if(auth()->user()->role==1)
-            $orders = orders::select()->where('status','processing')->where('account_id','Cindy')->orderBy('date', 'ASC')->paginate(100);
+            $orders = orders::select()->where('status','processing')->where('account_id','Jonathan')->orderBy('date', 'ASC')->paginate(100);
 
         elseif(auth()->user()->role==2)
             {
@@ -244,12 +244,12 @@ class orderFulfillmentController extends Controller
                     $strArray[]= $str->store;
                 }
                 
-                $orders = orders::select()->where('status','processing')->where('account_id','Cindy')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
+                $orders = orders::select()->where('status','processing')->where('account_id','Jonathan')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
             }
         
         else
             
-            $orders = orders::select()->where('status','processing')->where('account_id','Cindy')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->paginate(100);
+            $orders = orders::select()->where('status','processing')->where('account_id','Jonathan')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->paginate(100);
         
             foreach($orders as $order)
             {
@@ -259,7 +259,7 @@ class orderFulfillmentController extends Controller
         $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         foreach ($orders as $order)
         {
-            $bcecheck = orders::select()->where('converted',false)->where('account_id','Cindy')
+            $bcecheck = orders::select()->where('converted',false)->where('account_id','Jonathan')
             ->where('marketPlace','Walmart')
             ->where('id',$order->id)
             ->where('carrierName',$amzCarrier->id)
@@ -271,7 +271,7 @@ class orderFulfillmentController extends Controller
                 $order->bce = 'BCE';
 
             $cancelcheck = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('account_id','Cindy')
+            ->where('account_id','Jonathan')
             ->where('cancelled_orders.order_id',$order->id)
             ->where(function($test){
                 $test->where('orders.status','processing');
@@ -287,7 +287,7 @@ class orderFulfillmentController extends Controller
         }
             
         
-        return view('cindy.processed',compact('orders'));
+        return view('jonathan.processed',compact('orders'));
         
     }
 
@@ -351,7 +351,7 @@ class orderFulfillmentController extends Controller
         }
                 
         if(auth()->user()->role==1)
-            $orders = $orders->where('flag','8')->where('status','unshipped')->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
+            $orders = $orders->where('flag','10')->where('status','unshipped')->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
         elseif(auth()->user()->role==2)
         {
             $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
@@ -362,11 +362,11 @@ class orderFulfillmentController extends Controller
                     $strArray[]= $str->store;
                 }
                 
-                $orders = $orders->where('flag','8')->where('status','unshipped')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
+                $orders = $orders->where('flag','10')->where('status','unshipped')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
         }
             
         else
-            $orders = $orders->where('flag','8')->where('status','unshipped')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
+            $orders = $orders->where('flag','10')->where('status','unshipped')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
         
         $orders = $orders->appends('storeFilter',$storeFilter)->appends('stateFilter',$stateFilter)->appends('marketFilter',$marketFilter)->appends('amountFilter',$amountFilter)->appends('sourceFilter',$sourceFilter);
 
@@ -376,7 +376,7 @@ class orderFulfillmentController extends Controller
 
      
         
-        $maxPrice = ceil(orders::where('status','unshipped')->where('flag','8')->max('totalAmount'));
+        $maxPrice = ceil(orders::where('status','unshipped')->where('flag','10')->max('totalAmount'));
         foreach($orders as $order)
         {
             $order->lowestPrice = $this->getLowestPrice($order->id);
@@ -414,7 +414,7 @@ class orderFulfillmentController extends Controller
                 }
         }     
         
-        return view('cindy.new',compact('orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
+        return view('jonathan.new',compact('orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
     }
 
     public function getTotalShipping($id)
@@ -442,7 +442,7 @@ class orderFulfillmentController extends Controller
     {  
             if(auth()->user()->role==1)
             {
-                $orders = orders::select()->where('status','unshipped')->orderBy('date', 'ASC')->where('flag','8')->paginate(100);
+                $orders = orders::select()->where('status','unshipped')->orderBy('date', 'ASC')->where('flag','10')->paginate(100);
             }
     
             elseif(auth()->user()->role==2)
@@ -456,7 +456,7 @@ class orderFulfillmentController extends Controller
                     $strArray[]= $str->store;
                 }
                 
-                $orders = orders::select()->where('status','unshipped')->whereIn('storeName',$strArray)->where('flag','8')->orderBy('date', 'ASC')->paginate(100);
+                $orders = orders::select()->where('status','unshipped')->whereIn('storeName',$strArray)->where('flag','10')->orderBy('date', 'ASC')->paginate(100);
                 
             }
         
@@ -464,7 +464,7 @@ class orderFulfillmentController extends Controller
             {
                 $orders = orders::select()
                 ->where('status','unshipped')
-                ->where('flag','8')
+                ->where('flag','10')
                 ->where('uid',auth()->user()->id)
                 ->orderBy('date', 'ASC')
                 ->paginate(100);
@@ -473,7 +473,7 @@ class orderFulfillmentController extends Controller
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
         
-        $maxAmount = ceil(orders::where('status','unshipped')->where('flag','8')->max('totalAmount'));
+        $maxAmount = ceil(orders::where('status','unshipped')->where('flag','10')->max('totalAmount'));
 
         $minAmount = 0; 
         $maxPrice = $maxAmount;
@@ -513,7 +513,7 @@ class orderFulfillmentController extends Controller
                 }
         }
             
-        return view('cindy.new',compact('orders','stores','states','maxAmount','minAmount','maxPrice'));
+        return view('jonathan.new',compact('orders','stores','states','maxAmount','minAmount','maxPrice'));
     }
 
 
@@ -523,7 +523,7 @@ class orderFulfillmentController extends Controller
         $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',false)->where('flag','8')
+            $orders = orders::select()->where('converted',false)->where('flag','10')
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
@@ -544,7 +544,7 @@ class orderFulfillmentController extends Controller
             $orders = orders::select()->where('converted',false)
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
-            ->where('flag','8')->whereIn('storeName',$strArray)
+            ->where('flag','10')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
             ->orderBy('status', 'DESC')->paginate(100);
@@ -555,7 +555,7 @@ class orderFulfillmentController extends Controller
             $orders = array();
         
 
-        return view('cindy.bce',compact('orders'));
+        return view('jonathan.bce',compact('orders'));
     }
 
     
@@ -610,7 +610,7 @@ class orderFulfillmentController extends Controller
         try{
         
             $client = new client(); 
-            $endPoint = env('CINDY_TOKEN', '');
+            $endPoint = env('JONATHAN_TOKEN', '');
 
             $response = $client->request('GET', $endPoint,
             [
@@ -633,7 +633,7 @@ class orderFulfillmentController extends Controller
         
         $client = new client(); 
        
-        $endPoint = env('CINDY_TOKEN', '');
+        $endPoint = env('JONATHAN_TOKEN', '');
         
         try{
         $response = $client->request('GET', $endPoint,
@@ -673,7 +673,7 @@ class orderFulfillmentController extends Controller
         if(auth()->user()->role==1)            
         {
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('account_id','Cindy')
+            ->where('account_id','Jonathan')
             ->where(function($test){
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.status','shipped');
@@ -694,7 +694,7 @@ class orderFulfillmentController extends Controller
             }
             
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('account_id','Cindy')
+            ->where('account_id','Jonathan')
             ->whereIn('storeName',$strArray)
             ->where(function($test){
                 $test->where('orders.status','processing');
@@ -708,7 +708,7 @@ class orderFulfillmentController extends Controller
         else
             $orders = array();
         
-        return view('cindy.cancel',compact('orders'));
+        return view('jonathan.cancel',compact('orders'));
     }
 
 
@@ -756,7 +756,8 @@ class orderFulfillmentController extends Controller
         $qtyrangecheck = false;
         $dailyamtcheck = false;
         $dailyordercheck = false;
-        $priority = 0;
+        $priority = 0; 
+        
         $stores=array();
         
             $input = [
@@ -813,28 +814,28 @@ class orderFulfillmentController extends Controller
 
         if(!empty($request->maxDailyAmount))
             $maxDailyAmount = $request->maxDailyAmount;
-
+            
         if(!empty($request->priority))
             $priority = $request->priority;
-            
+        
         $minAmount = trim(explode('-',$amountFilter)[0]);
         $maxAmount = trim(explode('-',$amountFilter)[1]);
 
         $minQty = trim(explode('-',$qtyRangeFilter)[0]);
         $maxQty = trim(explode('-',$qtyRangeFilter)[1]);
 
-        $settings = settings::where('name','cindy')->get()->first();
+        $settings = settings::where('name','jonathan')->get()->first();
 
         if(empty($settings))
             settings::insert(['minAmount'=>$minAmount,'maxAmount'=>$maxAmount,
             'quantityRangeCheck'=>$qtyrangecheck,'minQty'=>$minQty,'maxQty'=>$maxQty,
-            'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice ,'maxDailyOrder'=>$maxDailyOrder, 'maxDailyAmount'=>$maxDailyAmount,'dailyAmountCheck'=>$dailyamtcheck, 'dailyOrderCheck'=>$dailyordercheck, 'name'=>'cindy','priority'=>$priority]);
+            'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice ,'maxDailyOrder'=>$maxDailyOrder, 'maxDailyAmount'=>$maxDailyAmount,'dailyAmountCheck'=>$dailyamtcheck, 'dailyOrderCheck'=>$dailyordercheck,'name'=>'jonathan','priority'=>$priority]);
         else
-            settings::where('name','cindy')->where('id',$settings->id)->update(['minAmount'=>$minAmount,'maxAmount'=>$maxAmount,
-            'quantityRangeCheck'=>$qtyrangecheck,'minQty'=>$minQty,'maxQty'=>$maxQty,'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice,'maxDailyOrder'=>$maxDailyOrder, 'maxDailyAmount'=>$maxDailyAmount,'dailyAmountCheck'=>$dailyamtcheck, 'dailyOrderCheck'=>$dailyordercheck, 'name'=>'cindy','priority'=>$priority]);
+            settings::where('name','jonathan')->where('id',$settings->id)->update(['minAmount'=>$minAmount,'maxAmount'=>$maxAmount,
+            'quantityRangeCheck'=>$qtyrangecheck,'minQty'=>$minQty,'maxQty'=>$maxQty,'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice,'maxDailyOrder'=>$maxDailyOrder, 'maxDailyAmount'=>$maxDailyAmount,'dailyAmountCheck'=>$dailyamtcheck, 'dailyOrderCheck'=>$dailyordercheck,'name'=>'jonathan','priority'=>$priority]);
 
         Session::flash('success_msg', __('Settings successfully updated'));
-        return redirect()->route('orderFulfillmentSetting');
+        return redirect()->route('jonathanSetting');
 
     }
 
@@ -845,13 +846,13 @@ class orderFulfillmentController extends Controller
         
         $search = 1;
 
-        if($route == 'cindynew')
+        if($route == 'jonathannew')
         {            
              
             if(auth()->user()->role==1)
             {            
 
-                $orders = orders::select()->where('flag','8')->where('status','unshipped')                
+                $orders = orders::select()->where('flag','10')->where('status','unshipped')                
                 ->where(function($test) use ($query){
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
@@ -870,7 +871,7 @@ class orderFulfillmentController extends Controller
                 }
                                 
                 
-                $orders = orders::select()->where('flag','8')->where('status','unshipped')->whereIn('storeName',$strArray)
+                $orders = orders::select()->where('flag','10')->where('status','unshipped')->whereIn('storeName',$strArray)
                 ->where(function($test) use ($query){
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
@@ -881,7 +882,7 @@ class orderFulfillmentController extends Controller
 
             else
             {
-            $orders = orders::select()->where('flag','8')->where('status','unshipped')->where('uid',auth()->user()->id)
+            $orders = orders::select()->where('flag','10')->where('status','unshipped')->where('uid',auth()->user()->id)
             ->where(function($test) use ($query){
                 $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                 $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
@@ -896,7 +897,7 @@ class orderFulfillmentController extends Controller
                 $stores = accounts::select(['id','store'])->get();
                 $states = states::select()->distinct()->get();
                 
-                $maxAmount = ceil(orders::where('status','unshipped')->where('flag','8')->max('totalAmount'));
+                $maxAmount = ceil(orders::where('status','unshipped')->where('flag','10')->max('totalAmount'));
                 $minAmount = 0; 
                 $maxPrice = $maxAmount;
 
@@ -935,16 +936,16 @@ class orderFulfillmentController extends Controller
                         }
                 }
                 $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-                return view('cindy.new',compact('orders','stores','states','maxAmount','minAmount','maxPrice','search','route'));
+                return view('jonathan.new',compact('orders','stores','states','maxAmount','minAmount','maxPrice','search','route'));
             
         }
 
-        else if ($route=='cindycancel')
+        else if ($route=='jonathancancel')
         {
             if(auth()->user()->role==1)            
         {
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('account_id','Cindy')
+            ->where('account_id','Jonathan')
             ->where(function($test){
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.status','shipped');
@@ -966,7 +967,7 @@ class orderFulfillmentController extends Controller
             }
             
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('account_id','Cindy')
+            ->where('account_id','Jonathan')
             ->whereIn('storeName',$strArray)
             ->where(function($test){
                 $test->where('orders.status','processing');
@@ -982,16 +983,16 @@ class orderFulfillmentController extends Controller
                 $orders = array();
             
             $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-            return view('cindy.cancel',compact('orders','search','route'));
+            return view('jonathan.cancel',compact('orders','search','route'));
         }        
 
-        else if ($route=='cindybce')
+        else if ($route=='jonathanbce')
         {
 
             $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',false)->where('flag','8')
+            $orders = orders::select()->where('converted',false)->where('flag','10')
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
@@ -1016,7 +1017,7 @@ class orderFulfillmentController extends Controller
             $orders = orders::select()->where('converted',false)
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
-            ->where('flag','8')->whereIn('storeName',$strArray)
+            ->where('flag','10')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
             ->where(function($test) use ($query){
@@ -1033,14 +1034,14 @@ class orderFulfillmentController extends Controller
             $orders = array();
 
             $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-            return view('cindy.bce',compact('orders','search','route'));
+            return view('jonathan.bce',compact('orders','search','route'));
         }  
 
-        else if ($route=='cindyprocessed')
+        else if ($route=='jonathanprocessed')
         {
             if(auth()->user()->role==1)
                 $orders = orders::select()->where('status','processing')
-                ->where('account_id','Cindy')
+                ->where('account_id','Jonathan')
                 ->where(function($test) use ($query){
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
@@ -1064,7 +1065,7 @@ class orderFulfillmentController extends Controller
                         $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
                         $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
                     })  
-                    ->where('account_id','Cindy')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
+                    ->where('account_id','Jonathan')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
                 }
             
             else
@@ -1075,7 +1076,7 @@ class orderFulfillmentController extends Controller
                     $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
                     $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
                 })  
-                ->where('account_id','Cindy')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->paginate(100);
+                ->where('account_id','Jonathan')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->paginate(100);
             
                 foreach($orders as $order)
                 {
@@ -1085,7 +1086,7 @@ class orderFulfillmentController extends Controller
                 $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
                 foreach ($orders as $order)
                 {
-                    $bcecheck = orders::select()->where('converted',false)->where('account_id','Cindy')
+                    $bcecheck = orders::select()->where('converted',false)->where('account_id','Jonathan')
                     ->where('marketPlace','Walmart')
                     ->where('id',$order->id)
                     ->where('carrierName',$amzCarrier->id)
@@ -1097,7 +1098,7 @@ class orderFulfillmentController extends Controller
                         $order->bce = 'BCE';
 
                     $cancelcheck = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-                    ->where('account_id','Cindy')
+                    ->where('account_id','Jonathan')
                     ->where('cancelled_orders.order_id',$order->id)
                     ->where(function($test){
                         $test->where('orders.status','processing');
@@ -1114,15 +1115,15 @@ class orderFulfillmentController extends Controller
                     
             
             $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-            return view('cindy.processed',compact('orders','search','route'));
+            return view('jonathan.processed',compact('orders','search','route'));
         }  
-        elseif($route=='cindyreturn')
+        elseif($route=='jonathanreturn')
         {
             
             if(auth()->user()->role==1)
             {
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
-                ->where('account_id','Cindy')
+                ->where('account_id','Jonathan')
                 ->where(function($test) use ($query){
                     $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
@@ -1156,7 +1157,7 @@ class orderFulfillmentController extends Controller
                     })           
                 ->whereIn('orders.storeName',$strArray)      
                 ->whereNull('returns.status')     
-                ->where('account_id','Cindy')
+                ->where('account_id','Jonathan')
                 ->orderBy('created_at','desc')
                 ->paginate(100);
             }
@@ -1172,7 +1173,7 @@ class orderFulfillmentController extends Controller
                     $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
                     }) 
-                ->where('account_id','Cindy')           
+                ->where('account_id','Jonathan')           
                 ->whereNull('returns.status')
                 ->orderBy('created_at','desc')
                 ->paginate(100);
@@ -1221,11 +1222,11 @@ class orderFulfillmentController extends Controller
             $to = date("m/d/Y", strtotime($endDate));  
             $dateRange = $from .' - ' .$to;
             $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
-            return view('cindy.return',compact('returns','accounts','stores','dateRange','search','route'));
+            return view('jonathan.return',compact('returns','accounts','stores','dateRange','search','route'));
             
             
         }
-        elseif($route=='cindyrefund')
+        elseif($route=='jonathanrefund')
         {
             if(auth()->user()->role==1)
             {
@@ -1238,7 +1239,7 @@ class orderFulfillmentController extends Controller
                     $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
                     })    
-                    ->where('account_id','Cindy') 
+                    ->where('account_id','Jonathan') 
                 ->orderBy('returnDate','desc')
                 ->paginate(100);
             }
@@ -1257,7 +1258,7 @@ class orderFulfillmentController extends Controller
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])                
                 ->whereIn('orders.storeName',$strArray)
-                ->where('account_id','Cindy')    
+                ->where('account_id','Jonathan')    
                 ->where('returns.status','returned') 
                 ->where(function($test) use ($query){
                     $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
@@ -1275,7 +1276,7 @@ class orderFulfillmentController extends Controller
                 ->select(['orders.*','returns.*'])
                 ->where('orders.uid',auth()->user()->id)  
                 ->where('returns.status','returned')  
-                ->where('account_id','Cindy')
+                ->where('account_id','Jonathan')
                 ->where(function($test) use ($query){
                     $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
@@ -1329,16 +1330,16 @@ class orderFulfillmentController extends Controller
             $to = date("m/d/Y", strtotime($endDate));  
             $dateRange = $from .' - ' .$to;
             $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
-            return view('cindy.refund',compact('returns','accounts','stores','dateRange','search','route'));
+            return view('jonathan.refund',compact('returns','accounts','stores','dateRange','search','route'));
         }
-        elseif($route=='cindycompleted')
+        elseif($route=='jonathancompleted')
         {
             if(auth()->user()->role==1)
             {
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])
                 ->where('returns.status','refunded') 
-                ->where('account_id','Cindy')      
+                ->where('account_id','Jonathan')      
                 ->where(function($test) use ($query){
                     $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
@@ -1363,7 +1364,7 @@ class orderFulfillmentController extends Controller
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])         
                 ->where('returns.status','refunded')  
-                ->where('account_id','Cindy')             
+                ->where('account_id','Jonathan')             
                 ->where(function($test) use ($query){
                     $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
@@ -1380,7 +1381,7 @@ class orderFulfillmentController extends Controller
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])
                 ->where('returns.status','refunded')    
-                ->where('account_id','Cindy')  
+                ->where('account_id','Jonathan')  
                 ->where(function($test) use ($query){
                     $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
@@ -1435,7 +1436,7 @@ class orderFulfillmentController extends Controller
             $to = date("m/d/Y", strtotime($endDate));  
             $dateRange = $from .' - ' .$to;
             $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
-            return view('cindy.complete',compact('returns','accounts','stores','dateRange','search','route'));
+            return view('jonathan.complete',compact('returns','accounts','stores','dateRange','search','route'));
         }
 
         else

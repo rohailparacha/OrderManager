@@ -237,11 +237,10 @@ catch{
                                         
                                         @if((number_format(((float)$order->totalAmount +(float)$order->shippingPrice) *0.85 , 2, '.', '') - number_format((float)$order->lowestPrice , 2, '.', '')) < ($order->quantity * 5))
                                         <td width="10%" style="color:red;">
-                                        {{ number_format(((float)$order->totalAmount +(float)$order->shippingPrice) *0.85 , 2, '.', '') - number_format((float)$order->lowestPrice , 2, '.', '') }}
                                         @else
                                         <td width="10%">
-                                        {{ number_format(((float)$order->totalAmount +(float)$order->shippingPrice) *0.85 , 2, '.', '') - number_format((float)$order->lowestPrice , 2, '.', '') }}
                                         @endif
+                                        {{ number_format((((float)$order->totalAmount +(float)$order->shippingPrice) *0.85) - (float)$order->lowestPrice , 2, '.', '') }}                                        
                                         </td>
                                         <td width="11%">
                                         @if($order->flag==0)
