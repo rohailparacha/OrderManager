@@ -262,8 +262,7 @@ catch{
                                         @elseif($order->flag==8)
                                         <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Cindy</p>                                        
                                         @elseif($order->flag==9)
-                                        <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Jonathan</p>                                    
-                                        
+                                        <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Jonathan</p>                                                   
                                         @elseif($order->flag==10)
                                         <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Samuel</p>  
                                         

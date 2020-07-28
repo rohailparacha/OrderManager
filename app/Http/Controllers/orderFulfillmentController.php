@@ -757,6 +757,9 @@ class orderFulfillmentController extends Controller
         $dailyamtcheck = false;
         $dailyordercheck = false;
         $priority = 0;
+        $maxDailyOrder = 0; 
+        $maxDailyAmount =0;
+        
         $stores=array();
         
             $input = [

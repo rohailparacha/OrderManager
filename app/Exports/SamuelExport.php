@@ -45,7 +45,7 @@ class SamuelExport implements FromCollection,WithHeadings,ShouldAutoSize
         ->leftJoin('products','order_details.SKU','=','products.asin')
         ->leftJoin('ebay_products','order_details.SKU','=','ebay_products.sku')
         ->select(['orders.*',DB::raw('IFNULL( products.lowestPrice, 0) as lowestPrice'),'products.asin','ebay_products.sku'])
-        ->where('flag','9');
+        ->where('flag','10');
         
         if(!empty($storeFilter)&& $storeFilter !=0)
         {

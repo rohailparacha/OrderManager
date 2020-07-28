@@ -127,7 +127,7 @@ class samuelController extends Controller
         $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',false)->where('flag','9')
+            $orders = orders::select()->where('converted',false)->where('flag','10')
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
@@ -148,7 +148,7 @@ class samuelController extends Controller
             $orders = orders::select()->where('converted',false)
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
-            ->where('flag','9')->whereIn('storeName',$strArray)
+            ->where('flag','10')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
             ->orderBy('status', 'DESC')->paginate(100);
@@ -182,7 +182,7 @@ class samuelController extends Controller
         if(auth()->user()->role==1)            
         {
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('flag','9')
+            ->where('flag','10')
             ->where(function($test){
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.status','shipped');
@@ -203,7 +203,7 @@ class samuelController extends Controller
             }
             
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('flag','9')
+            ->where('flag','10')
             ->whereIn('storeName',$strArray)
             ->where(function($test){
                 $test->where('orders.status','processing');
@@ -351,7 +351,7 @@ class samuelController extends Controller
         }
                 
         if(auth()->user()->role==1)
-            $orders = $orders->where('flag','9')->where('status','unshipped')->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
+            $orders = $orders->where('flag','10')->where('status','unshipped')->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
         elseif(auth()->user()->role==2)
         {
             $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
@@ -362,11 +362,11 @@ class samuelController extends Controller
                     $strArray[]= $str->store;
                 }
                 
-                $orders = $orders->where('flag','9')->where('status','unshipped')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
+                $orders = $orders->where('flag','10')->where('status','unshipped')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
         }
             
         else
-            $orders = $orders->where('flag','9')->where('status','unshipped')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
+            $orders = $orders->where('flag','10')->where('status','unshipped')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
         
         $orders = $orders->appends('storeFilter',$storeFilter)->appends('stateFilter',$stateFilter)->appends('marketFilter',$marketFilter)->appends('amountFilter',$amountFilter)->appends('sourceFilter',$sourceFilter);
 
@@ -376,7 +376,7 @@ class samuelController extends Controller
 
      
         
-        $maxPrice = ceil(orders::where('status','unshipped')->where('flag','9')->max('totalAmount'));
+        $maxPrice = ceil(orders::where('status','unshipped')->where('flag','10')->max('totalAmount'));
         foreach($orders as $order)
         {
             $order->lowestPrice = $this->getLowestPrice($order->id);
@@ -442,7 +442,7 @@ class samuelController extends Controller
     {  
             if(auth()->user()->role==1)
             {
-                $orders = orders::select()->where('status','unshipped')->orderBy('date', 'ASC')->where('flag','9')->paginate(100);
+                $orders = orders::select()->where('status','unshipped')->orderBy('date', 'ASC')->where('flag','10')->paginate(100);
             }
     
             elseif(auth()->user()->role==2)
@@ -456,7 +456,7 @@ class samuelController extends Controller
                     $strArray[]= $str->store;
                 }
                 
-                $orders = orders::select()->where('status','unshipped')->whereIn('storeName',$strArray)->where('flag','9')->orderBy('date', 'ASC')->paginate(100);
+                $orders = orders::select()->where('status','unshipped')->whereIn('storeName',$strArray)->where('flag','10')->orderBy('date', 'ASC')->paginate(100);
                 
             }
         
@@ -464,7 +464,7 @@ class samuelController extends Controller
             {
                 $orders = orders::select()
                 ->where('status','unshipped')
-                ->where('flag','9')
+                ->where('flag','10')
                 ->where('uid',auth()->user()->id)
                 ->orderBy('date', 'ASC')
                 ->paginate(100);
@@ -473,7 +473,7 @@ class samuelController extends Controller
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
         
-        $maxAmount = ceil(orders::where('status','unshipped')->where('flag','9')->max('totalAmount'));
+        $maxAmount = ceil(orders::where('status','unshipped')->where('flag','10')->max('totalAmount'));
 
         $minAmount = 0; 
         $maxPrice = $maxAmount;
@@ -523,7 +523,7 @@ class samuelController extends Controller
         $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',false)->where('flag','9')
+            $orders = orders::select()->where('converted',false)->where('flag','10')
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
@@ -544,7 +544,7 @@ class samuelController extends Controller
             $orders = orders::select()->where('converted',false)
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
-            ->where('flag','9')->whereIn('storeName',$strArray)
+            ->where('flag','10')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
             ->orderBy('status', 'DESC')->paginate(100);
@@ -755,6 +755,9 @@ class samuelController extends Controller
         $dailyamtcheck = false;
         $dailyordercheck = false;
         $priority = 0; 
+        $maxDailyOrder = 0; 
+        $maxDailyAmount =0;
+
         $stores=array();
         
             $input = [
@@ -850,7 +853,7 @@ class samuelController extends Controller
             if(auth()->user()->role==1)
             {            
 
-                $orders = orders::select()->where('flag','9')->where('status','unshipped')                
+                $orders = orders::select()->where('flag','10')->where('status','unshipped')                
                 ->where(function($test) use ($query){
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
@@ -869,7 +872,7 @@ class samuelController extends Controller
                 }
                                 
                 
-                $orders = orders::select()->where('flag','9')->where('status','unshipped')->whereIn('storeName',$strArray)
+                $orders = orders::select()->where('flag','10')->where('status','unshipped')->whereIn('storeName',$strArray)
                 ->where(function($test) use ($query){
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
@@ -880,7 +883,7 @@ class samuelController extends Controller
 
             else
             {
-            $orders = orders::select()->where('flag','9')->where('status','unshipped')->where('uid',auth()->user()->id)
+            $orders = orders::select()->where('flag','10')->where('status','unshipped')->where('uid',auth()->user()->id)
             ->where(function($test) use ($query){
                 $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                 $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
@@ -895,7 +898,7 @@ class samuelController extends Controller
                 $stores = accounts::select(['id','store'])->get();
                 $states = states::select()->distinct()->get();
                 
-                $maxAmount = ceil(orders::where('status','unshipped')->where('flag','9')->max('totalAmount'));
+                $maxAmount = ceil(orders::where('status','unshipped')->where('flag','10')->max('totalAmount'));
                 $minAmount = 0; 
                 $maxPrice = $maxAmount;
 
@@ -990,7 +993,7 @@ class samuelController extends Controller
             $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',false)->where('flag','9')
+            $orders = orders::select()->where('converted',false)->where('flag','10')
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
@@ -1015,7 +1018,7 @@ class samuelController extends Controller
             $orders = orders::select()->where('converted',false)
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
-            ->where('flag','9')->whereIn('storeName',$strArray)
+            ->where('flag','10')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
             ->where(function($test) use ($query){
