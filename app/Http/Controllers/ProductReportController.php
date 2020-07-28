@@ -158,15 +158,20 @@ class ProductReportController extends Controller
 
         if($request->status == 'sold')
         {
+            /*
             $order_details = order_details::with(
                 [
                     'order' => function($order)
                     {
-                        $order->whereIn('status', ['shipped','processing','unshipped']);
+                        $order->whereIn('status', ['shipped','processing','unshipped','cancelled','pending']);
                     },
                     'asin'
                 ]
-            )->where(['SKU' => $request->asin])->paginate(500);
+            )->where(['SKU' => $request->asin])->paginate(600);
+            */
+
+            $order_details = order_details::where(['SKU' => $request->asin])->paginate(200);
+
         }
 
 
