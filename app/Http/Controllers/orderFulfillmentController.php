@@ -6,6 +6,13 @@ use App\settings;
 use App\carriers; 
 use App\orders;
 use App\cancelled_orders;
+use App\states;
+use App\products; 
+use App\returns;
+use App\gmail_accounts;
+use App\ebay_products; 
+use App\order_details;
+use App\Exports\AutoFulfillExport;
 use Session;
 use Redirect;
 use Validator;
@@ -28,8 +35,37 @@ class orderFulfillmentController extends Controller
     public function index()
     {
         $stores = accounts::all();
-        $settings = settings::get()->first();
+        $settings = settings::where('name','cindy')->get()->first();
         return view('orderFulfillmentSettings',compact('stores','settings'));
+    }
+
+    public function getLowestPrice($id)
+    {
+
+        $details = order_details::where('order_id',$id)->get(); 
+        $total = 0; 
+        foreach($details as $detail)
+        {
+            $price  = products::select('lowestPrice')->where('asin',$detail->SKU)->get()->first(); 
+
+            if(empty($price))
+                {
+                    $total = $total + 0; 
+                    $price  = ebay_products::select('ebayPrice')->where('sku',$detail->SKU)->get()->first(); 
+                    if(empty($price))
+                    {
+                        $total = $total + 0; 
+                    }
+                    else
+                    $total = $total + $price->ebayPrice;   
+                }
+
+            else
+                $total = $total + $price->lowestPrice;
+        }
+
+        return $total;
+
     }
 
     public function getCredits()
@@ -65,6 +101,19 @@ class orderFulfillmentController extends Controller
         
         
     }
+
+    public function autofulfillexport(Request $request)
+    {
+        $storeFilter = $request->storeFilter;
+        $marketFilter = $request->marketFilter;
+        $stateFilter = $request->stateFilter;
+        $amountFilter = $request->amountFilter; 
+        $sourceFilter = $request->sourceFilter; 
+
+        $filename = date("d-m-Y")."-".time()."-autofulfill-orders.xlsx";
+        return Excel::download(new AutoFulfillExport($storeFilter,$marketFilter,$stateFilter,$amountFilter,$sourceFilter), $filename);
+    }
+
 
     
 
@@ -139,7 +188,7 @@ class orderFulfillmentController extends Controller
                 $test->orWhere('orders.status','shipped');
             }) 
             ->orderBy('orders.status', 'DESC')
-            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.id AS cancelledId'])
+            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.created_at AS ordercreatedate','cancelled_orders.id AS cancelledId'])
             ->paginate(100);
         }
 
@@ -161,7 +210,7 @@ class orderFulfillmentController extends Controller
                 $test->orWhere('orders.orders.','shipped');
             }) 
             ->orderBy('orders.status', 'DESC')
-            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.id AS cancelledId'])
+            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.created_at AS ordercreatedate','cancelled_orders.id AS cancelledId'])
             ->paginate(100);
         }
             
@@ -179,6 +228,294 @@ class orderFulfillmentController extends Controller
        
         return Response::download(public_path($fileName));
     }
+
+    public function autofulfillProcessed()
+    {    
+        if(auth()->user()->role==1)
+            $orders = orders::select()->where('status','processing')->where('account_id','Cindy')->orderBy('date', 'ASC')->paginate(100);
+
+        elseif(auth()->user()->role==2)
+            {
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }
+                
+                $orders = orders::select()->where('status','processing')->where('account_id','Cindy')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
+            }
+        
+        else
+            
+            $orders = orders::select()->where('status','processing')->where('account_id','Cindy')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->paginate(100);
+        
+            foreach($orders as $order)
+            {
+               $order->shippingPrice = $this->getTotalShipping($order->id);
+            }
+
+        $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
+        foreach ($orders as $order)
+        {
+            $bcecheck = orders::select()->where('converted',false)->where('account_id','Cindy')
+            ->where('marketPlace','Walmart')
+            ->where('id',$order->id)
+            ->where('carrierName',$amzCarrier->id)
+            ->where('status','processing')
+            ->where('trackingNumber','like','TBA%')
+            ->orderBy('status', 'DESC')->get()->first();
+
+            if(!empty($bcecheck))
+                $order->bce = 'BCE';
+
+            $cancelcheck = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
+            ->where('account_id','Cindy')
+            ->where('cancelled_orders.order_id',$order->id)
+            ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+            }) 
+            ->orderBy('orders.status', 'DESC')
+            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.created_at AS ordercreatedate','cancelled_orders.id AS cancelledId'])
+            ->get()->first(); 
+
+            if(!empty($cancelcheck))
+                $order->cancel = 'Cancel';
+
+        }
+            
+        
+        return view('cindy.processed',compact('orders'));
+        
+    }
+
+    public function autoFulfillFilter(Request $request)
+    {
+        
+        if($request->has('storeFilter'))
+            $storeFilter = $request->get('storeFilter');
+        if($request->has('marketFilter'))
+            $marketFilter = $request->get('marketFilter');  
+        if($request->has('stateFilter'))
+            $stateFilter = $request->get('stateFilter');
+        if($request->has('amountFilter'))
+            $amountFilter = $request->get('amountFilter');
+        if($request->has('sourceFilter'))
+            $sourceFilter = $request->get('sourceFilter');
+        //now show orders
+
+
+        $minAmount = trim(explode('-',$amountFilter)[0]);
+        $maxAmount = trim(explode('-',$amountFilter)[1]);
+            
+        $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
+        ->leftJoin('products','order_details.SKU','=','products.asin')
+        ->leftJoin('ebay_products','order_details.SKU','=','ebay_products.sku')
+        ->select(['orders.*',DB::raw('IFNULL( products.lowestPrice, 0) + IFNULL( ebay_products.ebayPrice, 0) as lowestPrice'),'products.asin','ebay_products.sku']);
+        
+        if(!empty($storeFilter)&& $storeFilter !=0)
+        {
+            $storeName = accounts::select()->where('id',$storeFilter)->get()->first();
+            $orders = $orders->where('storeName',$storeName->store);
+        }
+       
+
+        if(!empty($marketFilter)&& $marketFilter !=0)
+        {                            
+            if($marketFilter==1)
+                $orders = $orders->where('marketplace','Amazon');
+            elseif($marketFilter==2)
+                $orders = $orders->where('marketplace','eBay');
+            elseif($marketFilter==3)
+                $orders = $orders->where('marketplace','Walmart');
+                      
+        }
+
+        if(!empty($sourceFilter)&& $sourceFilter !=0)
+        {                            
+            if($sourceFilter==1)
+                $orders = $orders->whereNotNull('products.asin');
+            elseif($sourceFilter==2)
+                $orders = $orders->whereNotNull('ebay_products.sku');                                
+        }
+
+
+        
+        $orders = $orders->whereBetween(DB::raw('IFNULL( products.lowestPrice, 0) + IFNULL( ebay_products.ebayPrice, 0)'),[$minAmount,$maxAmount]);
+
+        if(!empty($stateFilter)&& $stateFilter !='0')
+        {           
+            $orders = $orders->where('state',$stateFilter);
+        }
+                
+        if(auth()->user()->role==1)
+            $orders = $orders->where('flag','8')->where('status','unshipped')->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
+        elseif(auth()->user()->role==2)
+        {
+            $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+    
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }
+                
+                $orders = $orders->where('flag','8')->where('status','unshipped')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
+        }
+            
+        else
+            $orders = $orders->where('flag','8')->where('status','unshipped')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
+        
+        $orders = $orders->appends('storeFilter',$storeFilter)->appends('stateFilter',$stateFilter)->appends('marketFilter',$marketFilter)->appends('amountFilter',$amountFilter)->appends('sourceFilter',$sourceFilter);
+
+        
+        $stores = accounts::select(['id','store'])->get();
+        $states = states::select()->distinct()->get();
+
+     
+        
+        $maxPrice = ceil(orders::where('status','unshipped')->where('flag','8')->max('totalAmount'));
+        foreach($orders as $order)
+        {
+            $order->lowestPrice = $this->getLowestPrice($order->id);
+            $order->shippingPrice = $this->getTotalShipping($order->id);
+            
+
+            $sources = array();
+                $order_details = order_details::where('order_id',$order->id)->get(); 
+                if(empty($order_details))
+                    continue;
+                
+                
+                foreach($order_details as $detail)
+                {
+
+                    $amz = products::where('asin',$detail->SKU)->get()->first(); 
+                    if(empty($amz))
+                        {
+                            $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
+                            if(empty($ebay))
+                                $sources[]= 'N/A'; 
+                            else
+                                $sources[]= 'Ebay'; 
+
+                        }
+                    else
+                                $sources[]= 'Amazon'; 
+
+                    $b = array_unique($sources); 
+
+                    if(count($b)==1)
+                        $order->source = $b[0];
+                    else
+                        $order->source = 'Mix';
+                }
+        }     
+        
+        return view('cindy.new',compact('orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
+    }
+
+    public function getTotalShipping($id)
+    {
+
+        $details = order_details::where('order_id',$id)->get(); 
+        $total = 0; 
+        foreach($details as $detail)
+        {
+            $price = $detail->shippingPrice; 
+
+            if(empty($price))
+                $total = $total + 0; 
+
+            else
+
+                $total = $total + $price;
+        }
+
+        return $total;
+
+    }
+
+    public function autoFulfill()
+    {  
+            if(auth()->user()->role==1)
+            {
+                $orders = orders::select()->where('status','unshipped')->orderBy('date', 'ASC')->where('flag','8')->paginate(100);
+            }
+    
+            elseif(auth()->user()->role==2)
+            {
+                
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+    
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }
+                
+                $orders = orders::select()->where('status','unshipped')->whereIn('storeName',$strArray)->where('flag','8')->orderBy('date', 'ASC')->paginate(100);
+                
+            }
+        
+            else
+            {
+                $orders = orders::select()
+                ->where('status','unshipped')
+                ->where('flag','8')
+                ->where('uid',auth()->user()->id)
+                ->orderBy('date', 'ASC')
+                ->paginate(100);
+            }
+
+        $stores = accounts::select(['id','store'])->get();
+        $states = states::select()->distinct()->get();
+        
+        $maxAmount = ceil(orders::where('status','unshipped')->where('flag','8')->max('totalAmount'));
+
+        $minAmount = 0; 
+        $maxPrice = $maxAmount;
+
+        foreach($orders as $order)
+        {
+            $order->lowestPrice = $this->getLowestPrice($order->id);
+            $order->shippingPrice = $this->getTotalShipping($order->id);
+            $sources = array();
+                $order_details = order_details::where('order_id',$order->id)->get(); 
+                if(empty($order_details))
+                    continue;
+                
+                
+                foreach($order_details as $detail)
+                {
+
+                    $amz = products::where('asin',$detail->SKU)->get()->first(); 
+                    if(empty($amz))
+                        {
+                            $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
+                            if(empty($ebay))
+                                $sources[]= 'N/A'; 
+                            else
+                                $sources[]= 'Ebay'; 
+
+                        }
+                    else
+                                $sources[]= 'Amazon'; 
+
+                    $b = array_unique($sources); 
+
+                    if(count($b)==1)
+                        $order->source = $b[0];
+                    else
+                        $order->source = 'Mix';
+                }
+        }
+            
+        return view('cindy.new',compact('orders','stores','states','maxAmount','minAmount','maxPrice'));
+    }
+
 
     public function autofulfillconversions()
     {       
@@ -211,16 +548,14 @@ class orderFulfillmentController extends Controller
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
             ->orderBy('status', 'DESC')->paginate(100);
-
-         
-            
+                     
         }
             
         else
             $orders = array();
         
 
-        return view('orders.orderFulfillmentConversions',compact('orders'));
+        return view('cindy.bce',compact('orders'));
     }
 
     
@@ -275,7 +610,7 @@ class orderFulfillmentController extends Controller
         try{
         
             $client = new client(); 
-            $endPoint = env('GAPI_TOKEN', '');
+            $endPoint = env('CINDY_TOKEN', '');
 
             $response = $client->request('GET', $endPoint,
             [
@@ -298,7 +633,7 @@ class orderFulfillmentController extends Controller
         
         $client = new client(); 
        
-        $endPoint = env('GAPI_TOKEN', '');
+        $endPoint = env('CINDY_TOKEN', '');
         
         try{
         $response = $client->request('GET', $endPoint,
@@ -338,13 +673,13 @@ class orderFulfillmentController extends Controller
         if(auth()->user()->role==1)            
         {
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('flag','8')
+            ->where('account_id','Cindy')
             ->where(function($test){
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.status','shipped');
             }) 
             ->orderBy('orders.status', 'DESC')
-            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.id AS cancelledId'])
+            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.created_at AS ordercreatedate','cancelled_orders.id AS cancelledId'])
             ->paginate(100);
         }
 
@@ -359,21 +694,21 @@ class orderFulfillmentController extends Controller
             }
             
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('flag','8')
+            ->where('account_id','Cindy')
             ->whereIn('storeName',$strArray)
             ->where(function($test){
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.orders.','shipped');
             }) 
             ->orderBy('orders.status', 'DESC')
-            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.id AS cancelledId'])
+            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.created_at AS ordercreatedate','cancelled_orders.id AS cancelledId'])
             ->paginate(100);
         }
             
         else
             $orders = array();
         
-        return view('orders.orderFulfillmentCancel',compact('orders'));
+        return view('cindy.cancel',compact('orders'));
     }
 
 
@@ -419,6 +754,9 @@ class orderFulfillmentController extends Controller
         $pricecheck = false;
         $storecheck = false;
         $qtyrangecheck = false;
+        $dailyamtcheck = false;
+        $dailyordercheck = false;
+        $priority = 0;
         $stores=array();
         
             $input = [
@@ -442,7 +780,13 @@ class orderFulfillmentController extends Controller
         
         if(!empty($request->pricecheck))
             $pricecheck = true;
-
+        
+        if(!empty($request->dailyamtcheck))
+            $dailyamtcheck = true;
+        
+        if(!empty($request->dailyordercheck))
+            $dailyordercheck = true;
+        
         if(!empty($request->storecheck))
             $storecheck = true;
             
@@ -463,6 +807,15 @@ class orderFulfillmentController extends Controller
 
         if(!empty($request->maxPrice))
             $maxPrice = $request->maxPrice;
+
+        if(!empty($request->maxDailyOrder))
+            $maxDailyOrder = $request->maxDailyOrder;
+
+        if(!empty($request->maxDailyAmount))
+            $maxDailyAmount = $request->maxDailyAmount;
+
+        if(!empty($request->priority))
+            $priority = $request->priority;
             
         $minAmount = trim(explode('-',$amountFilter)[0]);
         $maxAmount = trim(explode('-',$amountFilter)[1]);
@@ -470,18 +823,623 @@ class orderFulfillmentController extends Controller
         $minQty = trim(explode('-',$qtyRangeFilter)[0]);
         $maxQty = trim(explode('-',$qtyRangeFilter)[1]);
 
-        $settings = settings::get()->first();
+        $settings = settings::where('name','cindy')->get()->first();
 
         if(empty($settings))
             settings::insert(['minAmount'=>$minAmount,'maxAmount'=>$maxAmount,
             'quantityRangeCheck'=>$qtyrangecheck,'minQty'=>$minQty,'maxQty'=>$maxQty,
-            'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice]);
+            'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice ,'maxDailyOrder'=>$maxDailyOrder, 'maxDailyAmount'=>$maxDailyAmount,'dailyAmountCheck'=>$dailyamtcheck, 'dailyOrderCheck'=>$dailyordercheck, 'name'=>'cindy','priority'=>$priority]);
         else
-            settings::where('id',$settings->id)->update(['minAmount'=>$minAmount,'maxAmount'=>$maxAmount,
-            'quantityRangeCheck'=>$qtyrangecheck,'minQty'=>$minQty,'maxQty'=>$maxQty,'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice]);
+            settings::where('name','cindy')->where('id',$settings->id)->update(['minAmount'=>$minAmount,'maxAmount'=>$maxAmount,
+            'quantityRangeCheck'=>$qtyrangecheck,'minQty'=>$minQty,'maxQty'=>$maxQty,'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice,'maxDailyOrder'=>$maxDailyOrder, 'maxDailyAmount'=>$maxDailyAmount,'dailyAmountCheck'=>$dailyamtcheck, 'dailyOrderCheck'=>$dailyordercheck, 'name'=>'cindy','priority'=>$priority]);
 
         Session::flash('success_msg', __('Settings successfully updated'));
         return redirect()->route('orderFulfillmentSetting');
 
     }
+
+    public function search(Request $request)
+    {
+        $query = $request->searchQuery;
+        $route = $request->route; 
+        
+        $search = 1;
+
+        if($route == 'cindynew')
+        {            
+             
+            if(auth()->user()->role==1)
+            {            
+
+                $orders = orders::select()->where('flag','8')->where('status','unshipped')                
+                ->where(function($test) use ($query){
+                    $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                })                
+                ->orderBy('date', 'ASC')->paginate(100);
+            }
+    
+            elseif(auth()->user()->role==2)
+            {
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+    
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }
+                                
+                
+                $orders = orders::select()->where('flag','8')->where('status','unshipped')->whereIn('storeName',$strArray)
+                ->where(function($test) use ($query){
+                    $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                })                
+                ->orderBy('date', 'ASC')->paginate(100);
+                
+            }
+
+            else
+            {
+            $orders = orders::select()->where('flag','8')->where('status','unshipped')->where('uid',auth()->user()->id)
+            ->where(function($test) use ($query){
+                $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+            })                
+            ->orderBy('date', 'ASC')->paginate(100);
+            }
+
+
+
+
+
+                $stores = accounts::select(['id','store'])->get();
+                $states = states::select()->distinct()->get();
+                
+                $maxAmount = ceil(orders::where('status','unshipped')->where('flag','8')->max('totalAmount'));
+                $minAmount = 0; 
+                $maxPrice = $maxAmount;
+
+                foreach($orders as $order)
+                {
+                    $order->lowestPrice = $this->getLowestPrice($order->id);
+                    $order->shippingPrice = $this->getTotalShipping($order->id);
+                    $sources = array();
+                        $order_details = order_details::where('order_id',$order->id)->get(); 
+                        if(empty($order_details))
+                            continue;
+                        
+                        
+                        foreach($order_details as $detail)
+                        {
+        
+                            $amz = products::where('asin',$detail->SKU)->get()->first(); 
+                            if(empty($amz))
+                                {
+                                    $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
+                                    if(empty($ebay))
+                                        $sources[]= 'N/A'; 
+                                    else
+                                        $sources[]= 'Ebay'; 
+        
+                                }
+                            else
+                                        $sources[]= 'Amazon'; 
+        
+                            $b = array_unique($sources); 
+        
+                            if(count($b)==1)
+                                $order->source = $b[0];
+                            else
+                                $order->source = 'Mix';
+                        }
+                }
+                $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
+                return view('cindy.new',compact('orders','stores','states','maxAmount','minAmount','maxPrice','search','route'));
+            
+        }
+
+        else if ($route=='cindycancel')
+        {
+            if(auth()->user()->role==1)            
+        {
+            $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
+            ->where('account_id','Cindy')
+            ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+            })
+            ->where('afpoNumber', 'LIKE', '%'.$query.'%')            
+            ->orderBy('orders.status', 'DESC')
+            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.id AS cancelledId'])
+            ->paginate(100);
+        }
+
+        elseif(auth()->user()->role==2)
+        {
+            $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+            $strArray  = array();
+
+            foreach($stores as $str)
+            {
+                $strArray[]= $str->store;
+            }
+            
+            $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
+            ->where('account_id','Cindy')
+            ->whereIn('storeName',$strArray)
+            ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.orders.','shipped');
+            }) 
+            ->where('afpoNumber', 'LIKE', '%'.$query.'%')
+            ->orderBy('orders.status', 'DESC')
+            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.id AS cancelledId'])
+            ->paginate(100);
+        }
+            
+            else
+                $orders = array();
+            
+            $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
+            return view('cindy.cancel',compact('orders','search','route'));
+        }        
+
+        else if ($route=='cindybce')
+        {
+
+            $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
+        if(auth()->user()->role==1)            
+        {
+            $orders = orders::select()->where('converted',false)->where('flag','8')
+            ->where('marketPlace','Walmart')
+            ->where('carrierName',$amzCarrier->id)
+            ->where('status','processing')
+            ->where('trackingNumber','like','TBA%')
+            ->where(function($test) use ($query){
+                $test->where('poNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+            }) 
+            ->orderBy('status', 'DESC')->paginate(100);
+        }
+
+        elseif(auth()->user()->role==2)
+        {
+            $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+            $strArray  = array();
+
+            foreach($stores as $str)
+            {
+                $strArray[]= $str->store;
+            }
+            
+            $orders = orders::select()->where('converted',false)
+            ->where('marketPlace','Walmart')
+            ->where('carrierName',$amzCarrier->id)
+            ->where('flag','8')->whereIn('storeName',$strArray)
+            ->where('status','processing')
+            ->where('trackingNumber','like','TBA%')
+            ->where(function($test) use ($query){
+                $test->where('poNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+            }) 
+            ->orderBy('status', 'DESC')->paginate(100);
+
+         
+            
+        }
+            
+        else
+            $orders = array();
+
+            $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
+            return view('cindy.bce',compact('orders','search','route'));
+        }  
+
+        else if ($route=='cindyprocessed')
+        {
+            if(auth()->user()->role==1)
+                $orders = orders::select()->where('status','processing')
+                ->where('account_id','Cindy')
+                ->where(function($test) use ($query){
+                    $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                })  
+                ->orderBy('date', 'ASC')->paginate(100);
+
+            elseif(auth()->user()->role==2)
+                {
+                    $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                    $strArray  = array();
+
+                    foreach($stores as $str)
+                    {
+                        $strArray[]= $str->store;
+                    }
+                    
+                    $orders = orders::select()->where('status','processing')
+                    ->where(function($test) use ($query){
+                        $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                        $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                        $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                    })  
+                    ->where('account_id','Cindy')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
+                }
+            
+            else
+                
+                $orders = orders::select()->where('status','processing')
+                ->where(function($test) use ($query){
+                    $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                })  
+                ->where('account_id','Cindy')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->paginate(100);
+            
+                foreach($orders as $order)
+                {
+                $order->shippingPrice = $this->getTotalShipping($order->id);
+                }
+
+                $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
+                foreach ($orders as $order)
+                {
+                    $bcecheck = orders::select()->where('converted',false)->where('account_id','Cindy')
+                    ->where('marketPlace','Walmart')
+                    ->where('id',$order->id)
+                    ->where('carrierName',$amzCarrier->id)
+                    ->where('status','processing')
+                    ->where('trackingNumber','like','TBA%')
+                    ->orderBy('status', 'DESC')->get()->first();
+
+                    if(!empty($bcecheck))
+                        $order->bce = 'BCE';
+
+                    $cancelcheck = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
+                    ->where('account_id','Cindy')
+                    ->where('cancelled_orders.order_id',$order->id)
+                    ->where(function($test){
+                        $test->where('orders.status','processing');
+                        $test->orWhere('orders.status','shipped');
+                    }) 
+                    ->orderBy('orders.status', 'DESC')
+                    ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.created_at AS ordercreatedate','cancelled_orders.id AS cancelledId'])
+                    ->get()->first(); 
+
+                    if(!empty($cancelcheck))
+                        $order->cancel = 'Cancel';
+
+                }
+                    
+            
+            $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
+            return view('cindy.processed',compact('orders','search','route'));
+        }  
+        elseif($route=='cindyreturn')
+        {
+            
+            if(auth()->user()->role==1)
+            {
+                $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
+                ->where('account_id','Cindy')
+                ->where(function($test) use ($query){
+                    $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
+                    }) 
+                ->select(['orders.*','returns.*'])
+                ->orderBy('created_at','desc')
+                ->whereNull('returns.status')                
+                ->paginate(100);
+            }
+    
+            elseif(auth()->user()->role==2)
+            {
+                
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+    
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }
+                                
+                $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
+                ->select(['orders.*','returns.*'])      
+                ->where(function($test) use ($query){
+                    $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
+                    })           
+                ->whereIn('orders.storeName',$strArray)      
+                ->whereNull('returns.status')     
+                ->where('account_id','Cindy')
+                ->orderBy('created_at','desc')
+                ->paginate(100);
+            }
+        
+            else
+            {
+                $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
+                ->select(['orders.*','returns.*'])
+                ->where('orders.uid',auth()->user()->id)  
+                ->where(function($test) use ($query){
+                    $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
+                    }) 
+                ->where('account_id','Cindy')           
+                ->whereNull('returns.status')
+                ->orderBy('created_at','desc')
+                ->paginate(100);
+            }
+            
+            
+            foreach($returns as $return)
+            {
+                $sources = array();
+                $order_details = order_details::where('order_id',$return->order_id)->get(); 
+                if(empty($order_details))
+                    continue;
+                
+                
+                foreach($order_details as $detail)
+                {
+
+                    $amz = products::where('asin',$detail->SKU)->get()->first(); 
+                    if(empty($amz))
+                        {
+                            $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
+                            if(empty($ebay))
+                                $sources[]= 'NA'; 
+                            else
+                                $sources[]= 'Ebay'; 
+
+                        }
+                    else
+                                $sources[]= 'Amazon'; 
+
+                    $b = array_unique($sources); 
+
+                    if(count($b)==1)
+                        $return->source = $b[0];
+                    else
+                        $return->source = 'Mix';
+                }
+            }
+
+            $accounts = gmail_accounts::all();      
+            $stores = accounts::all();
+            $startDate = returns::min('returnDate');
+            $endDate = returns::max('returnDate');
+
+            $from = date("m/d/Y", strtotime($startDate));  
+            $to = date("m/d/Y", strtotime($endDate));  
+            $dateRange = $from .' - ' .$to;
+            $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
+            return view('cindy.return',compact('returns','accounts','stores','dateRange','search','route'));
+            
+            
+        }
+        elseif($route=='cindyrefund')
+        {
+            if(auth()->user()->role==1)
+            {
+                $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
+                ->select(['orders.*','returns.*'])
+                ->where('returns.status','returned') 
+                ->where(function($test) use ($query){
+                    $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
+                    })    
+                    ->where('account_id','Cindy') 
+                ->orderBy('returnDate','desc')
+                ->paginate(100);
+            }
+    
+            elseif(auth()->user()->role==2)
+            {
+                
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+    
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }
+                                
+                $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
+                ->select(['orders.*','returns.*'])                
+                ->whereIn('orders.storeName',$strArray)
+                ->where('account_id','Cindy')    
+                ->where('returns.status','returned') 
+                ->where(function($test) use ($query){
+                    $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
+                    })  
+                ->orderBy('returnDate','desc')       
+                ->paginate(100);
+            }
+        
+            else
+            {
+                $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
+                ->select(['orders.*','returns.*'])
+                ->where('orders.uid',auth()->user()->id)  
+                ->where('returns.status','returned')  
+                ->where('account_id','Cindy')
+                ->where(function($test) use ($query){
+                    $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
+                    }) 
+                ->orderBy('returnDate','desc')                    
+                ->paginate(100);
+            }
+            
+            
+            foreach($returns as $return)
+            {
+                $sources = array();
+                $order_details = order_details::where('order_id',$return->order_id)->get(); 
+                if(empty($order_details))
+                    continue;
+                
+                
+                foreach($order_details as $detail)
+                {
+
+                    $amz = products::where('asin',$detail->SKU)->get()->first(); 
+                    if(empty($amz))
+                        {
+                            $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
+                            if(empty($ebay))
+                                $sources[]= 'NA'; 
+                            else
+                                $sources[]= 'Ebay'; 
+
+                        }
+                    else
+                                $sources[]= 'Amazon'; 
+
+                    $b = array_unique($sources); 
+
+                    if(count($b)==1)
+                        $return->source = $b[0];
+                    else
+                        $return->source = 'Mix';
+                }
+            }
+
+            $accounts = gmail_accounts::all();      
+            $stores = accounts::all();
+            $startDate = returns::min('returnDate');
+            $endDate = returns::max('returnDate');
+
+            $from = date("m/d/Y", strtotime($startDate));  
+            $to = date("m/d/Y", strtotime($endDate));  
+            $dateRange = $from .' - ' .$to;
+            $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
+            return view('cindy.refund',compact('returns','accounts','stores','dateRange','search','route'));
+        }
+        elseif($route=='cindycompleted')
+        {
+            if(auth()->user()->role==1)
+            {
+                $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
+                ->select(['orders.*','returns.*'])
+                ->where('returns.status','refunded') 
+                ->where('account_id','Cindy')      
+                ->where(function($test) use ($query){
+                    $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
+                    }) 
+                ->orderBy('refundDate','desc')
+                ->paginate(100);
+            }
+    
+            elseif(auth()->user()->role==2)
+            {
+                
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+    
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }
+                                
+                $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
+                ->select(['orders.*','returns.*'])         
+                ->where('returns.status','refunded')  
+                ->where('account_id','Cindy')             
+                ->where(function($test) use ($query){
+                    $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
+                    }) 
+                ->whereIn('orders.storeName',$strArray)  
+                ->orderBy('refundDate','desc')           
+                ->paginate(100);
+            }
+        
+            else
+            {
+                $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
+                ->select(['orders.*','returns.*'])
+                ->where('returns.status','refunded')    
+                ->where('account_id','Cindy')  
+                ->where(function($test) use ($query){
+                    $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
+                    }) 
+                ->where('orders.uid',auth()->user()->id)  
+                ->orderBy('refundDate','desc')              
+                ->paginate(100);
+            }
+            
+            
+            foreach($returns as $return)
+            {
+                $sources = array();
+                $order_details = order_details::where('order_id',$return->order_id)->get(); 
+                if(empty($order_details))
+                    continue;
+                
+                
+                foreach($order_details as $detail)
+                {
+
+                    $amz = products::where('asin',$detail->SKU)->get()->first(); 
+                    if(empty($amz))
+                        {
+                            $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
+                            if(empty($ebay))
+                                $sources[]= 'NA'; 
+                            else
+                                $sources[]= 'Ebay'; 
+
+                        }
+                    else
+                                $sources[]= 'Amazon'; 
+
+                    $b = array_unique($sources); 
+
+                    if(count($b)==1)
+                        $return->source = $b[0];
+                    else
+                        $return->source = 'Mix';
+                }
+            }
+
+            $accounts = gmail_accounts::all();      
+            $stores = accounts::all();
+            $startDate = returns::min('returnDate');
+            $endDate = returns::max('returnDate');
+
+            $from = date("m/d/Y", strtotime($startDate));  
+            $to = date("m/d/Y", strtotime($endDate));  
+            $dateRange = $from .' - ' .$to;
+            $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
+            return view('cindy.complete',compact('returns','accounts','stores','dateRange','search','route'));
+        }
+
+        else
+        redirect()->back();
+    }
+
 }

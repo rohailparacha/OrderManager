@@ -1,7 +1,7 @@
 @extends('layouts.app', ['title' => __('Order Fulfillment Settings')])
 
 @section('content')
-    @include('users.partials.header', ['title' => __('Order Fulfillment Settings')])   
+    @include('users.partials.header', ['title' => __('Cindy - Order Fulfillment Settings')])   
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/js/bootstrap-multiselect.min.js"></script>
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/css/bootstrap-multiselect.css">
@@ -72,7 +72,7 @@ $( function() {
                         <form method="post" action="/storeSettings" autocomplete="off">
                             @csrf
                             
-                            <h3 class=" text-muted mb-4">{{ __('Settings') }}</h3>
+                            <h3 class=" text-muted mb-4">{{ __('Cindy - Settings') }}</h3>
                         
 
                                 <div style="padding-right:3%;">
@@ -147,7 +147,42 @@ $( function() {
                                 </div>
 
                                 <br><br>
+                                <label class="form-control-label" for="input-name">{{ __('Max Daily Order:') }}</label>                                
 
+                                <div class="row">
+                                <div class="col-sm-1 form-group" style="max-width:2%;margin-top: 0.6rem;">                                    
+                                    <input  type="checkbox" id="vehicle1" name="dailyordercheck" {{!empty($settings->dailyOrderCheck) && $settings->dailyOrderCheck==true?'checked':''}}>  
+                                </div>
+                                <div class="col-sm-6 form-group">
+                                    <div class="i-checks">
+                                        <label class="control-label"> 
+                                        <input type="text" name="maxDailyOrder" id="input-name" class="form-control form-inline" placeholder="{{ __('Max Daily Order') }}" value="{{ empty($settings->maxDailyOrder)?'':$settings->maxDailyOrder  }}" autofocus>
+                                    </div>
+                                </div>
+                                </div>
+                                @error('maxDailyOrder')
+                                            <div class="permissions" style="color:red;">{{ $message }}</div>
+                                @enderror
+
+                                <br><br>
+                                <label class="form-control-label" for="input-name">{{ __('Max Daily Amount:') }}</label>                                
+
+                                <div class="row">
+                                <div class="col-sm-1 form-group" style="max-width:2%;margin-top: 0.6rem;">                                    
+                                    <input  type="checkbox" id="vehicle1" name="dailyamtcheck" {{!empty($settings->dailyAmountCheck) && $settings->dailyAmountCheck==true?'checked':''}}>  
+                                </div>
+                                <div class="col-sm-6 form-group">
+                                    <div class="i-checks">
+                                        <label class="control-label"> 
+                                        <input type="text" name="maxDailyAmount" id="input-name" class="form-control form-inline" placeholder="{{ __('Max Daily Amount') }}" value="{{ empty($settings->maxDailyAmount)?'':$settings->maxDailyAmount  }}" autofocus>
+                                    </div>
+                                </div>
+                                </div>
+                                @error('maxDailyAmount')
+                                            <div class="permissions" style="color:red;">{{ $message }}</div>
+                                @enderror
+                                
+                                <br><br>
                                 
                                 <label class="form-control-label" for="input-name">{{ __('Discount:') }}</label>                                
 
@@ -180,7 +215,22 @@ $( function() {
                                             <div class="permissions" style="color:red;">{{ $message }}</div>
                                 @enderror
                                 
-                                
+                                <br><br>
+                                <label class="form-control-label" for="input-name">{{ __('Priority:') }}</label>                                
+
+                                <div class="row">
+
+                                <div class="col-sm-6 form-group">
+                                    <div class="i-checks">
+                                        <label class="control-label"> 
+                                        <input type="text" name="priority" id="input-name" class="form-control form-inline" placeholder="{{ __('Priority') }}" value="{{ empty($settings->priority)?'':$settings->priority  }}" autofocus>
+                                    </div>
+                                </div>
+                                </div>
+                                @error('priority')
+                                            <div class="permissions" style="color:red;">{{ $message }}</div>
+                                @enderror
+
                                 <br><br>
                                 </div>
                                

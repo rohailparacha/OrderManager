@@ -5,7 +5,7 @@ use App\walmart_products;
 use App\orders;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use Carbon\Carbon;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -87,6 +87,71 @@ Route::post('autofulfill_update', function(Request $request) {
         'itemId'=>$record['itemId'],
         'afpoNumber'=>$record['afpoNumber'],
         'account_id'=>'Cindy',
+        'of_bce_created_at'=>Carbon::now(),
+        'status'=>'processing'
+        ]);
+
+
+        if($insert)
+            $success++;
+    }
+
+    return response()->json([
+        'count' => $success
+    ],201);
+});
+
+Route::post('samuel_update', function(Request $request) {
+    
+    $success=0;
+    $records = $request->data;
+    
+    foreach($records as $record)
+    {        
+        if(empty(trim($record['poNumber'])))
+            continue;
+
+        $insert = orders::where('sellOrderId',$record['sellOrderId'])
+        ->whereNull('poNumber')
+        ->update([
+        'poTotalAmount'=>$record['poTotalAmount'],
+        'poNumber'=>$record['poNumber'],
+        'itemId'=>$record['itemId'],
+        'afpoNumber'=>$record['afpoNumber'],
+        'account_id'=>'Samuel',
+        'of_bce_created_at'=>Carbon::now(),
+        'status'=>'processing'
+        ]);
+
+
+        if($insert)
+            $success++;
+    }
+
+    return response()->json([
+        'count' => $success
+    ],201);
+});
+
+Route::post('jonathan_update', function(Request $request) {
+    
+    $success=0;
+    $records = $request->data;
+    
+    foreach($records as $record)
+    {        
+        if(empty(trim($record['poNumber'])))
+            continue;
+
+        $insert = orders::where('sellOrderId',$record['sellOrderId'])
+        ->whereNull('poNumber')
+        ->update([
+        'poTotalAmount'=>$record['poTotalAmount'],
+        'poNumber'=>$record['poNumber'],
+        'itemId'=>$record['itemId'],
+        'afpoNumber'=>$record['afpoNumber'],
+        'account_id'=>'Jonathan',
+        'of_bce_created_at'=>Carbon::now(),
         'status'=>'processing'
         ]);
 

@@ -271,7 +271,11 @@ $(document).ready(function(){
                                         @elseif($order->flag==8)
                                         <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Cindy</p>                                        
                                         @elseif($order->flag==9)
-                                        <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Jonathan</p>                                                                                
+                                        <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Jonathan</p>                                    
+                                        
+                                        @elseif($order->flag==10)
+                                        <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Samuel</p>  
+                                        
                                         @endif
                                         </td>
                                         <td width="8%"><a href="orderDetails/{{$order->id}}" class="btn btn-primary btn-sm">Details</a></td>
@@ -290,6 +294,7 @@ $(document).ready(function(){
                                                     <a class="dropdown-item" href="/orderFlag/{{$order->id}}/7">{{ __('Tax Issue') }}</a>
                                                     <a class="dropdown-item" href="/orderFlag/{{$order->id}}/8">{{ __('Cindy') }}</a>
                                                     <a class="dropdown-item" href="/orderFlag/{{$order->id}}/9">{{ __('Jonathan') }}</a>
+                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/10">{{ __('Samuel') }}</a>
                                                     <a class="dropdown-item" href="/orderFlag/{{$order->id}}/0">{{ __('Unflag') }}</a>
                                                 </div>
                                             </div>

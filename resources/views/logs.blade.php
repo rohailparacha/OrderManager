@@ -26,6 +26,46 @@ table {
 @inject('provider', 'App\Http\Controllers\orderController')
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.0/jquery-ui.min.js"></script>
+<script>
+$(document).ready(function(){
+    $("#logsTable").on('click','tr',function(e) {
+        var row = $(this).attr('data-target').replace('#','').split('-')[1];
+        var id = $(this).attr('data-target');
+        $.ajaxSetup({
+
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+        });
+        $.ajax({
+            url: './getLogs',
+            method: 'post',
+            data: {id:row},
+            success: function(result) {
+                var jsondata = $.parseJSON(result);
+                html = '<table class="table table-flush">';
+                for (a=0; a<jsondata.length;a++)
+                {
+                    html+= '<tr><td style="width:11%">'+jsondata[a].name+'</td>';
+                    html+='<td style="width:11%">'+jsondata[a].date_started+'</td>';
+                    html+='<td style="width:11%">'+jsondata[a].date_completed+'</td>';
+                    html+='<td style="width:9%">'+jsondata[a].totalItems+'</td>';
+                    html+='<td style="width:9%">'+jsondata[a].errorItems+'</td>';
+                    html+='<td style="width:9%">'+jsondata[a].successItems+'</td>';
+                    html+='<td style="width:9%">'+jsondata[a].stage+'</td>';
+                    html+='<td style="width:9%">'+jsondata[a].status+'</td>';
+                    html+='<td style="width:24%">'+jsondata[a].error+'</td>';
+                    html+='</tr>';
+                }
+                
+                html+='</table>'
+                $('div'+id).html(html);
+            }});
+        
+    });
+});
+</script>
+
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
 <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 
@@ -64,22 +104,23 @@ table {
                     </div>
                                                 
                     <div class="table-responsive">
-                        <table class="table align-items-center table-flush">
+                        <table class="table align-items-center table-flush" id="logsTable">
                             <thead class="thead-light">
                                 <tr>
-                                    <th scope="col" width="12%">{{ __('Start Time') }}</th>
-                                    <th scope="col" width="12%">{{ __('Finished Time') }}</th>
-                                    <th scope="col" width="10%">{{ __('Total Identifiers') }}</th>
-                                    <th scope="col" width="10%">{{ __('Total Errors') }}</th>
-                                    <th scope="col" width="10%">{{ __('Total Successful') }}</th>
-                                    <th scope="col" width="10%">{{ __('Stage') }}</th>
-                                    <th scope="col" width="10%">{{ __('Status') }}</th>
-                                    <th scope="col" width="26%">{{ __('Error') }}</th>                                   
+                                    <th scope="col" width="11%">{{ __('Batch Name') }}</th>
+                                    <th scope="col" width="11%">{{ __('Start Time') }}</th>
+                                    <th scope="col" width="11%">{{ __('Finished Time') }}</th>
+                                    <th scope="col" width="9%">{{ __('Total Identifiers') }}</th>
+                                    <th scope="col" width="9%">{{ __('Total Errors') }}</th>
+                                    <th scope="col" width="9%">{{ __('Total Successful') }}</th>
+                                    <th scope="col" width="9%">{{ __('Stage') }}</th>
+                                    <th scope="col" width="9%">{{ __('Status') }}</th>
+                                    <th scope="col" width="24%">{{ __('Error') }}</th>                                   
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($logs as $log)
-                                    <tr>                                                                         
+                                    <tr data-toggle="collapse" data-target= "#logs-{{$log->id}}" class="accordion-toggle">                                                           <td>Main Process</td>                 
                                         <td width="12%">{{ $provider::getIranTime(date_format(date_create($log->date_started), 'm/d/Y H:i:s')) }}</td>                                                                               
                                         <td width="12%">
                                         @if(!empty($log->date_completed))
@@ -91,8 +132,16 @@ table {
                                         <td width="10%">{{ $log->successItems }}</td>
                                         <td width="10%">{{ $log->stage }}</td>
                                         <td width="10%">{{ $log->status }}</td>
-                                        <td width="26%">{{ $log->error }}</td>                                        
+                                        <td width="26%">{{ $log->error }}</td>                                                                                                                         
                                     </tr>
+
+                                    <tr>
+                                        <td colspan="9" class="hiddenRow">
+                                            <div class="accordian-body collapse" id="logs-{{$log->id}}">
+                                            
+                                            </div> </td>
+                                    </tr>
+                                    
                                 @endforeach
                             </tbody>
                         </table>

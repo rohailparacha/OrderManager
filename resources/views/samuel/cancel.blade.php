@@ -77,10 +77,10 @@ $(document).ready(function(){
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-6">
-                                <h3 class="mb-0">{{ __('Order Fulfillment Cancel Alert') }}</h3>                                
+                            <h3 class="mb-0">{{ __('Samuel - Cancel Pending') }}</h3>                             
                             </div>  
                             <div class="col-6" style="text-align:right;">
-                            <a href="orderCancelledExport" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px;">Export</a>       
+                            <a href="samuelOrderCancelledExport" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px;">Export</a>       
                             
                             @if(!empty($search) && $search==1)
                                 <a href="{{ route($route) }}"class="btn btn-primary btn-md">Go Back</a>
@@ -115,8 +115,9 @@ $(document).ready(function(){
                         <table class="table align-items-center table-flush">
                             <thead class="thead-light">
                                 <tr>
+                                    <th scope="col">Date</th>
                                     <th scope="col">{{ __('Purchase Order Id') }}</th>                                   
-                              
+
                                     <th scope="col">{{ __('Status') }}</th>
                                     
                                     <th scope="col">{{ __('View') }}</th>
@@ -125,7 +126,10 @@ $(document).ready(function(){
                             </thead>
                             <tbody>
                                 @foreach ($orders as $order)
-                                    <tr>                                        
+                                    <tr>
+                                        <td>  
+                                        {{ $provider::getIranTime(date_format(date_create($order->ordercreatedate), 'm/d/Y H:i:s')) }}
+                                        </td>                                      
                                         <td>{{ $order->afpoNumber }}</td>
                                         <td>{{$order->orderStatus}}</td>
                                         
@@ -138,7 +142,7 @@ $(document).ready(function(){
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">                                                                                            
-                                                        <form action="{{ route('deleteCancelled', $order->cancelledId) }}" method="post">
+                                                        <form action="{{ route('samuelDeleteCancelled', $order->cancelledId) }}" method="post">
                                                             @csrf
                                                             @method('delete')                                                                                                                                                           
                                                             @if(auth()->user()->role==1|| auth()->user()->role==2)

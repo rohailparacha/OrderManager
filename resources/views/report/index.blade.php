@@ -67,10 +67,12 @@ window.location = url;
                 <div class="card shadow">
                     <div class="card-header border-0">
                         <div class="row align-items-center">
-                            <div class="col-8">
+                            <div class="col-6">
                                 <h3 class="mb-0">{{ __('Report') }}</h3>
                             </div>    
-                            <div class="col-4" style="text-align:right;">
+                            <div class="col-6" style="text-align:right;">
+                                Showing {{$orders->toArray()['from']}} - {{$orders->toArray()['to']}} of {{$orders->toArray()['total']}} records
+                            
                                 @if(!empty($search) && $search==1)
                                 <a href="{{ route($route) }}"class="btn btn-primary btn-md">Go Back</a>
                                 @endif                                
@@ -204,6 +206,11 @@ window.location = url;
                                 @endforeach
                             </tbody>
                         </table>
+                    </div>
+                    <div class="row" style="padding-right:2%">
+                    <div class="col-md-4 offset-md-8" style="text-align:right">
+                        <span>Showing {{$orders->toArray()['from']}} - {{$orders->toArray()['to']}} of {{$orders->toArray()['total']}} records</span>        
+                    </div>
                     </div>
                     <div class="card-footer py-4">
                         <nav class="d-flex justify-content-end" aria-label="...">

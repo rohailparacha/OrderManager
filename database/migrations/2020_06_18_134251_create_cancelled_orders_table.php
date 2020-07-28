@@ -16,6 +16,7 @@ class CreateCancelledOrdersTable extends Migration
         Schema::create('cancelled_orders', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('order_id');
+            $table->dateTime('created_at')->default(\DB::raw('CURRENT_TIMESTAMP'));    
             $table->enum('status',['cancelled','delayed'])->default('cancelled');            
             $table->foreign('order_id')->references('id')->on('orders');
         });

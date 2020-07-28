@@ -75,10 +75,12 @@ class accountsController extends Controller
         $id  =$request->id;
         $manager  =$request->manager;
         $lag = $request->lag;
+        $qty = $request->quantity; 
+        $maxListing = $request->maxListing;
         $informed = $request->informed;
         $scaccount = $request->scaccount;
       
-        $account = accounts::where('id', $id)->update(['store'=>$store, 'username'=>$username, 'password'=>$password, 'manager_id'=>$manager, 'lagTime'=>$lag ,'scaccount_id'=>$scaccount, 'informed_id'=>$informed]);
+        $account = accounts::where('id', $id)->update(['store'=>$store, 'username'=>$username, 'password'=>$password, 'manager_id'=>$manager, 'lagTime'=>$lag ,'scaccount_id'=>$scaccount, 'informed_id'=>$informed,'quantity'=>$qty, 'maxListingBuffer' => $maxListing]);
 
         if($account)
         {
@@ -137,8 +139,10 @@ class accountsController extends Controller
         $lag = $request->lag;
         $informed = $request->informed;
         $scaccount = $request->scaccount;
-
-        $account = accounts::insert(['store'=>$store, 'username'=>$username, 'password'=>$password, 'manager_id'=>$manager, 'lagTime'=>$lag,'scaccount_id'=>$scaccount, 'informed_id'=>$informed]);
+        $qty = $request->quantity; 
+        $maxListing = $request->maxListing;
+        
+        $account = accounts::insert(['store'=>$store, 'username'=>$username, 'password'=>$password, 'manager_id'=>$manager, 'lagTime'=>$lag,'scaccount_id'=>$scaccount, 'informed_id'=>$informed, 'quantity'=>$qty, 'maxListingBuffer' => $maxListing]);
 
         if($account)
         {

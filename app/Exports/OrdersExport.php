@@ -150,7 +150,11 @@ class OrdersExport implements FromCollection,WithHeadings,ShouldAutoSize
             elseif($order->flag==7)
                 $flag='Tax Issue';    
             elseif($order->flag==8)
-                $flag='Cindy';                                                 
+                $flag='Cindy'; 
+            elseif($order->flag==9)
+                $flag='Jonathan';                                                 
+            elseif($order->flag==10)
+                $flag='Samuel';                                                 
    
             $counter=0; 
             $order_details = order_details::where('order_id',$order->id)->get();

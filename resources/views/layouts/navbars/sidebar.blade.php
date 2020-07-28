@@ -61,12 +61,12 @@
                     <!-- new sidebar -->
 
                     <li class="nav-item">
-                    <a class="nav-link active" href="#navbar-examples" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                    <a class="nav-link active" href="#ordersTab" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
                         <i class="fa fa-cart-arrow-down text-primary" ></i>
                         <span class="nav-link-text text-primary" >{{ __('Orders') }}</span>
                     </a>
 
-                    <div class="collapse show" id="navbar-examples">
+                    <div class="collapse show" id="ordersTab">
                         <ul class="nav nav-sm flex-column">                            
                         @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(1,json_decode(auth()->user()->assigned_pages))))                       
                             <li class="nav-item">
@@ -103,33 +103,7 @@
                                 </a>
                             </li>
                             @endif
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('autofulfillconversions') }}">
-                                    {{ __('Order Fulfillment BCE Conversions') }}
-                                </a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('autofulfillCancel') }}">
-                                    {{ __('Order Fulfillment Cancel Alert') }}
-                                </a>
-                            </li>
-
-                            @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(6,json_decode(auth()->user()->assigned_pages))))                       
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('returns') }}">
-                                    {{ __('Return Center') }}
-                                </a>
-                            </li>
-                            @endif
-
-                            @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(6,json_decode(auth()->user()->assigned_pages))))                       
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('autoFulfill') }}">
-                                    {{ __('Auto-Fulfill Orders') }}
-                                </a>
-                            </li>
-                            @endif
+                            
                             
 
                         </ul>
@@ -138,16 +112,207 @@
 
                 
                 <!--  new sidebar end -->                
-                
-                
-                
+                @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(6,json_decode(auth()->user()->assigned_pages))))                       
                 <li class="nav-item">
-                    <a class="nav-link active" href="#navbar-examples" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                    <a class="nav-link active" href="#returnCenter" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                        <i class="fa fa-exchange-alt text-primary" ></i>
+                        <span class="nav-link-text text-primary" >{{ __('Return Center') }}</span>
+                    </a>
+
+                    <div class="collapse show" id="returnCenter">
+                        <ul class="nav nav-sm flex-column">                            
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('returns') }}">
+                                    {{ __('Waiting For Return') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('refunds') }}">
+                                    {{ __('Waiting For Refund') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('completed') }}">
+                                    {{ __('Completed') }}
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+                
+                @endif
+                <li class="nav-item">
+                    <a class="nav-link active" href="#cindy" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                        <i class="fa fa-sort text-primary" ></i>
+                        <span class="nav-link-text text-primary" >{{ __('Cindy') }}</span>
+                    </a>
+
+                    <div class="collapse show" id="cindy">
+                        <ul class="nav nav-sm flex-column">                            
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('cindynew') }}">
+                                    {{ __('New Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('cindyprocessed') }}">
+                                    {{ __('Processed Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('cindybce') }}">
+                                    {{ __('BCE Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('cindycancel') }}">
+                                    {{ __('Cancel Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('cindyreturn') }}">
+                                    {{ __('Return Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('cindyrefund') }}">
+                                    {{ __('Refund Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('cindycompleted') }}">
+                                    {{ __('Completed Returns') }}
+                                </a>
+                            </li>
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('orderFulfillmentSetting') }}">
+                                    {{ __('Cindy - Order Fulfillment Setting') }}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link active" href="#samuel" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                        <i class="fa fa-sort text-primary" ></i>
+                        <span class="nav-link-text text-primary" >{{ __('Samuel') }}</span>
+                    </a>
+
+                    <div class="collapse show" id="samuel">
+                        <ul class="nav nav-sm flex-column">                            
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('samuelnew') }}">
+                                    {{ __('New Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('samuelprocessed') }}">
+                                    {{ __('Processed Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('samuelbce') }}">
+                                    {{ __('BCE Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('samuelcancel') }}">
+                                    {{ __('Cancel Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('samuelreturn') }}">
+                                    {{ __('Return Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('samuelrefund') }}">
+                                    {{ __('Refund Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('samuelcompleted') }}">
+                                    {{ __('Completed Returns') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('samuelSetting') }}">
+                                    {{ __('Samuel - Order Fulfillment Setting') }}
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link active" href="#jonathan" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                        <i class="fa fa-sort text-primary" ></i>
+                        <span class="nav-link-text text-primary" >{{ __('Jonathan') }}</span>
+                    </a>
+
+                    <div class="collapse show" id="jonathan">
+                        <ul class="nav nav-sm flex-column">                            
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('jonathannew') }}">
+                                    {{ __('New Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathanprocessed') }}">
+                                    {{ __('Processed Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathanbce') }}">
+                                    {{ __('BCE Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathancancel') }}">
+                                    {{ __('Cancel Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathanreturn') }}">
+                                    {{ __('Return Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathanrefund') }}">
+                                    {{ __('Refund Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathancompleted') }}">
+                                    {{ __('Completed Returns') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('jonathanSetting') }}">
+                                    {{ __('Jonathan - Order Fulfillment Setting') }}
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link active" href="#users" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
                         <i class="fa fa-users text-primary" ></i>
                         <span class="nav-link-text text-primary" >{{ __('Users') }}</span>
                     </a>
 
-                    <div class="collapse show" id="navbar-examples">
+                    <div class="collapse show" id="users">
                         <ul class="nav nav-sm flex-column">                            
                             @if(auth()->user()->role==1 )
                             <li class="nav-item">
@@ -176,12 +341,12 @@
                 
                 
                 <li class="nav-item">
-                    <a class="nav-link active" href="#navbar-examples" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                    <a class="nav-link active" href="#repricing" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
                         <i class="fa fa-tags text-primary" ></i>
                         <span class="nav-link-text text-primary" >{{ __('Repricing') }}</span>
                     </a>
 
-                    <div class="collapse show" id="navbar-examples">
+                    <div class="collapse show" id="repricing">
                         <ul class="nav nav-sm flex-column">   
                         @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(7,json_decode(auth()->user()->assigned_pages))))                       
                             <li class="nav-item">
@@ -217,12 +382,12 @@
 
                 @if(auth()->user()->role==1)
                 <li class="nav-item">
-                    <a class="nav-link active" href="#navbar-examples" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                    <a class="nav-link active" href="#settings" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
                         <i class="fa fa-cogs text-primary" ></i>
                         <span class="nav-link-text text-primary" >{{ __('Settings') }}</span>
                     </a>
 
-                    <div class="collapse show" id="navbar-examples">
+                    <div class="collapse show" id="settings">
                         <ul class="nav nav-sm flex-column">                            
                             <li class="nav-item">
                             <a class="nav-link" href="{{ route('accounts') }}">
@@ -258,11 +423,7 @@
                                 </a>
                             </li>
 
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('orderFulfillmentSetting') }}">
-                                    {{ __('Order Fulfillment Setting') }}
-                                </a>
-                            </li>
+                            
 
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('scaccounts') }}">
@@ -289,12 +450,12 @@
                 @endif
                 
                 <li class="nav-item">
-                    <a class="nav-link active" href="#navbar-examples" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                    <a class="nav-link active" href="#reports" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
                         <i class="fa fa-file-medical-alt text-primary" ></i>
                         <span class="nav-link-text text-primary" >{{ __('Reports') }}</span>
                     </a>
 
-                    <div class="collapse show" id="navbar-examples">
+                    <div class="collapse show" id="reports">
                         <ul class="nav nav-sm flex-column">        
                         @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(10,json_decode(auth()->user()->assigned_pages))))
                             <li class="nav-item">
@@ -334,12 +495,12 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link active" href="#navbar-examples" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                    <a class="nav-link active" href="#accounting" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
                         <i class="fas fa-calculator text-primary" ></i>
                         <span class="nav-link-text text-primary" >{{ __('Accounting') }}</span>
                     </a>
 
-                    <div class="collapse show" id="navbar-examples">
+                    <div class="collapse show" id="accounting">
                         <ul class="nav nav-sm flex-column">                                
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('bankaccounts') }}">

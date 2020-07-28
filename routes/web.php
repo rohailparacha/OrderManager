@@ -38,8 +38,7 @@ Route::group(['middleware' => 'auth'], function () {
 	
 	Route::post('getManualBce','orderController@getManualBce')->middleware('admin');
 	Route::get('cancelOrder/{id}','orderController@cancelOrder')->name('cancelOrder');	
-	Route::get('sync','orderController@syncOrders')->name('sync')->middleware('admin');
-	Route::get('autoFulfill','orderController@autoFulfill')->name('autoFulfill')->middleware('admin');	
+	Route::get('sync','orderController@syncOrders')->name('sync')->middleware('admin');	
 	Route::any('search','orderController@search')->name('search');
 	Route::get('orderDetails/{id}','orderController@details')->name('orderDetails');
 	Route::post('updateOrder','orderController@updateOrder')->name('updateOrder');
@@ -62,7 +61,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('getAmzDetails','orderController@getAmazonDetails')->middleware('admin');
 	Route::get('orderFlag/{id}/{flag}','orderController@orderFlag')->middleware('admin');
 	Route::any('orderFilter','orderController@filter')->middleware('admin');
-	Route::any('autoFulfillFilter','orderController@autoFulfillFilter')->middleware('admin');
+	
 	
 	Route::any('assignFilter','orderController@assignFilter')->middleware('admin');
 
@@ -96,6 +95,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::post('exportAsins','productsController@exportAsins');
 
 	Route::get('logs','productsController@getLogs')->name('logs')->middleware('admin');
+	Route::post('getLogs','productsController@getLogBatches')->name('getLogBatches')->middleware('admin');
 	//eBay Route
 	Route::get('/products/ebay', 'ebayController@index')->name('ebayProducts')->middleware('admin');	
 	Route::post('/addEbayProduct', 'ebayController@addProduct');
@@ -121,7 +121,9 @@ Route::group(['middleware' => 'auth'], function () {
 
 
 	//return center
-	Route::get('/returns', 'returnsController@index')->name('returns')->middleware('admin');
+	Route::get('/waitingReturns', 'returnsController@index')->name('returns')->middleware('admin');
+	Route::get('/waitingRefunds', 'returnsController@refunds')->name('refunds')->middleware('admin');
+	Route::get('/completedReturns', 'returnsController@completed')->name('completed')->middleware('admin');
 	Route::post('/addreturn', 'returnsController@addReturn')->middleware('admin');
 	Route::post('/editreturn', 'returnsController@editReturn')->middleware('admin');
 	Route::delete('/deleteReturn/{id}','returnsController@deleteReturn')->name('deleteReturn')->middleware('admin');
@@ -131,6 +133,8 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('labelPrint/{id}','returnsController@labelPrint');
 	Route::get('labelDelete/{id}','returnsController@labelDelete');
 	Route::any('returnFilter','returnsController@returnFilter')->middleware('admin');
+	Route::any('refundFilter','returnsController@refundFilter')->middleware('admin');
+	Route::any('completedFilter','returnsController@completedFilter')->middleware('admin');
     
     //accounting
 
@@ -169,18 +173,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::any('/blacklistExport','blacklistController@export')->middleware('admin');
 	Route::get('/blacklistTemplate', 'blacklistController@getTemplate');
 
-	//auto fulfillment settings
-
-	Route::get('/orderFulfillmentSetting', 'orderFulfillmentController@index')->name('orderFulfillmentSetting');
-	Route::post('/storeSettings', 'orderFulfillmentController@storeSettings')->name('storeSettings');
-	Route::any('/orderFulfillmentExport', 'orderFulfillmentController@export')->name('orderFulfillmentExport');
-	Route::get('autofulfillconversions','orderFulfillmentController@autofulfillconversions')->name('autofulfillconversions')->middleware('admin');	
-	Route::get('autofulfillCancel','orderFulfillmentController@autofulfillCancel')->name('autofulfillCancel')->middleware('admin');	
-	Route::delete('deleteCancelled/{id}','orderFulfillmentController@deleteCancelled')->name('deleteCancelled')->middleware('admin');	
-	Route::delete('deleteConversion/{id}','orderFulfillmentController@deleteConversion')->name('deleteConversion')->middleware('admin');	
-	Route::any('/orderCancelledExport', 'orderFulfillmentController@orderCancelledExport')->name('orderCancelledExport');
-	Route::get('autoFulfillProcess','orderFulfillmentController@autoFulfillProcess')->name('autoFulfillProcess')->middleware('admin');	
-	Route::post('updateBCE','orderFulfillmentController@updateBCE')->name('updateBCE');
+	
 
 	//Walmart Products
 	Route::get('/products/walmart', 'walmartController@index')->name('walmartProducts')->middleware('admin');	
@@ -212,5 +205,117 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('keepa','keepaController@index')->middleware('admin');
 	Route::post('getkeepa','keepaController@getResponse')->middleware('admin');
 
+	//Cindy auto fulfillment settings
+
+	Route::get('/orderFulfillmentSetting', 'orderFulfillmentController@index')->name('orderFulfillmentSetting');
+	Route::post('/storeSettings', 'orderFulfillmentController@storeSettings')->name('storeSettings');
+	Route::any('/orderFulfillmentExport', 'orderFulfillmentController@export')->name('orderFulfillmentExport');
+	Route::delete('deleteCancelled/{id}','orderFulfillmentController@deleteCancelled')->name('deleteCancelled')->middleware('admin');	
+	Route::delete('deleteConversion/{id}','orderFulfillmentController@deleteConversion')->name('deleteConversion')->middleware('admin');	
+	Route::any('/orderCancelledExport', 'orderFulfillmentController@orderCancelledExport')->name('orderCancelledExport');
+	Route::post('updateBCE','orderFulfillmentController@updateBCE')->name('updateBCE');
+
+	//cindy orders
+	Route::get('autoFulfillProcess','orderFulfillmentController@autoFulfillProcess')->name('autoFulfillProcess')->middleware('admin');	
+	
+	Route::get('autofulfillconversions','orderFulfillmentController@autofulfillconversions')->name('cindybce')->middleware('admin');	
+	Route::get('autofulfillProcessed','orderFulfillmentController@autofulfillProcessed')->name('cindyprocessed')->middleware('admin');	
+
+	Route::get('autofulfillCancel','orderFulfillmentController@autofulfillCancel')->name('cindycancel')->middleware('admin');		
+	Route::get('autoFulfill','orderFulfillmentController@autoFulfill')->name('cindynew')->middleware('admin');	
+	Route::any('autofulfillexport','orderFulfillmentController@autofulfillexport')->name('autofulfillexport')->middleware('admin');	
+	Route::any('autoFulfillFilter','orderFulfillmentController@autoFulfillFilter')->middleware('admin');
+	Route::any('cindysearch','orderFulfillmentController@search')->name('cindysearch');
+
+	//Cindy Returns
+	
+	Route::get('/autofulfillReturnPending', 'cindyReturnsController@index')->name('cindyreturn')->middleware('admin');
+	Route::get('/autofulfillRefundPending', 'cindyReturnsController@refunds')->name('cindyrefund')->middleware('admin');
+	Route::get('/autofulfillCompletedReturns', 'cindyReturnsController@completed')->name('cindycompleted')->middleware('admin');
+	Route::post('/autofulfillAddreturn', 'cindyReturnsController@addReturn')->middleware('admin');
+	Route::post('/autofulfillEditreturn', 'cindyReturnsController@editReturn')->middleware('admin');
+	Route::delete('/autofulfillDeleteReturn/{id}','cindyReturnsController@deleteReturn')->name('autofulfillDeleteReturn')->middleware('admin');
+	Route::post('autofulfillReturnsupload','cindyReturnsController@uploadSubmit');
+	Route::post('autofulfillUploadLabel','cindyReturnsController@uploadLabel');
+	Route::get('autofulfillUpdateStatus','cindyReturnsController@updateStatus');
+	Route::get('autofulfillLabelPrint/{id}','cindyReturnsController@labelPrint');
+	Route::get('autofulfillLabelDelete/{id}','cindyReturnsController@labelDelete');
+	Route::any('autofulfillReturnFilter','cindyReturnsController@returnFilter')->middleware('admin');
+	Route::any('autofulfillRefundFilter','cindyReturnsController@refundFilter')->middleware('admin');
+	Route::any('autofulfillCompletedFilter','cindyReturnsController@completedFilter')->middleware('admin');
+
+	//samuel auto fulfillment settings
+	Route::get('/samuelSetting', 'samuelController@index')->name('samuelSetting');
+	Route::post('/samuelStoreSettings', 'samuelController@storeSettings')->name('samuelStoreSettings');
+	Route::any('/samuelOrderFulfillmentExport', 'samuelController@export')->name('samuelOrderFulfillmentExport');
+	Route::delete('samuelDeleteCancelled/{id}','samuelController@deleteCancelled')->name('samuelDeleteCancelled')->middleware('admin');	
+	Route::delete('samuelDeleteConversion/{id}','samuelController@deleteConversion')->name('samuelDeleteConversion')->middleware('admin');	
+	Route::any('/samuelOrderCancelledExport', 'samuelController@orderCancelledExport')->name('samuelOrderCancelledExport');
+	Route::post('samuelUpdateBCE','samuelController@updateBCE')->name('samuelUpdateBCE');
+
+	//samuel orders
+	Route::get('samuelProcess','samuelController@samuelProcess')->name('samuelProcess')->middleware('admin');	
+	Route::get('samuelconversions','samuelController@samuelconversions')->name('samuelbce')->middleware('admin');	
+	Route::get('samuelProcessed','samuelController@samuelProcessed')->name('samuelprocessed')->middleware('admin');	
+	Route::get('samuelCancel','samuelController@samuelCancel')->name('samuelcancel')->middleware('admin');		
+	Route::get('samuel','samuelController@samuel')->name('samuelnew')->middleware('admin');	
+	Route::any('samuelexport','samuelController@samuelexport')->name('samuelexport')->middleware('admin');	
+	Route::any('samuelFilter','samuelController@samuelFilter')->middleware('admin');
+	Route::any('samuelsearch','samuelController@search')->name('samuelsearch');
+
+	//samuel Returns
+	
+	Route::get('/samuelReturnPending', 'samuelReturnsController@index')->name('samuelreturn')->middleware('admin');
+	Route::get('/samuelRefundPending', 'samuelReturnsController@refunds')->name('samuelrefund')->middleware('admin');
+	Route::get('/samuelCompletedReturns', 'samuelReturnsController@completed')->name('samuelcompleted')->middleware('admin');
+	Route::post('/samuelAddreturn', 'samuelReturnsController@addReturn')->middleware('admin');
+	Route::post('/samuelEditreturn', 'samuelReturnsController@editReturn')->middleware('admin');
+	Route::delete('/samuelDeleteReturn/{id}','samuelReturnsController@deleteReturn')->name('samuelDeleteReturn')->middleware('admin');
+	Route::post('samuelReturnsupload','samuelReturnsController@uploadSubmit');
+	Route::post('samuelUploadLabel','samuelReturnsController@uploadLabel');
+	Route::get('samuelUpdateStatus','samuelReturnsController@updateStatus');
+	Route::get('samuelLabelPrint/{id}','samuelReturnsController@labelPrint');
+	Route::get('samuelLabelDelete/{id}','samuelReturnsController@labelDelete');
+	Route::any('samuelReturnFilter','samuelReturnsController@returnFilter')->middleware('admin');
+	Route::any('samuelRefundFilter','samuelReturnsController@refundFilter')->middleware('admin');
+	Route::any('samuelCompletedFilter','samuelReturnsController@completedFilter')->middleware('admin');
+
+	//jonathan auto fulfillment settings
+	Route::get('/jonathanSetting', 'jonathanController@index')->name('jonathanSetting');
+	Route::post('/jonathanStoreSettings', 'jonathanController@storeSettings')->name('jonathanStoreSettings');
+	Route::any('/jonathanOrderFulfillmentExport', 'jonathanController@export')->name('jonathanOrderFulfillmentExport');
+	Route::delete('jonathanDeleteCancelled/{id}','jonathanController@deleteCancelled')->name('jonathanDeleteCancelled')->middleware('admin');	
+	Route::delete('jonathanDeleteConversion/{id}','jonathanController@deleteConversion')->name('jonathanDeleteConversion')->middleware('admin');	
+	Route::any('/jonathanOrderCancelledExport', 'jonathanController@orderCancelledExport')->name('jonathanOrderCancelledExport');
+	Route::post('jonathanUpdateBCE','jonathanController@updateBCE')->name('jonathanUpdateBCE');
+
+	//jonathan orders
+	Route::get('jonathanProcess','jonathanController@jonathanProcess')->name('jonathanProcess')->middleware('admin');	
+	Route::get('jonathanconversions','jonathanController@jonathanconversions')->name('jonathanbce')->middleware('admin');	
+	Route::get('jonathanProcessed','jonathanController@jonathanProcessed')->name('jonathanprocessed')->middleware('admin');	
+	Route::get('jonathanCancel','jonathanController@jonathanCancel')->name('jonathancancel')->middleware('admin');		
+	Route::get('jonathan','jonathanController@jonathan')->name('jonathannew')->middleware('admin');	
+	Route::any('jonathanexport','jonathanController@jonathanexport')->name('jonathanexport')->middleware('admin');	
+	Route::any('jonathanFilter','jonathanController@jonathanFilter')->middleware('admin');
+	Route::any('jonathansearch','jonathanController@search')->name('jonathansearch');
+
+	//jonathan Returns
+	
+	Route::get('/jonathanReturnPending', 'jonathanReturnsController@index')->name('jonathanreturn')->middleware('admin');
+	Route::get('/jonathanRefundPending', 'jonathanReturnsController@refunds')->name('jonathanrefund')->middleware('admin');
+	Route::get('/jonathanCompletedReturns', 'jonathanReturnsController@completed')->name('jonathancompleted')->middleware('admin');
+	Route::post('/jonathanAddreturn', 'jonathanReturnsController@addReturn')->middleware('admin');
+	Route::post('/jonathanEditreturn', 'jonathanReturnsController@editReturn')->middleware('admin');
+	Route::delete('/jonathanDeleteReturn/{id}','jonathanReturnsController@deleteReturn')->name('jonathanDeleteReturn')->middleware('admin');
+	Route::post('jonathanReturnsupload','jonathanReturnsController@uploadSubmit');
+	Route::post('jonathanUploadLabel','jonathanReturnsController@uploadLabel');
+	Route::get('jonathanUpdateStatus','jonathanReturnsController@updateStatus');
+	Route::get('jonathanLabelPrint/{id}','jonathanReturnsController@labelPrint');
+	Route::get('jonathanLabelDelete/{id}','jonathanReturnsController@labelDelete');
+	Route::any('jonathanReturnFilter','jonathanReturnsController@returnFilter')->middleware('admin');
+	Route::any('jonathanRefundFilter','jonathanReturnsController@refundFilter')->middleware('admin');
+	Route::any('jonathanCompletedFilter','jonathanReturnsController@completedFilter')->middleware('admin');
+
+	
 });
 
