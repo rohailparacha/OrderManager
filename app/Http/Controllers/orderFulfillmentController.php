@@ -649,7 +649,7 @@ class orderFulfillmentController extends Controller
             $responseBodyAsString = $response->getBody()->getContents();
             
             Session::flash('error_msg', $responseBodyAsString);
-            return redirect()->route('autoFulfill');
+            return redirect()->route('cindynew');
         }
         
         $statusCode = $response->getStatusCode();
@@ -658,13 +658,13 @@ class orderFulfillmentController extends Controller
         if($statusCode!=200)
         {
             Session::flash('error_msg', __('Orders Processing Failed'));
-            return redirect()->route('autoFulfill');
+            return redirect()->route('cindynew');
         }
                     
         $body = json_decode($response->getBody()->getContents());
         
         Session::flash('success_msg', $body->count. __(' Orders Processed'));
-        return redirect()->route('autoFulfill');
+        return redirect()->route('cindynew');
     }
 
     public function autofulfillCancel()
@@ -721,11 +721,11 @@ class orderFulfillmentController extends Controller
         if($order->poNumber != $order->afpoNumber)
         {
             cancelled_orders::where('id','=',$id)->delete();    
-            return redirect()->route('autofulfillCancel')->withStatus(__('Order successfully deleted.'));
+            return redirect()->route('cindycancel')->withStatus(__('Order successfully deleted.'));
         }
         else
         {
-            return redirect()->route('autofulfillCancel')->withStatus(__('Order could not be deleted.'));
+            return redirect()->route('cindycancel')->withStatus(__('Order could not be deleted.'));
         }
 
         
@@ -739,11 +739,11 @@ class orderFulfillmentController extends Controller
 
         if($order)
         {             
-            return redirect()->route('autofulfillconversions')->withStatus(__('Order successfully deleted.'));
+            return redirect()->route('cindybce')->withStatus(__('Order successfully deleted.'));
         }
         else
         {
-            return redirect()->route('autofulfillconversions')->withStatus(__('Order could not be deleted.'));
+            return redirect()->route('cindybce')->withStatus(__('Order could not be deleted.'));
         }
 
         

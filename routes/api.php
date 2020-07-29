@@ -115,8 +115,7 @@ Route::post('samuel_update', function(Request $request) {
         ->whereNull('poNumber')
         ->update([
         'poTotalAmount'=>$record['poTotalAmount'],
-        'poNumber'=>$record['poNumber'],
-        'itemId'=>$record['itemId'],
+        'poNumber'=>$record['poNumber'],        
         'afpoNumber'=>$record['afpoNumber'],
         'account_id'=>'Samuel',
         'of_bce_created_at'=>Carbon::now(),
@@ -147,8 +146,7 @@ Route::post('jonathan_update', function(Request $request) {
         ->whereNull('poNumber')
         ->update([
         'poTotalAmount'=>$record['poTotalAmount'],
-        'poNumber'=>$record['poNumber'],
-        'itemId'=>$record['itemId'],
+        'poNumber'=>$record['poNumber'],        
         'afpoNumber'=>$record['afpoNumber'],
         'account_id'=>'Jonathan',
         'of_bce_created_at'=>Carbon::now(),

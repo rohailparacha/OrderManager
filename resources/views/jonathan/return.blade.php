@@ -427,7 +427,7 @@ $(document).ready(function(){
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">                                    
-                                                        <form action="{{ route('autofulfillDeleteReturn', $return->id) }}" method="post">
+                                                        <form action="{{ route('jonathanDeleteReturn', $return->id) }}" method="post">
                                                             @csrf
                                                             @method('delete')                                                                                                                                                         
                                                             <a class="dropdown-item"  data-toggle="modal" data-target="#addCat" data-id="{{$return->id}}" data-tracking="{{$return->trackingNumber}}"  data-carrier="{{$return->carrier}}" data-reason="{{$return->reason}}" data-order="{{$return->sellOrderId}}" id="btnEditCat" href="#">{{ __('Edit') }}</a>

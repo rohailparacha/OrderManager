@@ -104,10 +104,76 @@ class orderController extends Controller
             $carrierField2= 'a-spacing-small carrierRelatedInfo-mfn-carrierNameTitle';
 
         foreach($orders as $order)
-        {                       
+        {                 
             $found = false;
             $trackingId = '';
             $carrier = '';
+
+            if($order->account_id=='Samuel' || $order->account_id=='Jonathan')
+            {
+                try{
+        
+                    $client = new client(); 
+                    if($order->account_id=='Samuel')
+                        $endPoint = env('SAMUEL_TOKEN', '');
+                    else
+                        $endPoint = env('JONATHAN_TOKEN', '');
+
+                    $response = $client->request('GET', $endPoint,
+                    [
+                        'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
+                        'query' => ['sellOrderId' => $sellOrderId,'function' => 'fetchShipping']          
+                    ]);    
+                    
+                    $statusCode = $response->getStatusCode();
+                
+                    $body = json_decode($response->getBody()->getContents());    
+
+                    $carrier = $body->carrier; 
+                    $trackingId = $body->trackingId;
+                    
+                    if(empty($carrier) || empty($trackingId))
+                    {
+                        
+                        continue;
+                    }
+                    else
+                    {
+                        
+                        if(strtolower($carrier)=='bce' || strtolower($carrier)=='bluecare express')
+                        {
+                            $bceCarrier = carriers::where('name','Bluecare Express')->get()->first(); 
+
+                            $order = orders::where('id',$id)->update(['carrierName'=>$bceCarrier->id,'oldTrackingNumber'=>$trackingId,  'newTrackingNumber'=>$trackingId, 'converted'=>true]);
+                        }
+                        else
+                        {
+                            $carrierId = carriers::where('name',$carrier)->get()->first(); 
+                                
+                            if(empty($carrierId))
+                            {
+                                $carrierId = carriers::where('alias','like','%'.$carrier.'%')->get()->first(); 
+                            }
+
+                            if(empty($carrierId))
+                                continue;
+
+                            $this->shipOrder($order->id, $trackingId, $carrier, 'new');
+                            
+                            $order = orders::where('id',$id)->update(['carrierName'=>$carrierId, 'oldTrackingNumber'=>$trackingId, 'status'=>'shipped']);
+                        }
+                        
+                    }
+                }
+                catch(\Exception $ex)
+                {
+        
+                }
+                continue;
+            }
+          
+            
+           
             
             if(empty(trim($order->poNumber)))
                 continue; 
@@ -178,17 +244,16 @@ class orderController extends Controller
                                 if($order->flag=='8')
                                 {
                                    
-                                 
                                  $response = $client->request('GET', $baseUrl.'&itemId='.$order->itemId.'&orderId='.trim($number),
                                  [   
                      
                                  ]);    
-                                 
-                                 
+                                                                  
                                  $statusCode = $response->getStatusCode();
                                  
                                  $html = $response->getBody()->getContents();   
                                 }
+
                                 else
                                 {                                    
                                     $response = $client->request('GET', $baseUrl.'&itemId=klpjsskrrrpoqn&orderId='.trim($number).'&shipmentId='.$this->getShipment($order->poNumber),
@@ -204,18 +269,18 @@ class orderController extends Controller
                                 
                             }
                             else                                
-                                {
-                                    $response = $client->request('GET', $baseUrl.'&itemId=klpjsskrrrpoqn&orderId='.trim($number),
-                                    [   
-                        
-                                    ]);    
-                                    
-                                    
-                                    $statusCode = $response->getStatusCode();
-                                    
-                                    $html = $response->getBody()->getContents();   
-                                }
+                            {
+                                $response = $client->request('GET', $baseUrl.'&itemId=klpjsskrrrpoqn&orderId='.trim($number),
+                                [   
+                    
+                                ]);    
                                 
+                                
+                                $statusCode = $response->getStatusCode();
+                                
+                                $html = $response->getBody()->getContents();   
+                            }
+                            
                            
                             
                             $html = str_replace('&','&amp;',$html);
@@ -346,7 +411,7 @@ class orderController extends Controller
 
                                 $this->shipOrder($order->id, $trackingId, $carrierId->name, 'new'); 
                                 try{
-                                if($order->flag=='8' || $order->flag=='9' || $order->flag=='10')
+                                if($order->flag=='8')
                                 {
                                     $this->updateSheetTracking($trackingId, $order->sellOrderId, $carrierId->name, $order->flag);
                                 }
@@ -1721,6 +1786,7 @@ class orderController extends Controller
             $this->sync($account->store, $account->username, $account->password);
         }    
         
+        
         $newCount = orders::select()->where('status','unshipped')->count(); 
         
         $orderCounter = $newCount - $oldCount;
@@ -1879,7 +1945,8 @@ class orderController extends Controller
     {
         
         $fulfillmentOrders = array(); 
-        
+        $jonathanOrders = array();
+        $samuelOrders = array();
         $endDate = orders::where('status','unshipped')->max('date');
         
         $date = date_format(date_create($endDate), 'Y-m-d');
@@ -1923,7 +1990,7 @@ class orderController extends Controller
             
             if(empty($body) || count($resp)==0)
                 break;
-
+            
             foreach($resp as $order)
             {
                 $qty = 0; 
@@ -2005,10 +2072,10 @@ class orderController extends Controller
                 $temp['totalAmount'] = $amount;
 
                 $exists = orders::select()->where('orderId',$temp['orderId'])->count();
-                
+                  
                 if($exists>0)
                     continue; 
-
+              
                $orderId = orders::create($temp)->id;
                 
                 $att = 'OrderDetails';
@@ -2147,19 +2214,18 @@ class orderController extends Controller
                 
             }        
                 $page++; 
-                              
+              
         }
         
+    
         
         $sendCindyOrders['data'] = $this->parseFulfillment($fulfillmentOrders,'cindy');
         
-        if(!empty($samuelOrders))
-            $sendSamuelOrders['data'] = $this->parseFulfillment($samuelOrders,'samuel');
+        $sendSamuelOrders['data'] = $this->parseFulfillment($samuelOrders,'samuel');
         
-        if(!empty($jonathanOrders))
-            $sendJonathanOrders['data'] = $this->parseFulfillment($jonathanOrders,'jonathan');
+        $sendJonathanOrders['data'] = $this->parseFulfillment($jonathanOrders,'jonathan');
         
-
+      
         $endPoint = env('CINDY_TOKEN', '');
         if(!empty($endPoint))
             $this->sendToGoogle($endPoint, $sendCindyOrders);
@@ -2180,12 +2246,13 @@ class orderController extends Controller
 
     }
 
-    public function sendToGoogle($endpoint, $orders)
+    public function sendToGoogle($endPoint, $orders)
     {
         $client = new client(); 
 
         $body = json_encode($orders); 
                 
+
         try{                    
 
             $response = $client->request('POST', $endPoint,
@@ -2272,11 +2339,13 @@ class orderController extends Controller
         return $this->checkCriteria($finalOrders, $flag);
     }
 
-    public function checkCriteria($orders, $flag)
+   public function checkCriteria($orders, $acc)
     {
+        
+        
         $googleOrders = array();
 
-        $settings = settings::where('name',$flag)->get()->first(); 
+        $settings = settings::where('name',$acc)->get()->first(); 
         
         if(empty($settings))
             return $googleOrders;
@@ -2310,7 +2379,10 @@ class orderController extends Controller
                 if(in_array($storesId->id,json_decode($stores)))
                     $flag = true; 
                 else
-                    $flag= false; 
+                {
+                        $flag= false; 
+                        continue;
+                }
             }
 
             if($amtCheck)
@@ -2319,7 +2391,10 @@ class orderController extends Controller
                 if($order["totalPrice"]>=$minAmount && $order["totalPrice"]<=$maxAmount)
                     $flag = true; 
                 else
-                    $flag= false;                               
+                    {
+                        $flag= false; 
+                        continue;
+                    }                              
                 
             }
         
@@ -2328,14 +2403,18 @@ class orderController extends Controller
                 if($order["qty"]>=$minQty && $order["qty"]<=$maxQty)
                     $flag = true; 
                 else
-                    $flag= false; 
+                   {
+                        $flag= false; 
+                        continue;
+                    }
             }
          
             $flagnum =8; 
-            if($flag=='cindy')
+            
+            if($acc=='cindy')
                 $flagnum ='8'; 
 
-            elseif($flag=='jonathan')
+            elseif($acc=='jonathan')
                 $flagnum = '9'; 
 
             else
@@ -2347,11 +2426,14 @@ class orderController extends Controller
             {
                 foreach($dailyOrders as $order)
                 {
-                    $amt += $this->getDiscountPayment($order->id, $flag);                    
+                    $amt += $this->getDiscountPayment($order->id, $acc);                    
                 }   
 
                 if($amt>= $maxDailyAmount)
-                    $flag = false;  
+                   {
+                        $flag= false; 
+                        continue;
+                    } 
                 else
                     $flag = true; 
             }
@@ -2359,7 +2441,10 @@ class orderController extends Controller
             if($dailyOrderCheck)
             {
                 if(count($dailyOrders)>=$maxDailyOrders)
-                    $flag = false; 
+                    {
+                        $flag= false; 
+                        continue;
+                     }
                 else
                     $flag = true; 
             }
@@ -2379,6 +2464,7 @@ class orderController extends Controller
     {
         $amt=0;
         $settings = settings::where('name',$flag)->get()->first();
+      
         $orderDetails = order_details::where('order_id',$orderId)->get();
         foreach($orderDetails as $detail)
         {

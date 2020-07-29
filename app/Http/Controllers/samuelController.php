@@ -647,7 +647,7 @@ class samuelController extends Controller
             $responseBodyAsString = $response->getBody()->getContents();
             
             Session::flash('error_msg', $responseBodyAsString);
-            return redirect()->route('autoFulfill');
+            return redirect()->route('samuelnew');
         }
         
         $statusCode = $response->getStatusCode();
@@ -656,13 +656,13 @@ class samuelController extends Controller
         if($statusCode!=200)
         {
             Session::flash('error_msg', __('Orders Processing Failed'));
-            return redirect()->route('autoFulfill');
+            return redirect()->route('samuelnew');
         }
                     
         $body = json_decode($response->getBody()->getContents());
         
         Session::flash('success_msg', $body->count. __(' Orders Processed'));
-        return redirect()->route('autoFulfill');
+        return redirect()->route('samuelnew');
     }
 
     public function autofulfillCancel()
@@ -719,11 +719,11 @@ class samuelController extends Controller
         if($order->poNumber != $order->afpoNumber)
         {
             cancelled_orders::where('id','=',$id)->delete();    
-            return redirect()->route('autofulfillCancel')->withStatus(__('Order successfully deleted.'));
+            return redirect()->route('samuelcancel')->withStatus(__('Order successfully deleted.'));
         }
         else
         {
-            return redirect()->route('autofulfillCancel')->withStatus(__('Order could not be deleted.'));
+            return redirect()->route('samuelcancel')->withStatus(__('Order could not be deleted.'));
         }
 
         
@@ -737,11 +737,11 @@ class samuelController extends Controller
 
         if($order)
         {             
-            return redirect()->route('autofulfillconversions')->withStatus(__('Order successfully deleted.'));
+            return redirect()->route('samuelbce')->withStatus(__('Order successfully deleted.'));
         }
         else
         {
-            return redirect()->route('autofulfillconversions')->withStatus(__('Order could not be deleted.'));
+            return redirect()->route('samuelbce')->withStatus(__('Order could not be deleted.'));
         }
 
         
