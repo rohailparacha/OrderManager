@@ -28,6 +28,12 @@ table {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.0/jquery-ui.min.js"></script>
 <script>
 $(document).ready(function(){
+    $('tr').on('shown.bs.collapse', function(){
+    $(this).prev('tr').find(".fa-plus-square").removeClass("fa-plus-square").addClass("fa-minus-square");
+  }).on('hidden.bs.collapse', function(){
+    $(this).prev('tr').find(".fa-minus-square").removeClass("fa-minus-square").addClass("fa-plus-square");
+  });
+  
     $("#logsTable").on('click','tr',function(e) {
         var row = $(this).attr('data-target').replace('#','').split('-')[1];
         var id = $(this).attr('data-target');
@@ -46,7 +52,7 @@ $(document).ready(function(){
                 html = '<table class="table table-flush">';
                 for (a=0; a<jsondata.length;a++)
                 {
-                    html+= '<tr><td style="width:11%">'+jsondata[a].name+'</td>';
+                    html+= '<tr><td width="5%"></td><td style="width:11%">'+jsondata[a].name+'</td>';
                     html+='<td style="width:11%">'+jsondata[a].date_started+'</td>';
                     html+='<td style="width:11%">'+jsondata[a].date_completed+'</td>';
                     html+='<td style="width:9%">'+jsondata[a].totalItems+'</td>';
@@ -107,6 +113,7 @@ $(document).ready(function(){
                         <table class="table align-items-center table-flush" id="logsTable">
                             <thead class="thead-light">
                                 <tr>
+                                    <th scope="col" width="3%"></th>
                                     <th scope="col" width="11%">{{ __('Batch Name') }}</th>
                                     <th scope="col" width="11%">{{ __('Start Time') }}</th>
                                     <th scope="col" width="11%">{{ __('Finished Time') }}</th>
@@ -115,12 +122,16 @@ $(document).ready(function(){
                                     <th scope="col" width="9%">{{ __('Total Successful') }}</th>
                                     <th scope="col" width="9%">{{ __('Stage') }}</th>
                                     <th scope="col" width="9%">{{ __('Status') }}</th>
-                                    <th scope="col" width="24%">{{ __('Error') }}</th>                                   
+                                    <th scope="col" width="6%">{{ __('Action') }}</th> 
+                                    <th scope="col" width="18%">{{ __('Error') }}</th> 
+                                                                      
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($logs as $log)
-                                    <tr data-toggle="collapse" data-target= "#logs-{{$log->id}}" class="accordion-toggle">                                                           <td>Main Process</td>                 
+                                    <tr data-toggle="collapse" data-target= "#logs-{{$log->id}}" class="accordion-toggle">                              
+                                        <td style="text-align:center; font-size: 15px;"><i class="fa fa-plus-square"></i></td>
+                                        <td>Main Process</td>                 
                                         <td width="12%">{{ $provider::getIranTime(date_format(date_create($log->date_started), 'm/d/Y H:i:s')) }}</td>                                                                               
                                         <td width="12%">
                                         @if(!empty($log->date_completed))
@@ -132,11 +143,12 @@ $(document).ready(function(){
                                         <td width="10%">{{ $log->successItems }}</td>
                                         <td width="10%">{{ $log->stage }}</td>
                                         <td width="10%">{{ $log->status }}</td>
+                                        <td width="10%">{{ $log->action }}</td>
                                         <td width="26%">{{ $log->error }}</td>                                                                                                                         
                                     </tr>
 
                                     <tr>
-                                        <td colspan="9" class="hiddenRow">
+                                        <td colspan="11" class="hiddenRow">
                                             <div class="accordian-body collapse" id="logs-{{$log->id}}">
                                             
                                             </div> </td>

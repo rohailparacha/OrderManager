@@ -72,7 +72,7 @@ class Repricing implements ShouldQueue
 
     public function repricing()
     {
-        $this->recordId = logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress']);
+        $this->recordId = logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress','action'=>'Repricing']);
         
         $products = products::all();
         
@@ -108,7 +108,7 @@ class Repricing implements ShouldQueue
     public function newProducts($collection)
     {
 
-        $this->recordId = logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress']);
+        $this->recordId = logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress','action'=>'Add Products']);
 
         $temp = $collection->chunk(5000);
 
@@ -129,6 +129,8 @@ class Repricing implements ShouldQueue
                 
                 if(strtolower($product['action'])=='delete')
                 {
+                    logs::where('id',$this->recordId)->update(['action'=>'Delete Products']);
+
                     $pId = products::where('asin',$product['asin'])->get()->first();                    
                     
                     if(!empty($pId))
