@@ -93,6 +93,11 @@ catch{
         @if(Session::has('count_msg'))
         <div class="alert alert-info"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>{{Session::get('count_msg')}}</div>
         @endif
+        
+        @if(Session::has('inner_msg'))
+        <div class="alert alert-info"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>{{Session::get('inner_msg')}}</div>
+        @endif
+        
         <div class="row">
             <div class="col">
                 <div class="card shadow">
@@ -262,7 +267,8 @@ catch{
                                         @elseif($order->flag==8)
                                         <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Cindy</p>                                        
                                         @elseif($order->flag==9)
-                                        <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Jonathan</p>                                                   
+                                        <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Jonathan</p>                                    
+                                        
                                         @elseif($order->flag==10)
                                         <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Samuel</p>  
                                         

@@ -105,7 +105,7 @@ Route::post('samuel_update', function(Request $request) {
     
     $success=0;
     $records = $request->data;
-    
+
     foreach($records as $record)
     {        
         if(empty(trim($record['poNumber'])))
@@ -114,7 +114,7 @@ Route::post('samuel_update', function(Request $request) {
         $insert = orders::where('sellOrderId',$record['sellOrderId'])
         ->whereNull('poNumber')
         ->update([
-        'poTotalAmount'=>$record['poTotalAmount'],
+        'poTotalAmount'=>floatval($record['poTotalAmount']) * 0.93,
         'poNumber'=>$record['poNumber'],        
         'afpoNumber'=>$record['afpoNumber'],
         'account_id'=>'Samuel',
@@ -136,7 +136,7 @@ Route::post('jonathan_update', function(Request $request) {
     
     $success=0;
     $records = $request->data;
-    
+
     foreach($records as $record)
     {        
         if(empty(trim($record['poNumber'])))

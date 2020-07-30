@@ -6,8 +6,10 @@ use App\blacklist;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
 
-class BlacklistExport implements FromCollection,WithHeadings,ShouldAutoSize
+class BlacklistExport implements WithColumnFormatting,FromCollection,WithHeadings,ShouldAutoSize,WithStrictNullComparison
 {
     /**
     * @return \Illuminate\Support\Collection
@@ -37,6 +39,13 @@ class BlacklistExport implements FromCollection,WithHeadings,ShouldAutoSize
     {
         return [
             'Date','SKU','Reason','Allowance'
+        ];
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'D' => '0'            
         ];
     }
 }

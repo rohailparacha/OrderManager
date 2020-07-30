@@ -104,13 +104,13 @@ class orderController extends Controller
             $carrierField2= 'a-spacing-small carrierRelatedInfo-mfn-carrierNameTitle';
 
         foreach($orders as $order)
-        {                 
+        {                       
             $found = false;
             $trackingId = '';
             $carrier = '';
-
             if($order->account_id=='Samuel' || $order->account_id=='Jonathan')
             {
+               
                 try{
         
                     $client = new client(); 
@@ -122,13 +122,13 @@ class orderController extends Controller
                     $response = $client->request('GET', $endPoint,
                     [
                         'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
-                        'query' => ['sellOrderId' => $sellOrderId,'function' => 'fetchShipping']          
+                        'query' => ['sellOrderId' => $order->sellOrderId,'function' => 'fetchShipping']          
                     ]);    
                     
                     $statusCode = $response->getStatusCode();
                 
                     $body = json_decode($response->getBody()->getContents());    
-
+                    
                     $carrier = $body->carrier; 
                     $trackingId = $body->trackingId;
                     
@@ -142,9 +142,10 @@ class orderController extends Controller
                         
                         if(strtolower($carrier)=='bce' || strtolower($carrier)=='bluecare express')
                         {
+                            
                             $bceCarrier = carriers::where('name','Bluecare Express')->get()->first(); 
 
-                            $order = orders::where('id',$id)->update(['carrierName'=>$bceCarrier->id,'oldTrackingNumber'=>$trackingId,  'newTrackingNumber'=>$trackingId, 'converted'=>true]);
+                            $order = orders::where('id',$order->id)->update(['carrierName'=>$bceCarrier->id,'trackingNumber'=>$trackingId,  'newTrackingNumber'=>$trackingId, 'converted'=>true]);
                         }
                         else
                         {
@@ -160,21 +161,20 @@ class orderController extends Controller
 
                             $this->shipOrder($order->id, $trackingId, $carrier, 'new');
                             
-                            $order = orders::where('id',$id)->update(['carrierName'=>$carrierId, 'oldTrackingNumber'=>$trackingId, 'status'=>'shipped']);
+                            $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId, 'trackingNumber'=>$trackingId, 'status'=>'shipped']);
+                            
+                            $shippedCounter++;
                         }
                         
                     }
                 }
                 catch(\Exception $ex)
                 {
-        
+                 
+                  
                 }
                 continue;
             }
-          
-            
-           
-            
             if(empty(trim($order->poNumber)))
                 continue; 
             
@@ -244,16 +244,17 @@ class orderController extends Controller
                                 if($order->flag=='8')
                                 {
                                    
+                                 
                                  $response = $client->request('GET', $baseUrl.'&itemId='.$order->itemId.'&orderId='.trim($number),
                                  [   
                      
                                  ]);    
-                                                                  
+                                 
+                                 
                                  $statusCode = $response->getStatusCode();
                                  
                                  $html = $response->getBody()->getContents();   
                                 }
-
                                 else
                                 {                                    
                                     $response = $client->request('GET', $baseUrl.'&itemId=klpjsskrrrpoqn&orderId='.trim($number).'&shipmentId='.$this->getShipment($order->poNumber),
@@ -269,18 +270,18 @@ class orderController extends Controller
                                 
                             }
                             else                                
-                            {
-                                $response = $client->request('GET', $baseUrl.'&itemId=klpjsskrrrpoqn&orderId='.trim($number),
-                                [   
-                    
-                                ]);    
+                                {
+                                    $response = $client->request('GET', $baseUrl.'&itemId=klpjsskrrrpoqn&orderId='.trim($number),
+                                    [   
+                        
+                                    ]);    
+                                    
+                                    
+                                    $statusCode = $response->getStatusCode();
+                                    
+                                    $html = $response->getBody()->getContents();   
+                                }
                                 
-                                
-                                $statusCode = $response->getStatusCode();
-                                
-                                $html = $response->getBody()->getContents();   
-                            }
-                            
                            
                             
                             $html = str_replace('&','&amp;',$html);
@@ -373,7 +374,7 @@ class orderController extends Controller
                             if($carrierId->id == $amzCarrier->id && $order->marketplace == 'Walmart' && $this->startsWith($trackingId,'TBA'))
                             {                                
                                $resp='';
-                               if($order->flag=='8'  ||$order->flag=='9'||$order->flag=='10')
+                               if($order->flag=='8')
                                {    
                                     $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at' =>Carbon::now()]);
                                }
@@ -411,7 +412,7 @@ class orderController extends Controller
 
                                 $this->shipOrder($order->id, $trackingId, $carrierId->name, 'new'); 
                                 try{
-                                if($order->flag=='8')
+                                if($order->flag=='8' || $order->flag=='9' || $order->flag=='10')
                                 {
                                     $this->updateSheetTracking($trackingId, $order->sellOrderId, $carrierId->name, $order->flag);
                                 }
@@ -1778,7 +1779,10 @@ class orderController extends Controller
         elseif(auth()->user()->role == 2)
             $accounts = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
 
-        $oldCount = orders::select()->where('status','unshipped')->count(); 
+        $oldCount = orders::select()->where('status','unshipped')->count();
+        $oldCindy = orders::select()->where('flag','8')->count();
+        $oldJonathan = orders::select()->where('flag','9')->count();
+        $oldSamuel = orders::select()->where('flag','10')->count();
 
 
         foreach($accounts as $account)
@@ -1788,11 +1792,18 @@ class orderController extends Controller
         
         
         $newCount = orders::select()->where('status','unshipped')->count(); 
+        $newCindy = orders::select()->where('flag','8')->count();
+        $newJonathan = orders::select()->where('flag','9')->count();
+        $newSamuel = orders::select()->where('flag','10')->count();
         
         $orderCounter = $newCount - $oldCount;
+        $cindyCnt = $newCindy - $oldCindy;
+        $samuelCnt = $newSamuel - $oldSamuel;
+        $jonathanCnt = $newJonathan - $oldJonathan;
 
         Session::flash('success_msg', __('Orders Sync Completed'));
         Session::flash('count_msg', $orderCounter." New Orders are Imported Successfully");
+        Session::flash('inner_msg',"Cindy: " . $cindyCnt ." , Samuel: " . $samuelCnt ." , Jonathan: ". $jonathanCnt);
 
         return redirect()->route('newOrders');
     }
@@ -1943,7 +1954,7 @@ class orderController extends Controller
 
     public function sync($store, $username, $password)
     {
-        
+           
         $fulfillmentOrders = array(); 
         $jonathanOrders = array();
         $samuelOrders = array();
@@ -2670,7 +2681,7 @@ class orderController extends Controller
     public function orderFlag($id, $flag)
     {
         $orders= orders::where('id',$id)->update(['flag'=>$flag]);
-        return redirect()->route('newOrders');
+        return redirect()->back();
     }
 
   public static function getIranTime($date)

@@ -2317,7 +2317,7 @@ pre code
     overflow-x: auto;
 
     width: 100%;
-
+    min-height:600px!important;
     -webkit-overflow-scrolling: touch;
     -ms-overflow-style: -ms-autohiding-scrollbar;
 }

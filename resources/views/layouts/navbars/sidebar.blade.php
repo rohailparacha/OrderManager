@@ -217,11 +217,6 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link"  href="{{ route('samuelbce') }}">
-                                    {{ __('BCE Pending') }}
-                                </a>
-                            </li>
-                            <li class="nav-item">
                                 <a class="nav-link"  href="{{ route('samuelcancel') }}">
                                     {{ __('Cancel Pending') }}
                                 </a>
@@ -270,11 +265,7 @@
                                     {{ __('Processed Orders') }}
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link"  href="{{ route('jonathanbce') }}">
-                                    {{ __('BCE Pending') }}
-                                </a>
-                            </li>
+                        
                             <li class="nav-item">
                                 <a class="nav-link"  href="{{ route('jonathancancel') }}">
                                     {{ __('Cancel Pending') }}
