@@ -404,5 +404,44 @@ class productsController extends Controller
         return redirect()->route('products');  
     }
 
+    public function editAmzProduct(Request $request)
+    {
+        $input = [
+            'id' => $request->get('id'),
+            'title' => $request->get('title'),
+        ];  			
+        $rules = [
+                'id'    => 'required',
+                'title' => 'required'                             
+        ];
+        
+
+        $formData= $request->all();
+        $validator = Validator::make($input,$rules);
+        if($validator->fails())
+        {        
+           Session::flash('error_msg', __("Validation Error. Please fix errors and try again."));
+           return Redirect::back()->withInput()->withErrors($validator,'add_carrier');
+        }     
+        	
+        $id = $formData['id'];
+        $title = $formData['title'];
+        
+        try{
+        $obj = products::find($id);
+
+        $obj->title = $title;        
+
+        $obj->save();
+            return "success";
+            Session::flash('success_msg', __("Success. Product updated successfully."));
+            return Redirect()->back();
+        }
+        catch(Exception $ex)
+        {
+            return "error";
+        }
+
+    }
 
 }

@@ -96,6 +96,8 @@ Route::group(['middleware' => 'auth'], function () {
 
 	Route::get('logs','productsController@getLogs')->name('logs')->middleware('admin');
 	Route::post('getLogs','productsController@getLogBatches')->name('getLogBatches')->middleware('admin');
+	Route::post('/editAmzProduct', 'productsController@editAmzProduct')->middleware('admin');
+
 	//eBay Route
 	Route::get('/products/ebay', 'ebayController@index')->name('ebayProducts')->middleware('admin');	
 	Route::post('/addEbayProduct', 'ebayController@addProduct');

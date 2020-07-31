@@ -2224,19 +2224,31 @@ class orderController extends Controller
                 }
                 
             }        
-                $page++; 
-              
+                $page++;               
         }
         
-    
+        $priorities = settings::select()->orderBy('priority','ASC')->get();
         
-        $sendCindyOrders['data'] = $this->parseFulfillment($fulfillmentOrders,'cindy');
-        
-        $sendSamuelOrders['data'] = $this->parseFulfillment($samuelOrders,'samuel');
-        
-        $sendJonathanOrders['data'] = $this->parseFulfillment($jonathanOrders,'jonathan');
-        
-      
+        $sendCindyOrders  = array();
+        $sendSamuelOrders  = array();
+        $sendJonathanOrders  = array();
+
+        foreach($priorities as $priority)
+        {            
+            if($priority->name=='cindy')
+            {
+                $sendCindyOrders['data'] = $this->parseFulfillment($fulfillmentOrders,'cindy',$sendSamuelOrders,$sendJonathanOrders);
+            }
+            elseif($priority->name=='samuel')
+            {
+                $sendSamuelOrders['data'] = $this->parseFulfillment($samuelOrders,'samuel',$sendCindyOrders,$sendJonathanOrders);
+            }
+            elseif($priority->name=='jonathan')
+            {
+                $sendJonathanOrders['data'] = $this->parseFulfillment($jonathanOrders,'jonathan',$sendSamuelOrders,$sendCindyOrders);
+            }
+        }       
+ 
         $endPoint = env('CINDY_TOKEN', '');
         if(!empty($endPoint))
             $this->sendToGoogle($endPoint, $sendCindyOrders);
@@ -2250,11 +2262,6 @@ class orderController extends Controller
             $this->sendToGoogle($endPoint, $sendJonathanOrders);
         
         
-    }
-
-    public function prioritize()
-    {
-
     }
 
     public function sendToGoogle($endPoint, $orders)
@@ -2312,7 +2319,7 @@ class orderController extends Controller
         }
     }
 
-    public function parseFulfillment($fulfillmentOrders, $flag)
+    public function parseFulfillment($fulfillmentOrders, $flag, $orders2, $orders3)
     {
         $freshOrders = array();
         
@@ -2327,10 +2334,10 @@ class orderController extends Controller
                 $freshOrders[$order['referenceNumber']] = $order; 
         }
 
-        return $this->removeDuplicates($freshOrders, $flag);
+        return $this->removeDuplicates($freshOrders, $flag, $orders2, $orders3);
     }
 
-    public function removeDuplicates($freshOrders, $flag)
+    public function removeDuplicates($freshOrders, $flag, $orders2, $orders3)
     {        
         $finalOrders = array();
         foreach($freshOrders as $order)
@@ -2347,10 +2354,10 @@ class orderController extends Controller
                 
         }
 
-        return $this->checkCriteria($finalOrders, $flag);
+        return $this->checkCriteria($finalOrders, $flag, $orders2, $orders3);
     }
 
-   public function checkCriteria($orders, $acc)
+   public function checkCriteria($orders, $acc, $orders2, $orders3)
     {
         
         
@@ -2459,7 +2466,19 @@ class orderController extends Controller
                 else
                     $flag = true; 
             }
-      
+            
+            if($this->checkExisting($orders2, $order['referenceNumber']))
+            {
+                $flag=false;
+                continue;
+            }
+           
+
+            if($this->checkExisting($orders3, $order['referenceNumber']))
+            {
+                $flag=false;
+                continue;
+            }
             
             if($flag)
             {
@@ -2469,6 +2488,22 @@ class orderController extends Controller
         }
 
         return $googleOrders;
+    }
+
+    public function checkExisting($orders, $reference)
+    {
+        if(empty($orders))
+            return false;
+        $temp = json_encode($orders);
+        $temp2 = json_decode($temp);
+
+        foreach($temp2->data as $order)
+        {   
+            if(trim($order->referenceNumber)==trim($reference))
+                return true;         
+        }
+
+        return false; 
     }
 
     public function getDiscountPayment($orderId, $flag)

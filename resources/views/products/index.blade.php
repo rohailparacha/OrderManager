@@ -26,8 +26,8 @@ table {
 {
     .main-content .container-fluid
     {
-        padding-right: 12px !important;
-        padding-left: 12px !important;
+        padding-right: 6px !important;
+        padding-left: 6px !important;
     }
 }
 
@@ -43,6 +43,56 @@ table {
 <script>
 
 $(document).ready(function(){
+        
+        $('#addCat').on('show.bs.modal', function(e) {        
+        
+        var link     = $(e.relatedTarget),
+        id = link.data("id"),        
+        title = link.data('title')    
+        ;
+
+        $('#catId').val(id);
+        $('#titleTbx').val(title);
+        $('#editTitle').show();
+        $('#product-edit').show();  
+        $('#editSuccess').hide();
+        
+    
+    });
+
+    $('#product-edit').on('click',function(event){ 
+           
+           var title = $('#titleTbx').val();
+           var id = $('#catId').val();
+
+           $.ajax({
+               
+           type: 'post',
+           url: '/editAmzProduct',
+           data: {
+           'title': title,
+           'id': id
+           },
+           headers: {
+               'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+           },
+           success: function (data) {
+           console.log(data);
+           if (data == 'success') {
+               $('#add-modal').modal('hide');
+               $('#error').hide();
+               document.location.reload();
+               $("#editSuccess").show().delay(3000).fadeOut();
+           } else
+               $('#error').show();
+           },
+           
+           error: function(XMLHttpRequest, textStatus, errorThrown) {                
+               $('#error').show();
+           }        
+       });
+       })
+
     var price = <?php echo json_encode($maxPrice); ?>;
     var sellers = <?php echo json_encode($maxSellers); ?>;
 
@@ -287,16 +337,17 @@ catch{
                                 <tr>
                                     <th scope="col" width="8%" >{{ __('Image') }}</th>
                                     <th scope="col" width="8%">{{ __('Store Name') }}</th>
-                                    <th scope="col" width="8%">{{ __('ASIN') }}</th>
+                                    <th scope="col" width="9%">{{ __('ASIN') }}</th>
                                     
-                                    <th scope="col" width="8%">{{ __('UPC') }}</th>
+                                    <th scope="col" width="9%">{{ __('UPC') }}</th>
                                     
                                     <th scope="col" width="20%">{{ __('Title') }}</th>
                                     <th scope="col" width="8%">{{ __('Total FBA Sellers') }}</th>
                                     <th scope="col" width="8%">{{ __('Lowest FBA Price') }}</th>
                                     <th scope="col" width="8%">{{ __('Price') }}</th>                                    
                                     <th scope="col" width="8%">{{ __('Link') }}</th>                                    
-                                    <th scope="col" width="8%">{{ __('Action') }}</th>
+                                    <th scope="col" width="6%">{{ __('Action') }}</th>
+                                    <th scope="col" width="4%"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -305,16 +356,26 @@ catch{
                                         <td width="8%"><img src="{{ $product->image }}" width="75px" height="75px"></td>
                                    
                                         <td width="8%" class="specifictd">{{ $product->account }}</td>
-                                        <td width="8%" class="specifictd">{{ $product->asin }}</td>
-                                        <td width="8%" class="specifictd">{{ $product->upc }}</td>
+                                        <td width="9%" class="specifictd">{{ $product->asin }}</td>
+                                        <td width="9%" class="specifictd">{{ $product->upc }}</td>
                                         <td width="20%">{{ $product->title }}</td>
                                         <td width="8%"  class="specifictd">{{ $product->totalSellers }}</td>
                                         <td width="8%" class="specifictd">{{ number_format((float)$product->lowestPrice, 2, '.', '') }}</td>
                                         <td width="8%" class="specifictd">{{ number_format((float)$product->price, 2, '.', '') }}</td>                                        
                                         <td width="8%" class="specifictd"><a href="https://amazon.com/dp/{{$product->asin}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a></td>
-                                        <td width="8%" class="specifictd">
+                                        <td width="6%" class="specifictd">
                                         <a class="btn btn-primary btn-sm" href="deleteProduct/{{$product->id}}" onclick="return confirm('Are you sure you want to delete this product?')">Delete</a>
                                         
+                                        </td>
+                                        <td width="4%" class="text-right">
+                                            <div class="dropdown">
+                                                <a class="btn btn-sm btn-icon-only text-light" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">                                    
+                                                    <a class="dropdown-item"  data-toggle="modal" data-target="#addCat" data-title= "{{$product->title}}" data-id="{{$product->id}}" id="btnEditCat" href="#">{{ __('Edit') }}</a>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -337,7 +398,60 @@ catch{
                 </div>
             </div>
         </div>
-            
+
+  <!-- Edit Product Modal -->
+<div class="modal fade" tabindex="-1" role="dialog" id="addCat">     
+      
+      <div class="modal-dialog" role="document">
+      <div class="alert alert-danger" id="error" style="display:none">
+      @lang('Title is either empty or has invalid characters')
+       </div>
+       
+       <div class="alert alert-success" id="editSuccess" style="display:none">
+               @lang('Product Title Updated Successfully')
+       </div>   
+        <div class="modal-content">
+            <div class="modal-header">            
+            <h4 class="modal-title" id="editTitle">@lang('Update Product Title')</h4>
+             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              
+         <br/>
+           </div>
+        <div class="modal-body">
+            <input type="hidden" value="" id="catId" />
+   <form class="form-horizontal" method="post" >
+{{csrf_field()}}
+
+
+
+<div class="row clearfix">
+       <div class="col-sm-3 form-control-label">
+           <label for="email_address_2">@lang('Title:')</label>
+       </div>
+       <div class="col-sm-9">
+           <div class="form-group">
+               <div class="form-line">
+                   <div class="form-line">
+                       <input type="text" class="form-control" id="titleTbx" name="category" >                                        
+                   </div>
+                    <div class="errorMsg">{!!$errors->survey_question->first('category');!!}</div>
+               </div>
+           </div>
+       </div>
+</div>
+
+<br/>
+       
+   </form>
+      </div>
+       <div class="modal-footer">        
+        <button type="button" class="btn btn-primary" id="product-edit">@lang('Edit Product')</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">@lang('Close')</button>                            
+           </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+</div>
+<!-- Edit Product Modal End -->          
         @include('layouts.footers.auth')
     </div>
 @endsection
