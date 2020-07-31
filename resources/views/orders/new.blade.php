@@ -253,7 +253,11 @@ catch{
                                         @else                                        
                                         @foreach($flags as $flag)
                                         @if($flag->id == $order->flag)
+                                            @if(strtolower(trim($flag->color))=='yellow')
+                                            <p style="padding: 8px 4px 8px 4px;background-color:{{$flag->color}};color:black;width:100px;text-align: center;font-weight: bold;font-size: 14px;">{{$flag->name}}</p>
+                                            @else
                                             <p style="padding: 8px 4px 8px 4px;background-color:{{$flag->color}};color:white;width:100px;text-align: center;font-weight: bold;font-size: 14px;">{{$flag->name}}</p>
+                                            @endif
                                         @endif
                                         @endforeach             
                                         @endif                           
