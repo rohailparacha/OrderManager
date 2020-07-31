@@ -16,35 +16,26 @@ class SellerActiveExport implements FromCollection,WithHeadings,ShouldAutoSize
     public function collection()
     {
         //
-        $products = products::leftJoin('accounts','products.account','=','accounts.store')
-        ->select(['products.*','accounts.lagTime','accounts.quantity','accounts.maxListingBuffer'])       
+        $products = products::leftJoin('accounts','products.account','accounts.store')
+        ->leftJoin('blacklist','products.asin','blacklist.sku')
+        ->select(['products.*','accounts.lagTime','accounts.quantity','accounts.maxListingBuffer','blacklist.allowance'])    
         ->orderBy('account')->get(); 
         
         $dataArray = array();
 
-        
-
         foreach($products as $product)
         {
+            if(empty($product->asin))
+                continue; 
+                
             $qty='0';
             if($product->lowestPrice==0)
                 $qty='0';
             else
                 $qty=empty($product->quantity)?'100':$product->quantity;
                 
-            $blacklist = blacklist::all();
-            
-            foreach($blacklist as $bl)
-            {
-                if(strtolower(trim($bl->sku))==strtolower(trim($product->asin)))
-                {
-                    if($product->lowestPrice>0)
-                    {
-                        $qty=$bl->allowance;
-                        break;
-                    }                    
-                }                    
-            }
+            if(!empty($product->allowance))
+                $qty = $product->allowance;
 
             $dataArray[]=  [
                 "Account"=>$product->account,
