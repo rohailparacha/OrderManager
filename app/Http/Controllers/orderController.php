@@ -7,6 +7,7 @@ use App\blacklist;
 use App\settings;
 use App\walmart_products;
 use App\flags;
+use App\reasons;
 use DB;
 use Carbon\Carbon;
 use App\User;
@@ -1206,7 +1207,8 @@ class orderController extends Controller
 
             $blacklist = $blacklist->appends('searchQuery',$query)->appends('route', $route);
 
-            return view('blacklist', compact('blacklist','search','route'));
+            $reasons = reasons::all(); 
+            return view('blacklist', compact('blacklist','reasons','search','route'));
         }
 
         else if($route == 'conversions')
@@ -2864,8 +2866,7 @@ class orderController extends Controller
        
         try
         {
-            $details = order_details::where('order_id',$id)->get(); 
-
+            $details = order_details::where('order_id',$id)->get();             
             $flag=0;
 
             foreach($details as $detail)
@@ -2875,7 +2876,7 @@ class orderController extends Controller
                 if(empty($temp))
                     continue;
                 
-                    if(trim($temp->reason)=='Qty Limit')
+                if(trim($temp->reason)=='Qty Limit')
                     $flag='2';
                 if(trim($temp->reason)=='Unavailable')
                     $flag='3';
@@ -2883,7 +2884,10 @@ class orderController extends Controller
                     $flag='6';
                 if(trim($temp->reason)=='Wrong Info')
                     $flag='6';
-
+                $flg = flags::where('name',trim($temp->reason))->get()->first(); 
+                if(!empty($flg))
+                    $flag = $flg->id;
+                    
                 $update = orders::where('id',$id)->update(['flag'=>$flag]);
             }
             

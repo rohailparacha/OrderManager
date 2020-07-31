@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\blacklist;
+use App\reasons;
 
 use Excel;
 
@@ -23,7 +24,8 @@ class blacklistController extends Controller
     public function index()
     {
         $blacklist = blacklist::select()->orderBy('date','desc')->paginate(100);
-        return view('blacklist', compact('blacklist'));
+        $reasons = reasons::all(); 
+        return view('blacklist', compact('blacklist','reasons'));
     }
 
     public function addBlacklist(Request $request)

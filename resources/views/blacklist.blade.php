@@ -34,7 +34,7 @@ $(document).ready(function(){
         
         $('#catId').val(id);   
         $('#skuTbx').val(sku);  
-        $('#reasonTbx').val(reason); 
+        $('#reasonTbx').val(reason);         
         $('#allowanceTbx').val(allowance);
 
         $('#addTitle').hide();
@@ -294,11 +294,10 @@ $(document).ready(function(){
                <div class="form-line">
                    <div class="form-line">
                    <select class="form-control" id="reasonTbx" name="userList" style="">                                
-                        <option value="0">Select Type</option>                                                   
-                        <option value="Qty Limit">Qty Limit</option>
-                        <option value="Delay">Delay</option>
-                        <option value="Unavailable">Unavailable</option>
-                        <option value="Wrong Info">Wrong Info</option>
+                        <option value="0">Select Type</option>        
+                        @foreach($reasons as $reason)                                           
+                        <option value={{$reason->name}}>{{$reason->name}}</option>                   
+                        @endforeach
                     </select>
                    </div>
                    
