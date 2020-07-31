@@ -7,10 +7,11 @@ use App\accounts;
 use App\ebay_products;
 use DB;
 use App\states;
+use App\flags;
 use App\products;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
 class SamuelExport implements FromCollection,WithHeadings,ShouldAutoSize
 {
@@ -47,6 +48,8 @@ class SamuelExport implements FromCollection,WithHeadings,ShouldAutoSize
         ->select(['orders.*',DB::raw('IFNULL( products.lowestPrice, 0) as lowestPrice'),'products.asin','ebay_products.sku'])
         ->where('flag','10');
         
+        $flagName  = flags::where('id','10')->get()->first()->name;
+
         if(!empty($storeFilter)&& $storeFilter !=0)
         {
             $storeName = accounts::select()->where('id',$storeFilter)->get()->first();
@@ -132,28 +135,7 @@ class SamuelExport implements FromCollection,WithHeadings,ShouldAutoSize
 
         foreach($orders as $order)
         {
-            $flag='';
-            if($order->flag==1)
-                $flag='Overpriced';
-            elseif($order->flag==2)
-                $flag='Quantity Limit';
-            elseif($order->flag==3)
-                $flag='Unavailable';
-            elseif($order->flag==4)
-                $flag='Date';
-            elseif($order->flag==5)
-                 $flag='Address Issue';
-            elseif($order->flag==6)
-                $flag='Other';
-            elseif($order->flag==7)
-                $flag='Tax Issue';    
-            elseif($order->flag==8)
-                $flag='Cindy'; 
-            elseif($order->flag==9)
-                $flag='Jonathan';                                                 
-            elseif($order->flag==10)
-                $flag='Samuel'; 
-   
+           
             $counter=0; 
             $order_details = order_details::where('order_id',$order->id)->get();
             $temp = array();
@@ -168,7 +150,7 @@ class SamuelExport implements FromCollection,WithHeadings,ShouldAutoSize
                 "Zip Code"=> $order->postalCode,
                 "Purchase Price" => number_format((float)$order->lowestPrice , 2, '.', ''),
                 "Store Name" => $order->storeName,
-                "Flag" => $flag,
+                "Flag" => $flagName,
                              
             ];
 

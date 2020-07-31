@@ -7,6 +7,7 @@ use App\accounts;
 use App\ebay_products;
 use DB;
 use App\states;
+use App\flags;
 use App\products;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -48,14 +49,18 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
         $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
         ->leftJoin('products','order_details.SKU','=','products.asin')
         ->leftJoin('ebay_products','order_details.SKU','=','ebay_products.sku')
+        ->where('flag','!=','8')
+        ->where('flag','!=','9')
+        ->where('flag','!=','10')
         ->select(['orders.*',DB::raw('IFNULL( products.lowestPrice, 0) as lowestPrice'),'products.asin','ebay_products.sku']);
+        
         
         if(!empty($storeFilter)&& $storeFilter !=0)
         {
             $storeName = accounts::select()->where('id',$storeFilter)->get()->first();
             $orders = $orders->where('storeName',$storeName->store);
         }
-       
+        
 
         if(!empty($marketFilter)&& $marketFilter !=0)
         {                            
@@ -135,28 +140,12 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
 
         foreach($orders as $order)
         {
-            $flag='';
-            if($order->flag==1)
-                $flag='Overpriced';
-            elseif($order->flag==2)
-                $flag='Quantity Limit';
-            elseif($order->flag==3)
-                $flag='Unavailable';
-            elseif($order->flag==4)
-                $flag='Date';
-            elseif($order->flag==5)
-                 $flag='Address Issue';
-            elseif($order->flag==6)
-                $flag='Other';
-            elseif($order->flag==7)
-                $flag='Tax Issue';    
-            elseif($order->flag==8)
-                $flag='Cindy'; 
-            elseif($order->flag==9)
-                $flag='Jonathan';                                                 
-            elseif($order->flag==10)
-                $flag='Samuel';                                                 
-   
+            $flagName  = flags::where('id',$order->flag)->get()->first();
+            if(empty($flagName))
+                $flagName= '';
+            else
+                $flagName = $flagName->name;
+
             $counter=0; 
             $order_details = order_details::where('order_id',$order->id)->get();
             $temp = array();
@@ -172,7 +161,7 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
                 "Zip Code"=> $order->postalCode,
                 "Purchase Price" => number_format((float)$order->lowestPrice , 2, '.', ''),
                 "Store Name" => $order->storeName,
-                "Flag" => $flag,
+                "Flag" => $flagName,
                 
                              
             ];

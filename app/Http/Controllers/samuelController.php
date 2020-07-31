@@ -7,6 +7,7 @@ use App\carriers;
 use App\orders;
 use App\cancelled_orders;
 use App\states;
+use App\flags;
 use App\products; 
 use App\returns;
 use App\gmail_accounts;
@@ -414,7 +415,8 @@ class samuelController extends Controller
                 }
         }     
         
-        return view('samuel.new',compact('orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
+        $flags= flags::all();
+        return view('samuel.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
     }
 
     public function getTotalShipping($id)
@@ -512,8 +514,8 @@ class samuelController extends Controller
                         $order->source = 'Mix';
                 }
         }
-            
-        return view('samuel.new',compact('orders','stores','states','maxAmount','minAmount','maxPrice'));
+        $flags= flags::all();
+        return view('samuel.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice'));
     }
 
 
@@ -937,7 +939,8 @@ class samuelController extends Controller
                         }
                 }
                 $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-                return view('samuel.new',compact('orders','stores','states','maxAmount','minAmount','maxPrice','search','route'));
+                $flags= flags::all();
+                return view('samuel.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','search','route'));
             
         }
 

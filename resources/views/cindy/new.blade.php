@@ -246,29 +246,15 @@ catch{
                                         <td width="11%">
                                         @if($order->flag==0)
                                         <span></span>
-                                        @elseif($order->flag==1)
-                                        <p style="padding: 8px 4px 8px 4px;background-color:red;color:white;width:100px;text-align: center;font-weight: bold;font-size: 14px;">Overpriced</p>
-                                        @elseif($order->flag==2)
-                                        <p style="padding: 8px 4px 8px 4px; background-color:orange; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Quantity Limit</p>
-                                        @elseif($order->flag==3)
-                                        <p style="padding: 8px 4px 8px 4px; background-color:yellow; color:black; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Unavailable</p>
-                                        @elseif($order->flag==4)
-                                        <p style="padding: 8px 4px 8px 4px; background-color:green; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Date</p>
-                                        @elseif($order->flag==5)
-                                        <p style="padding: 8px 4px 8px 4px; background-color:blue; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Address Issue</p>
-                                        @elseif($order->flag==6)
-                                        <p style="padding: 8px 4px 8px 4px; background-color:gray; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Other</p>
-                                        @elseif($order->flag==7)
-                                        <p style="padding: 8px 4px 8px 4px; background-color:purple; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Tax Issue</p>                                        
-                                        @elseif($order->flag==8)
-                                        <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Cindy</p>                                        
-                                        @elseif($order->flag==9)
-                                        <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Jonathan</p>                                    
-                                        
-                                        @elseif($order->flag==10)
-                                        <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Samuel</p>                                          
+                                        @else                                        
+                                        @foreach($flags as $flag)
+                                        @if($flag->id == $order->flag)
+                                            <p style="padding: 8px 4px 8px 4px;background-color:{{$flag->color}};color:white;width:100px;text-align: center;font-weight: bold;font-size: 14px;">{{$flag->name}}</p>
                                         @endif
+                                        @endforeach             
+                                        @endif                           
                                         </td>
+                                        
                                         <td width="8%"><a href="orderDetails/{{$order->id}}" class="btn btn-primary btn-sm">Details</a></td>
                                         <td class="text-right" width="3%" style="padding:0px!important">
                                             <div class="dropdown">
@@ -276,17 +262,11 @@ catch{
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
-                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/1">{{ __('Overpriced') }}</a>
-                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/2">{{ __('Qty Limit') }}</a>
-                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/3">{{ __('Unavailable') }}</a>
-                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/4">{{ __('Date') }}</a>
-                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/5">{{ __('Address Problem') }}</a>
-                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/6">{{ __('Other') }}</a>
-                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/7">{{ __('Tax Issue') }}</a>
-                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/8">{{ __('Cindy') }}</a>
-                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/9">{{ __('Jonathan') }}</a>
-                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/10">{{ __('Samuel') }}</a>
+                                                    @foreach($flags as $flag)
+                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/{{$flag->id}}">{{$flag->name}}</a>
+                                                    @endforeach
                                                     <a class="dropdown-item" href="/orderFlag/{{$order->id}}/0">{{ __('Unflag') }}</a>
+                                                    
                                                 </div>
                                             </div>
                                         </td>

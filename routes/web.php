@@ -320,6 +320,16 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::any('jonathanRefundFilter','jonathanReturnsController@refundFilter')->middleware('admin');
 	Route::any('jonathanCompletedFilter','jonathanReturnsController@completedFilter')->middleware('admin');
 
-	
+	//order flags
+	Route::get('/flags', 'flagsController@flags')->name('flags')->middleware('admin');
+	Route::post('/addFlag', 'flagsController@addFlag')->middleware('admin');
+	Route::post('/editFlag', 'flagsController@editFlag')->middleware('admin');
+	Route::delete('/FlagDelete/{id}','flagsController@delFlag')->name('flagDelete')->middleware('admin');
+
+	//blacklist reasons
+	Route::get('/reasons', 'reasonsController@reasons')->name('reasons')->middleware('admin');
+	Route::post('/addReason', 'reasonsController@addReason')->middleware('admin');
+	Route::post('/editReason', 'reasonsController@editReason')->middleware('admin');
+	Route::delete('/ReasonDelete/{id}','reasonsController@delReason')->name('reasonDelete')->middleware('admin');
 });
 

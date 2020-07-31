@@ -6,6 +6,7 @@ use App\settings;
 use App\carriers; 
 use App\orders;
 use App\cancelled_orders;
+use App\flags;
 use App\states;
 use App\products; 
 use App\returns;
@@ -413,8 +414,8 @@ class jonathanController extends Controller
                         $order->source = 'Mix';
                 }
         }     
-        
-        return view('jonathan.new',compact('orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
+        $flags= flags::all();
+        return view('jonathan.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
     }
 
     public function getTotalShipping($id)
@@ -512,8 +513,8 @@ class jonathanController extends Controller
                         $order->source = 'Mix';
                 }
         }
-            
-        return view('jonathan.new',compact('orders','stores','states','maxAmount','minAmount','maxPrice'));
+        $flags= flags::all();
+        return view('jonathan.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice'));
     }
 
 
@@ -938,7 +939,8 @@ class jonathanController extends Controller
                         }
                 }
                 $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-                return view('jonathan.new',compact('orders','stores','states','maxAmount','minAmount','maxPrice','search','route'));
+                $flags= flags::all();
+                return view('jonathan.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','search','route'));
             
         }
 

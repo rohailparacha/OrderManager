@@ -6,6 +6,7 @@ use App\order_details;
 use App\blacklist;
 use App\settings;
 use App\walmart_products;
+use App\flags;
 use DB;
 use Carbon\Carbon;
 use App\User;
@@ -699,8 +700,8 @@ class orderController extends Controller
                         $order->source = 'Mix';
                 }
         }     
-        
-        return view('orders.new',compact('orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
+        $flags= flags::all();
+        return view('orders.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
     }
 
    
@@ -829,8 +830,9 @@ class orderController extends Controller
                         $order->source = 'Mix';
                 }
         } 
+        $flags = flags::all(); 
          
-        return view('orders.assign',compact('orders','users','stores','states','maxAmount','minAmount','maxPrice','stateFilter','marketFilter','storeFilter','amountFilter','sourceFilter'));
+        return view('orders.assign',compact('flags','orders','users','stores','states','maxAmount','minAmount','maxPrice','stateFilter','marketFilter','storeFilter','amountFilter','sourceFilter'));
     }
 
     public function search(Request $request)
@@ -986,7 +988,8 @@ class orderController extends Controller
                         }
                 }
                 $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-                return view('orders.new',compact('orders','stores','states','maxAmount','minAmount','maxPrice','search','route'));
+                $flags= flags::all();
+                return view('orders.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','search','route'));
             
         }
         else if($route == 'processedOrders')
@@ -2693,8 +2696,8 @@ class orderController extends Controller
                         $order->source = 'Mix';
                 }
         }
-
-        return view('orders.assign',compact('orders','users','stores','states','maxAmount','minAmount','maxPrice'));
+        $flags = flags::all(); 
+        return view('orders.assign',compact('flags','orders','users','stores','states','maxAmount','minAmount','maxPrice'));
     }
 
     public function assignOrder(Request $request)
@@ -2801,7 +2804,8 @@ class orderController extends Controller
                 }
         }
             
-        return view('orders.new',compact('orders','stores','states','maxAmount','minAmount','maxPrice'));
+        $flags = flags::all(); 
+        return view('orders.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice'));
     }
 
    

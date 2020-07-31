@@ -428,6 +428,17 @@
                                 </a>
                             </li>
 
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('flags') }}">
+                                    {{ __('Order Flags') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('reasons') }}">
+                                    {{ __('Blacklist Reasons') }}
+                                </a>
+                            </li>
                             
 
                             

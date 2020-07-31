@@ -5,6 +5,7 @@ use App\orders;
 use App\order_details;
 use App\accounts;
 use App\ebay_products;
+use App\flags;
 use DB;
 use App\states;
 use App\products;
@@ -43,9 +44,11 @@ class AutoFulfillExport implements FromCollection,WithHeadings,ShouldAutoSize
             
         $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
         ->leftJoin('products','order_details.SKU','=','products.asin')
-        ->leftJoin('ebay_products','order_details.SKU','=','ebay_products.sku')
+        ->leftJoin('ebay_products','order_details.SKU','=','ebay_products.sku')        
         ->select(['orders.*',DB::raw('IFNULL( products.lowestPrice, 0) as lowestPrice'),'products.asin','ebay_products.sku'])
         ->where('flag','8');
+        
+        $flagName  = flags::where('id','8')->get()->first()->name;
         
         if(!empty($storeFilter)&& $storeFilter !=0)
         {
@@ -131,28 +134,7 @@ class AutoFulfillExport implements FromCollection,WithHeadings,ShouldAutoSize
         }
 
         foreach($orders as $order)
-        {
-            $flag='';
-            if($order->flag==1)
-                $flag='Overpriced';
-            elseif($order->flag==2)
-                $flag='Quantity Limit';
-            elseif($order->flag==3)
-                $flag='Unavailable';
-            elseif($order->flag==4)
-                $flag='Date';
-            elseif($order->flag==5)
-                 $flag='Address Issue';
-            elseif($order->flag==6)
-                $flag='Other';
-            elseif($order->flag==7)
-                $flag='Tax Issue';    
-            elseif($order->flag==8)
-                $flag='Cindy'; 
-            elseif($order->flag==9)
-                $flag='Jonathan';                                                 
-            elseif($order->flag==10)
-                $flag='Samuel'; 
+        {          
    
             $counter=0; 
             $order_details = order_details::where('order_id',$order->id)->get();
@@ -168,7 +150,7 @@ class AutoFulfillExport implements FromCollection,WithHeadings,ShouldAutoSize
                 "Zip Code"=> $order->postalCode,
                 "Purchase Price" => number_format((float)$order->lowestPrice , 2, '.', ''),
                 "Store Name" => $order->storeName,
-                "Flag" => $flag,
+                "Flag" => $flagName,
                              
             ];
 
