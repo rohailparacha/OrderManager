@@ -128,7 +128,7 @@ class jonathanController extends Controller
         $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',false)->where('flag','9')
+            $orders = orders::select()->where('converted',false)->where('account_id','Jonathan')
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
@@ -149,7 +149,7 @@ class jonathanController extends Controller
             $orders = orders::select()->where('converted',false)
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
-            ->where('flag','9')->whereIn('storeName',$strArray)
+            ->where('account_id','Jonathan')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
             ->orderBy('status', 'DESC')->paginate(100);
@@ -183,7 +183,7 @@ class jonathanController extends Controller
         if(auth()->user()->role==1)            
         {
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('flag','9')
+            ->where('account_id','Jonathan')
             ->where(function($test){
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.status','shipped');
@@ -204,7 +204,7 @@ class jonathanController extends Controller
             }
             
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('flag','9')
+            ->where('account_id','Jonathan')
             ->whereIn('storeName',$strArray)
             ->where(function($test){
                 $test->where('orders.status','processing');
@@ -524,7 +524,7 @@ class jonathanController extends Controller
         $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',false)->where('flag','9')
+            $orders = orders::select()->where('converted',false)->where('account_id','Jonathan')
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
@@ -545,7 +545,7 @@ class jonathanController extends Controller
             $orders = orders::select()->where('converted',false)
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
-            ->where('flag','9')->whereIn('storeName',$strArray)
+            ->where('account_id','Jonathan')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
             ->orderBy('status', 'DESC')->paginate(100);
@@ -996,7 +996,7 @@ class jonathanController extends Controller
             $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',false)->where('flag','9')
+            $orders = orders::select()->where('converted',false)->where('account_id','Jonathan')
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
@@ -1021,7 +1021,7 @@ class jonathanController extends Controller
             $orders = orders::select()->where('converted',false)
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
-            ->where('flag','9')->whereIn('storeName',$strArray)
+            ->where('account_id','Jonathan')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
             ->where(function($test) use ($query){

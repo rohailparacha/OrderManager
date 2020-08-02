@@ -296,7 +296,7 @@ $(document).ready(function(){
                    <select class="form-control" id="reasonTbx" name="userList" style="">                                
                         <option value="0">Select Type</option>        
                         @foreach($reasons as $reason)                                           
-                        <option value={{$reason->name}}>{{$reason->name}}</option>                   
+                        <option value="{{$reason->name}}">{{$reason->name}}</option>                   
                         @endforeach
                     </select>
                    </div>

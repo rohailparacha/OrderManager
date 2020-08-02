@@ -128,7 +128,7 @@ class orderFulfillmentController extends Controller
         $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',false)->where('flag','8')
+            $orders = orders::select()->where('converted',false)->where('account_id','Cindy')
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
@@ -149,7 +149,7 @@ class orderFulfillmentController extends Controller
             $orders = orders::select()->where('converted',false)
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
-            ->where('flag','8')->whereIn('storeName',$strArray)
+            ->where('account_id','Cindy')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
             ->orderBy('status', 'DESC')->paginate(100);
@@ -183,7 +183,7 @@ class orderFulfillmentController extends Controller
         if(auth()->user()->role==1)            
         {
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('flag','8')
+            ->where('account_id','Cindy')
             ->where(function($test){
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.status','shipped');
@@ -204,7 +204,7 @@ class orderFulfillmentController extends Controller
             }
             
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('flag','8')
+            ->where('account_id','Cindy')
             ->whereIn('storeName',$strArray)
             ->where(function($test){
                 $test->where('orders.status','processing');
@@ -524,7 +524,7 @@ class orderFulfillmentController extends Controller
         $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',false)->where('flag','8')
+            $orders = orders::select()->where('converted',false)->where('account_id','Cindy')
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
@@ -545,7 +545,7 @@ class orderFulfillmentController extends Controller
             $orders = orders::select()->where('converted',false)
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
-            ->where('flag','8')->whereIn('storeName',$strArray)
+            ->where('account_id','Cindy')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
             ->orderBy('status', 'DESC')->paginate(100);
@@ -663,7 +663,7 @@ class orderFulfillmentController extends Controller
         }
                     
         $body = json_decode($response->getBody()->getContents());
-        
+
         Session::flash('success_msg', $body->count. __(' Orders Processed'));
         return redirect()->route('cindynew');
     }
@@ -996,7 +996,7 @@ class orderFulfillmentController extends Controller
             $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',false)->where('flag','8')
+            $orders = orders::select()->where('converted',false)->where('account_id','Cindy')
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
@@ -1021,7 +1021,7 @@ class orderFulfillmentController extends Controller
             $orders = orders::select()->where('converted',false)
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
-            ->where('flag','8')->whereIn('storeName',$strArray)
+            ->where('account_id','Cindy')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
             ->where(function($test) use ($query){

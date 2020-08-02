@@ -243,7 +243,7 @@ class orderController extends Controller
                             
                             if(count($order_details)>1)
                             {
-                                if($order->flag=='8')
+                                if($order->account_id=="Cindy")
                                 {
                                    
                                  
@@ -297,7 +297,7 @@ class orderController extends Controller
                             try{
                                 $elem = $doc->getElementById('primaryStatus');
                                 $stat =  $elem->nodeValue;                             
-                                if(trim($stat)=='Delayed, not yet shipped' && ($order->flag=='8' ||$order->flag=='9'||$order->flag=='10'))
+                                if(trim($stat)=='Delayed, not yet shipped' && $order->account_id=='Cindy')
                                 {
                                     $insert = cancelled_orders::updateOrCreate(
                                         ['order_id'=>$order->id,],    
@@ -306,7 +306,7 @@ class orderController extends Controller
                                     
                                 }
                                                                     
-                                if(trim($stat)=='Order cancelled' && ($order->flag=='8' ||$order->flag=='9'||$order->flag=='10'))
+                                if(trim($stat)=='Order cancelled' && $order->account_id=='Cindy')
                                 {
                                     $insert = cancelled_orders::updateOrCreate(
                                         ['order_id'=>$order->id,],    
@@ -376,7 +376,7 @@ class orderController extends Controller
                             if($carrierId->id == $amzCarrier->id && $order->marketplace == 'Walmart' && $this->startsWith($trackingId,'TBA'))
                             {                                
                                $resp='';
-                               if($order->flag=='8')
+                               if($order->account_id=="Cindy")
                                {    
                                     $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at' =>Carbon::now()]);
                                }
@@ -414,9 +414,9 @@ class orderController extends Controller
 
                                 $this->shipOrder($order->id, $trackingId, $carrierId->name, 'new'); 
                                 try{
-                                if($order->flag=='8' || $order->flag=='9' || $order->flag=='10')
+                                if($order->account_id=='Cindy')
                                 {
-                                    $this->updateSheetTracking($trackingId, $order->sellOrderId, $carrierId->name, $order->flag);
+                                    $this->updateSheetTracking($trackingId, $order->sellOrderId, $carrierId->name);
                                 }
                                 
                                 $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId, 'status'=>'shipped']);     
@@ -592,7 +592,7 @@ class orderController extends Controller
             $amountFilter = $request->get('amountFilter');
         if($request->has('sourceFilter'))
             $sourceFilter = $request->get('sourceFilter');
-        //now show orders
+        
 
 
         $minAmount = trim(explode('-',$amountFilter)[0]);
@@ -720,7 +720,7 @@ class orderController extends Controller
             $amountFilter = $request->get('amountFilter');
         if($request->has('sourceFilter'))
             $sourceFilter = $request->get('sourceFilter');
-        //now show orders
+        
 
 
         $minAmount = trim(explode('-',$amountFilter)[0]);
@@ -2295,19 +2295,14 @@ class orderController extends Controller
         }
     }
 
-    public function updateSheetTracking($tracking, $sellOrderId, $carrier, $flag)
+    public function updateSheetTracking($tracking, $sellOrderId, $carrier)
     {
         
         try{
             $client = new client(); 
             
-            if($flag=='8')
-                $endPoint = env('CINDY_TOKEN', '');
-            elseif($flag=='9')
-                $endPoint = env('SAMUEL_TOKEN', '');
-            elseif($flag=='10')
-                $endPoint = env('JONATHAN_TOKEN', '');
-
+            $endPoint = env('CINDY_TOKEN', '');
+            
             $response = $client->request('GET', $endPoint,
             [
                 'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
@@ -2364,7 +2359,16 @@ class orderController extends Controller
 
    public function checkCriteria($orders, $acc, $orders2, $orders3)
     {
-        
+        $flagnum =8; 
+            
+        if($acc=='cindy')
+            $flagnum =8; 
+
+        elseif($acc=='jonathan')
+            $flagnum = 9; 
+
+        elseif($acc=='samuel')
+            $flagnum = 10;
         
         $googleOrders = array();
 
@@ -2430,18 +2434,7 @@ class orderController extends Controller
                         $flag= false; 
                         continue;
                     }
-            }
-         
-            $flagnum =8; 
-            
-            if($acc=='cindy')
-                $flagnum ='8'; 
-
-            elseif($acc=='jonathan')
-                $flagnum = '9'; 
-
-            else
-                $flagnum ='10';
+            }           
 
             $dailyOrders = orders::where('flag',$flagnum)->whereDate('date',Carbon::today())->get();
             
