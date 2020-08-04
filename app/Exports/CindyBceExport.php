@@ -24,7 +24,7 @@ class CindyBceExport implements FromCollection,WithHeadings,ShouldAutoSize
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
-            ->orderBy('status', 'DESC')->paginate(100);
+            ->orderBy('of_bce_created_at', 'ASC')->paginate(100);
         }
     
         elseif(auth()->user()->role==2)
@@ -43,7 +43,7 @@ class CindyBceExport implements FromCollection,WithHeadings,ShouldAutoSize
             ->where('account_id','Cindy')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
-            ->orderBy('status', 'DESC')->paginate(100);
+            ->orderBy('of_bce_created_at', 'ASC')->paginate(100);
     
          
             

@@ -24,7 +24,7 @@ class SamuelCancelExport implements FromCollection,WithHeadings,ShouldAutoSize
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.status','shipped');
             }) 
-            ->orderBy('orders.status', 'DESC')
+            ->orderBy('cancelled_orders.created_at', 'ASC')
             ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.created_at AS ordercreatedate','cancelled_orders.id AS cancelledId'])
             ->paginate(100);
         }
@@ -46,7 +46,7 @@ class SamuelCancelExport implements FromCollection,WithHeadings,ShouldAutoSize
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.orders.','shipped');
             }) 
-            ->orderBy('orders.status', 'DESC')
+            ->orderBy('cancelled_orders.created_at', 'ASC')
             ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.created_at AS ordercreatedate','cancelled_orders.id AS cancelledId'])
             ->paginate(100);
         }
