@@ -261,7 +261,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('samuelProcessed','samuelController@autofulfillProcessed')->name('samuelprocessed')->middleware('admin');	
 	Route::get('samuelCancel','samuelController@autofulfillCancel')->name('samuelcancel')->middleware('admin');		
 	Route::get('samuel','samuelController@autoFulfill')->name('samuelnew')->middleware('admin');	
-	Route::any('samuelexport','samuelController@autofulfillexport')->name('samuelexport')->middleware('admin');	
+	Route::any('samuelexport','samuelController@samuelexport')->name('samuelexport')->middleware('admin');	
 	Route::any('samuelFilter','samuelController@autoFulfillFilter')->middleware('admin');
 	Route::any('samuelsearch','samuelController@search')->name('samuelsearch');
 
@@ -298,7 +298,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('jonathanProcessed','jonathanController@autofulfillProcessed')->name('jonathanprocessed')->middleware('admin');	
 	Route::get('jonathanCancel','jonathanController@autofulfillCancel')->name('jonathancancel')->middleware('admin');		
 	Route::get('jonathan','jonathanController@autoFulfill')->name('jonathannew')->middleware('admin');	
-	Route::any('jonathanexport','jonathanController@autofulfillexport')->name('jonathanexport')->middleware('admin');	
+	Route::any('jonathanexport','jonathanController@jonathanexport')->name('jonathanexport')->middleware('admin');	
 	Route::any('jonathanFilter','jonathanController@autoFulfillFilter')->middleware('admin');
 	Route::any('jonathansearch','jonathanController@search')->name('jonathansearch');
 

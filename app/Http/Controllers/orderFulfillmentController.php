@@ -529,7 +529,7 @@ class orderFulfillmentController extends Controller
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
-            ->orderBy('status', 'DESC')->paginate(100);
+            ->orderBy('of_bce_created_at', 'ASC')->paginate(100);
         }
 
         elseif(auth()->user()->role==2)
@@ -548,7 +548,7 @@ class orderFulfillmentController extends Controller
             ->where('account_id','Cindy')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
-            ->orderBy('status', 'DESC')->paginate(100);
+            ->orderBy('of_bce_created_at', 'ASC')->paginate(100);
                      
         }
             
@@ -679,7 +679,7 @@ class orderFulfillmentController extends Controller
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.status','shipped');
             }) 
-            ->orderBy('orders.status', 'DESC')
+            ->orderBy('cancelled_orders.created_at', 'ASC')
             ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.created_at AS ordercreatedate','cancelled_orders.id AS cancelledId'])
             ->paginate(100);
         }
@@ -701,7 +701,7 @@ class orderFulfillmentController extends Controller
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.orders.','shipped');
             }) 
-            ->orderBy('orders.status', 'DESC')
+            ->orderBy('cancelled_orders.created_at', 'ASC')
             ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.created_at AS ordercreatedate','cancelled_orders.id AS cancelledId'])
             ->paginate(100);
         }
@@ -955,7 +955,7 @@ class orderFulfillmentController extends Controller
                 $test->orWhere('orders.status','shipped');
             })
             ->where('afpoNumber', 'LIKE', '%'.$query.'%')            
-            ->orderBy('orders.status', 'DESC')
+            ->orderBy('cancelled_orders.created_at', 'ASC')
             ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.id AS cancelledId'])
             ->paginate(100);
         }
@@ -978,7 +978,7 @@ class orderFulfillmentController extends Controller
                 $test->orWhere('orders.orders.','shipped');
             }) 
             ->where('afpoNumber', 'LIKE', '%'.$query.'%')
-            ->orderBy('orders.status', 'DESC')
+            ->orderBy('cancelled_orders.created_at', 'ASC')
             ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.id AS cancelledId'])
             ->paginate(100);
         }
@@ -1005,7 +1005,7 @@ class orderFulfillmentController extends Controller
                 $test->where('poNumber', 'LIKE', '%'.$query.'%');
                 $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
             }) 
-            ->orderBy('status', 'DESC')->paginate(100);
+            ->orderBy('of_bce_created_at', 'ASC')->paginate(100);
         }
 
         elseif(auth()->user()->role==2)
@@ -1028,7 +1028,7 @@ class orderFulfillmentController extends Controller
                 $test->where('poNumber', 'LIKE', '%'.$query.'%');
                 $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
             }) 
-            ->orderBy('status', 'DESC')->paginate(100);
+            ->orderBy('of_bce_created_at', 'ASC')->paginate(100);
 
          
             

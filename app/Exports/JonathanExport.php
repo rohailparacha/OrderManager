@@ -11,9 +11,10 @@ use App\states;
 use App\products;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 
-class JonathanExport implements FromCollection,WithHeadings,ShouldAutoSize
+class JonathanExport implements WithColumnFormatting,FromCollection,WithHeadings,ShouldAutoSize
 {
     protected $storeFilter; 
     protected $marketFilter; 
@@ -146,6 +147,7 @@ class JonathanExport implements FromCollection,WithHeadings,ShouldAutoSize
                 "Address2"=>$order->address2,
                 "City"=>$order->city,
                 'State'=> $order->state,
+                "Phone" => $order->phone,
                 "Zip Code"=> $order->postalCode,
                 "Purchase Price" => number_format((float)$order->lowestPrice , 2, '.', ''),
                 "Store Name" => $order->storeName,
@@ -180,7 +182,7 @@ class JonathanExport implements FromCollection,WithHeadings,ShouldAutoSize
     public function headings(): array
     {
         return [
-            'Date','Sell Order ID','Buyer Name','Address1','Address2','City','State','Zip Code','Purchase Price','Store Name','Flag','SKU1','Qty','SKU2','Qty'
+            'Date','Sell Order ID','Buyer Name','Address1','Address2','City','State','Phone','Zip Code','Purchase Price','Store Name','Flag','SKU1','Qty','SKU2','Qty'
         ];
     }
 
@@ -211,5 +213,12 @@ class JonathanExport implements FromCollection,WithHeadings,ShouldAutoSize
 
         return $total;
 
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'H' => '0'            
+        ];
     }
 }

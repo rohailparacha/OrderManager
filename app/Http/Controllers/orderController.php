@@ -378,7 +378,8 @@ class orderController extends Controller
                                $resp='';
                                if($order->account_id=="Cindy")
                                {    
-                                    $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at' =>Carbon::now()]);
+                                    if(empty($order->of_bce_created_at))
+                                        orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at' =>Carbon::now()]);
                                }
                                else
                                {

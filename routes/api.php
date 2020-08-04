@@ -87,7 +87,6 @@ Route::post('autofulfill_update', function(Request $request) {
         'itemId'=>$record['itemId'],
         'afpoNumber'=>$record['afpoNumber'],
         'account_id'=>'Cindy',
-        'of_bce_created_at'=>Carbon::now(),
         'status'=>'processing'
         ]);
 
