@@ -13,7 +13,9 @@ use App\returns;
 use App\gmail_accounts;
 use App\ebay_products; 
 use App\order_details;
+use App\Exports\SamuelBceExport;
 use App\Exports\SamuelExport;
+use App\Exports\SamuelCancelExport;
 use Session;
 use Redirect;
 use Validator;
@@ -119,116 +121,16 @@ class samuelController extends Controller
     
 
     public function export(Request $request)
-    {        
-        
-        $fileName = date("d-m-Y")."-".time()."-auto-fulfillment-orders.txt";        
-        $data ='Order Number  -  TBA Tracking Number'. PHP_EOL;
-        File::put(public_path($fileName),$data); 
-       
-        $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
-        if(auth()->user()->role==1)            
-        {
-            $orders = orders::select()->where('converted',false)->where('account_id','Samuel')
-            ->where('marketPlace','Walmart')
-            ->where('carrierName',$amzCarrier->id)
-            ->where('status','processing')
-            ->where('trackingNumber','like','TBA%')
-            ->orderBy('status', 'DESC')->paginate(100);
-        }
-
-        elseif(auth()->user()->role==2)
-        {
-            $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
-            $strArray  = array();
-
-            foreach($stores as $str)
-            {
-                $strArray[]= $str->store;
-            }
-            
-            $orders = orders::select()->where('converted',false)
-            ->where('marketPlace','Walmart')
-            ->where('carrierName',$amzCarrier->id)
-            ->where('account_id','Samuel')->whereIn('storeName',$strArray)
-            ->where('status','processing')
-            ->where('trackingNumber','like','TBA%')
-            ->orderBy('status', 'DESC')->paginate(100);
-
-         
-            
-        }
-            
-        else
-            $orders = array();
-
-        foreach($orders as $order)
-        {           
-            $data =$order->afpoNumber.'  -  '.$order->trackingNumber. PHP_EOL;
-            
-            File::append(public_path($fileName),$data);            
-        }
-
-        
-       
-        return Response::download(public_path($fileName));
+    {
+        $fileName = date("d-m-Y")."-".time()."-samuel-auto-fulfillment-orders.csv";  
+        return Excel::download(new SamuelBceExport(), $fileName);    
     }
 
     public function orderCancelledExport(Request $request)
-    {        
-        
-        $fileName = date("d-m-Y")."-".time()."-cancelled-orders.txt";
-        $data ='Order Number; Status'. PHP_EOL;
-        File::put(public_path($fileName),$data); 
-        
-        if(auth()->user()->role==1)            
-        {
-            $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('account_id','Samuel')
-            ->where(function($test){
-                $test->where('orders.status','processing');
-                $test->orWhere('orders.status','shipped');
-            }) 
-            ->orderBy('orders.status', 'DESC')
-            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.created_at AS ordercreatedate','cancelled_orders.id AS cancelledId'])
-            ->paginate(100);
-        }
-
-        elseif(auth()->user()->role==2)
-        {
-            $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
-            $strArray  = array();
-
-            foreach($stores as $str)
-            {
-                $strArray[]= $str->store;
-            }
-            
-            $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('account_id','Samuel')
-            ->whereIn('storeName',$strArray)
-            ->where(function($test){
-                $test->where('orders.status','processing');
-                $test->orWhere('orders.orders.','shipped');
-            }) 
-            ->orderBy('orders.status', 'DESC')
-            ->select(['orders.*','cancelled_orders.status AS orderStatus','cancelled_orders.created_at AS ordercreatedate','cancelled_orders.id AS cancelledId'])
-            ->paginate(100);
-        }
-            
-        else
-            $orders = array();
-
-
-        foreach($orders as $order)
-        {           
-            $data =$order->afpoNumber.'; '.$order->orderStatus. PHP_EOL;
-            File::append(public_path($fileName),$data);            
-        }
-
-        
-       
-        return Response::download(public_path($fileName));
-    }
+   {
+    $fileName = date("d-m-Y")."-".time()."-samuel-cancelled-orders.csv";
+    return Excel::download(new SamuelCancelExport(), $fileName);           
+   }
 
     public function autofulfillProcessed()
     {    
