@@ -6,9 +6,10 @@ use App\products;
 use App\blacklist;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class SellerActiveExport implements FromCollection,WithHeadings,ShouldAutoSize
+class SellerActiveExport implements FromCollection,WithHeadings,ShouldAutoSize,WithStrictNullComparison
 {
     /**
     * @return \Illuminate\Support\Collection
@@ -42,7 +43,7 @@ class SellerActiveExport implements FromCollection,WithHeadings,ShouldAutoSize
                 "InventoryAction"=>'Modify',
                 "Site"=>'walmart',
                 "SellerSKU"=>$product->asin,
-                "Price"=>$product->price,
+                "Price"=>$product->price==0?99.99:$product->price,
                 "Location"=>'My Warehouse',
                 "MaxListing Buffer"=>empty($product->maxListingBuffer)?'2':$product->maxListingBuffer,
                 "Leadtime to Ship"=>$product->lagTime,

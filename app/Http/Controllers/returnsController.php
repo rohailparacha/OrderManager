@@ -791,6 +791,12 @@ class returnsController extends Controller
         return redirect()->back()->withStatus(__('Return successfully deleted.'));
     }
 
+    public function deleteReturnRoute($route, $id)
+    {
+        returns::where('id',$id)->delete();        
+        return redirect()->route($route)->withStatus(__('Return successfully deleted.'));
+    }
+
     public function uploadSubmit(Request $request)
     {
         $input = [
@@ -881,6 +887,27 @@ class returnsController extends Controller
         return redirect()->back()->withStatus(__('Label was deleted for order: '). $order->poNumber);
     }
 
+    public function labelDeleteRoute($route, $id)
+    {
+        $return = returns::where('id',$id)->get()->first();
+        try
+        {
+            unlink(storage_path('/app/public/'.$return->label));
+        }
+        catch(\Exception $ex)
+        {
+          
+        }
+
+        $returns  = returns::where('id',$id)->update(['label'=>null]);
+        
+        $return  = returns::where('id',$id)->get()->first(); 
+        
+        $order = orders::where('id',$return->order_id)->get()->first();
+        
+        return redirect()->route($route)->withStatus(__('Label was deleted for order: '). $order->poNumber);
+    }
+
     public function uploadLabel(Request $request)
     {
         
@@ -895,11 +922,14 @@ class returnsController extends Controller
         ];
 
         $validator = Validator::make($input,$rules);
-
+        $route = $request->route;
         if($validator->fails())
         {
             Session::flash('error_msg', __('File is required'));
-            return redirect()->back();
+            if(empty($route))
+                return redirect()->back();
+            else
+                return redirect()->route($route);
         }
 
         if($request->hasFile('file'))
@@ -923,7 +953,10 @@ class returnsController extends Controller
            else
              {
                 Session::flash('error_msg', __('Invalid File Extension'));
-                return redirect()->back();
+                if(empty($route))
+                    return redirect()->back();
+                else
+                    return redirect()->route($route);
              }
             
 
@@ -936,7 +969,11 @@ class returnsController extends Controller
         $return  = returns::where('id',$id)->get()->first(); 
         $order = orders::where('id',$return->order_id)->get()->first();
         Session::flash('success_msg','Label was uploaded for order: '.$order->poNumber);
-        return redirect()->back();
+        
+        if(empty($route))
+                return redirect()->back();
+        else
+                return redirect()->route($route);
     }
 
     public function createReturns($collection)

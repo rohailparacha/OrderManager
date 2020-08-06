@@ -127,13 +127,15 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('/waitingRefunds', 'returnsController@refunds')->name('refunds')->middleware('admin');
 	Route::get('/completedReturns', 'returnsController@completed')->name('completed')->middleware('admin');
 	Route::post('/addreturn', 'returnsController@addReturn')->middleware('admin');
-	Route::post('/editreturn', 'returnsController@editReturn')->middleware('admin');
+	Route::post('/editreturn', 'returnsController@editReturn')->middleware('admin');	
 	Route::delete('/deleteReturn/{id}','returnsController@deleteReturn')->name('deleteReturn')->middleware('admin');
+	Route::delete('/deleteReturn/{route}/{id}','returnsController@deleteReturnRoute')->middleware('admin');
 	Route::post('returnsupload','returnsController@uploadSubmit');
 	Route::post('uploadLabel','returnsController@uploadLabel');
 	Route::get('updateStatus','returnsController@updateStatus');
 	Route::get('labelPrint/{id}','returnsController@labelPrint');
 	Route::get('labelDelete/{id}','returnsController@labelDelete');
+	Route::get('labelDelete/{route}/{id}','returnsController@labelDeleteRoute');		
 	Route::any('returnFilter','returnsController@returnFilter')->middleware('admin');
 	Route::any('refundFilter','returnsController@refundFilter')->middleware('admin');
 	Route::any('completedFilter','returnsController@completedFilter')->middleware('admin');
@@ -245,6 +247,8 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::any('autofulfillReturnFilter','cindyReturnsController@returnFilter')->middleware('admin');
 	Route::any('autofulfillRefundFilter','cindyReturnsController@refundFilter')->middleware('admin');
 	Route::any('autofulfillCompletedFilter','cindyReturnsController@completedFilter')->middleware('admin');
+	Route::get('autofulfillLabelDelete/{route}/{id}','cindyReturnsController@labelDeleteRoute');
+	Route::delete('/autofulfillDeleteReturn/{route}/{id}','cindyReturnsController@deleteReturnRoute')->middleware('admin');
 
 	//samuel auto fulfillment settings
 	Route::get('/samuelSetting', 'samuelController@index')->name('samuelSetting');
@@ -282,6 +286,8 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::any('samuelReturnFilter','samuelReturnsController@returnFilter')->middleware('admin');
 	Route::any('samuelRefundFilter','samuelReturnsController@refundFilter')->middleware('admin');
 	Route::any('samuelCompletedFilter','samuelReturnsController@completedFilter')->middleware('admin');
+	Route::get('samuelLabelDelete/{route}/{id}','samuelReturnsController@labelDeleteRoute');
+	Route::delete('/samuelDeleteReturn/{route}/{id}','samuelReturnsController@deleteReturnRoute')->middleware('admin');
 
 	//jonathan auto fulfillment settings
 	Route::get('/jonathanSetting', 'jonathanController@index')->name('jonathanSetting');
@@ -319,6 +325,8 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::any('jonathanReturnFilter','jonathanReturnsController@returnFilter')->middleware('admin');
 	Route::any('jonathanRefundFilter','jonathanReturnsController@refundFilter')->middleware('admin');
 	Route::any('jonathanCompletedFilter','jonathanReturnsController@completedFilter')->middleware('admin');
+	Route::get('jonathanLabelDelete/{route}/{id}','jonathanReturnsController@labelDeleteRoute');
+	Route::delete('/jonathanDeleteReturn/{route}/{id}','jonathanReturnsController@deleteReturnRoute')->middleware('admin');
 
 	//order flags
 	Route::get('/flags', 'flagsController@flags')->name('flags')->middleware('admin');

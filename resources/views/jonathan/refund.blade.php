@@ -422,7 +422,11 @@ $(document).ready(function(){
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">                                    
-                                                        <form action="{{ route('deleteReturn', $return->id) }}" method="post">
+                                                        @if(empty($route))                               
+                                                        <form action="{{ route('jonathanDeleteReturn', $return->id) }}" method="post">
+                                                        @else
+                                                        <form action="/jonathanDeleteReturn/{{$route}}/{{$return->id}}" method="post">
+                                                        @endif
                                                             @csrf
                                                             @method('delete')                                                                                                                                                         
                                                             <a class="dropdown-item"  data-toggle="modal" data-target="#addCat" data-id="{{$return->id}}" data-tracking="{{$return->trackingNumber}}"  data-carrier="{{$return->carrier}}" data-reason="{{$return->reason}}" data-order="{{$return->sellOrderId}}" id="btnEditCat" href="#">{{ __('Edit') }}</a>
@@ -433,7 +437,11 @@ $(document).ready(function(){
 
                                                             <a class="dropdown-item labelPrint" href="/autofulfillLabelPrint/{{$return->id}}">{{ __('Print Label') }}</a>
 
-                                                            <a class="dropdown-item" href="/autofulfillLabelDelete/{{$return->id}}">{{ __('Delete Label') }}</a>
+                                                            @if(empty($route))
+                                                            <a class="dropdown-item" href="/jonathanLabelDelete/{{$return->id}}">{{ __('Delete Label') }}</a>
+                                                            @else
+                                                            <a class="dropdown-item" href="/jonathanLabelDelete/{{$route}}/{{$return->id}}">{{ __('Delete Label') }}</a>
+                                                            @endif
 
                                                             @endif
                                                         </form>                                                       
@@ -612,6 +620,7 @@ $(document).ready(function(){
 {{csrf_field()}}
 <form class="form-inline" action="/uploadLabel" method="post" enctype="multipart/form-data" style="padding-left:16%;">
         <input type="hidden" value="" name="id" id="labelId" />
+<input type="hidden" value="{{empty($route)?'':$route}}" name="route" id="route" />
         {{ csrf_field() }}
         <div class="form-group">
             <input type="file" class="form-control" name="file" />                

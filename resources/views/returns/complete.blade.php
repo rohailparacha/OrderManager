@@ -416,6 +416,12 @@ $(document).ready(function(){
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">                                    
                                                         <form action="{{ route('deleteReturn', $return->id) }}" method="post">
                                                             @csrf
+                                                            @if(empty($route))                               
+                                                            <form action="{{ route('deleteReturn', $return->id) }}" method="post">
+                                                            @else
+                                                            <form action="/deleteReturn/{{$route}}/{{$return->id}}" method="post">
+                                                            @endif    
+                                                            
                                                             @method('delete')                                                                                                                                                         
                                                             <a class="dropdown-item"  data-toggle="modal" data-target="#addCat" data-id="{{$return->id}}" data-tracking="{{$return->trackingNumber}}"  data-carrier="{{$return->carrier}}" data-reason="{{$return->reason}}" data-order="{{$return->sellOrderId}}" id="btnEditCat" href="#">{{ __('Edit') }}</a>
                                                             @if(auth()->user()->role==1|| auth()->user()->role==2)
@@ -425,8 +431,11 @@ $(document).ready(function(){
 
                                                             <a class="dropdown-item labelPrint" href="/labelPrint/{{$return->id}}">{{ __('Print Label') }}</a>
 
+                                                            @if(empty($route))
                                                             <a class="dropdown-item" href="/labelDelete/{{$return->id}}">{{ __('Delete Label') }}</a>
-
+                                                            @else
+                                                            <a class="dropdown-item" href="/labelDelete/{{$route}}/{{$return->id}}">{{ __('Delete Label') }}</a>
+                                                            @endif
                                                             @endif
                                                         </form>                                                       
                                                 </div>
@@ -604,6 +613,7 @@ $(document).ready(function(){
 {{csrf_field()}}
 <form class="form-inline" action="/uploadLabel" method="post" enctype="multipart/form-data" style="padding-left:16%;">
         <input type="hidden" value="" name="id" id="labelId" />
+        <input type="hidden" value="{{empty($route)?'':$route}}" name="route" id="route" />
         {{ csrf_field() }}
         <div class="form-group">
             <input type="file" class="form-control" name="file" />                
