@@ -9,19 +9,57 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.0/jquery-ui.min.js"></script>
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
 <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-
+<style>
+input[type="checkbox"][readonly] {
+  pointer-events: none;
+}
+</style>
 <script>
 $(document).ready(function() {
+
+
 $('#pages').multiselect({
         includeSelectAllOption: true,
         enableClickableOptGroups: true
     });
+
+    $('#switch').on('click',function(event){ 
+        if(this.value=="Enable")
+        {
+            $(this).val('Disable')
+            $(this).removeClass("btn-success").addClass("btn-danger");
+            $("#target :input").not("#switch").not('#submitBtn').prop("readonly", false);
+        }            
+        else    
+        {
+            $(this).val('Enable')
+            $(this).removeClass("btn-danger").addClass("btn-success");
+            $("#target :input").not("#switch").not('#submitBtn').prop("readonly", true); 
+        }
+
+
+        });
 });
+
+
 
 $( function() {
     var minAmount = <?php echo empty($settings->minAmount)?0:json_encode($settings->minAmount); ?>;
     var maxAmount = <?php echo empty($settings->maxAmount)?100:json_encode($settings->maxAmount); ?>;
-
+    
+    var switcher = <?php echo empty($settings->enabled)?0:json_encode($settings->enabled); ?>;
+    if(switcher==0)
+    {
+        $('#switch').val('Enable')
+        $('#switch').removeClass("btn-danger").addClass("btn-success");
+        $("#target :input").not("#switch").not('#submitBtn').prop("readonly", true); 
+    }
+    else
+    {
+        $('#switch').val('Disable')
+        $('#switch').removeClass("btn-success").addClass("btn-danger");
+        $("#target :input").not("#switch").not('#submitBtn').prop("readonly", false);
+    }
   $( "#price-range" ).slider({
     range: true,
     min: 0,
@@ -69,18 +107,25 @@ $( function() {
                 <div class="card bg-secondary shadow">
                    
                     <div class="card-body">
-                        <form method="post" action="/storeSettings" autocomplete="off">
+                            
+                        <form method="post" action="/storeSettings" autocomplete="off" id="target">
                             @csrf
                             
-                            <h3 class=" text-muted mb-4">{{ __('Cindy - Settings') }}</h3>
+                            <div class="row" style="padding-right:3%;">
+                                <div class="col-md-6">
+                                <h3 class=" text-muted mb-4">{{ __('Cindy - Settings') }}</h3>
+                                </div>
+                                <div class="col-md-6">
+                                <input type="text" readonly id="switch" name="switch" class="btn btn-success"  style="float:right;" value="Enable"/>
+                                </div>
+                            </div>
                         
-
+                            
                                 <div style="padding-right:3%;">
                                 <p id="price">                                      
                                     <label class="form-control-label" for="input-name">{{ __('Price Range:') }}</label>
                                     
                                 </p>
-                                   
                                 </div>
                                
                                 <div class="row">
@@ -235,7 +280,7 @@ $( function() {
                                 </div>
                                
                                 <div class="text-center">
-                                    <button type="submit" class="btn btn-success mt-4">{{ __('Save') }}</button>
+                                    <button type="submit" id="submitBtn" class="btn btn-success mt-4">{{ __('Save') }}</button>
                                 </div>
                             </div>
                         </form>

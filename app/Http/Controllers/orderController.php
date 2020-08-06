@@ -2375,7 +2375,7 @@ class orderController extends Controller
 
         $settings = settings::where('name',$acc)->get()->first(); 
         
-        if(empty($settings))
+        if(empty($settings) || !$settings->enabled)
             return $googleOrders;
         
         $amtCheck = $settings->amountCheck; 
