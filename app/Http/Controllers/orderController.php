@@ -2437,7 +2437,7 @@ class orderController extends Controller
                     }
             }           
 
-            $dailyOrders = orders::where('flag',$flagnum)->whereDate('date',Carbon::today())->get();
+            $dailyOrders = orders::where('flag',$flagnum)->whereDate('flag_date',Carbon::today())->get();
             
             if($dailyAmountCheck)
             {
@@ -2446,7 +2446,7 @@ class orderController extends Controller
                     $amt += $this->getDiscountPayment($order->id, $acc);                    
                 }   
 
-                if($amt>= $maxDailyAmount)
+                if($amt> $maxDailyAmount)
                    {
                         $flag= false; 
                         continue;
@@ -2457,7 +2457,7 @@ class orderController extends Controller
             
             if($dailyOrderCheck)
             {
-                if(count($dailyOrders)>=$maxDailyOrders)
+                if(count($dailyOrders)>$maxDailyOrders)
                     {
                         $flag= false; 
                         continue;
@@ -2481,8 +2481,11 @@ class orderController extends Controller
             
             if($flag)
             {
+                $ord = orders::where('sellOrderId',$order['referenceNumber'])->get()->first(); 
+                if(!empty($ord->flag_date))
+                    continue;
                 $googleOrders[]= $order; 
-                orders::where('sellOrderId',$order['referenceNumber'])->update(['flag'=>$flagnum]);
+                orders::where('sellOrderId',$order['referenceNumber'])->update(['flag'=>$flagnum,'flag_date'=>Carbon::today()]);
             }
         }
 
