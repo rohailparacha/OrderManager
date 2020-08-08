@@ -380,6 +380,8 @@ class orderController extends Controller
                                {    
                                     if(empty($order->of_bce_created_at))
                                         orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at' =>Carbon::now()]);
+                                    else
+                                    orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId]);
                                }
                                else
                                {

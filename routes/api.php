@@ -116,8 +116,7 @@ Route::post('samuel_update', function(Request $request) {
         'poTotalAmount'=>floatval($record['poTotalAmount']) * 0.93,
         'poNumber'=>$record['poNumber'],        
         'afpoNumber'=>$record['afpoNumber'],
-        'account_id'=>'Samuel',
-        'of_bce_created_at'=>Carbon::now(),
+        'account_id'=>'Samuel',        
         'status'=>'processing'
         ]);
 
@@ -147,8 +146,7 @@ Route::post('jonathan_update', function(Request $request) {
         'poTotalAmount'=>$record['poTotalAmount'],
         'poNumber'=>$record['poNumber'],        
         'afpoNumber'=>$record['afpoNumber'],
-        'account_id'=>'Jonathan',
-        'of_bce_created_at'=>Carbon::now(),
+        'account_id'=>'Jonathan',        
         'status'=>'processing'
         ]);
 
