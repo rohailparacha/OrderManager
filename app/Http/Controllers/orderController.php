@@ -2718,7 +2718,13 @@ class orderController extends Controller
     public function orderFlag($id, $flag)
     {
         $orders= orders::where('id',$id)->update(['flag'=>$flag]);
-        return redirect()->back();
+        return redirect()->back();        
+    }
+
+    public function orderFlagRoute($route, $id, $flag)
+    {
+        $orders= orders::where('id',$id)->update(['flag'=>$flag]);
+        return redirect()->route($route);        
     }
 
   public static function getIranTime($date)

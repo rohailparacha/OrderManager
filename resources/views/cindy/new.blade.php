@@ -267,9 +267,20 @@ catch{
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
                                                     @foreach($flags as $flag)
+                                                    @if(empty($route))
                                                     <a class="dropdown-item" href="/orderFlag/{{$order->id}}/{{$flag->id}}">{{$flag->name}}</a>
+                                                    @else
+                                                    <a class="dropdown-item" href="/orderFlag/{{$route}}/{{$order->id}}/{{$flag->id}}">{{$flag->name}}</a>
+                                                    @endif
                                                     @endforeach
+
+                                                    @if(empty($route))
                                                     <a class="dropdown-item" href="/orderFlag/{{$order->id}}/0">{{ __('Unflag') }}</a>
+                                                    @else
+                                                    <a class="dropdown-item" href="/orderFlag/{{$route}}/{{$order->id}}/0">{{ __('Unflag') }}</a>
+                                                    @endif
+
+                                                    
                                                     
                                                 </div>
                                             </div>

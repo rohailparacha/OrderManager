@@ -60,6 +60,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::any('export','reportsController@export')->name('export')->middleware('admin');	
 	Route::get('getAmzDetails','orderController@getAmazonDetails')->middleware('admin');
 	Route::get('orderFlag/{id}/{flag}','orderController@orderFlag')->middleware('admin');
+	Route::get('orderFlag/{route}/{id}/{flag}','orderController@orderFlagRoute')->middleware('admin');
 	Route::any('orderFilter','orderController@filter')->middleware('admin');
 	
 	
