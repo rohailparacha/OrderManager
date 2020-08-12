@@ -99,7 +99,19 @@
                             @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(5,json_decode(auth()->user()->assigned_pages))))                       
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('conversions') }}">
-                                    {{ __('BCE Conversions') }}
+                                    {{ __('BCE Conversions - In Transit') }}
+                                </a>
+                            </li>
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('deliveredConversions') }}">
+                                    {{ __('BCE Conversions - Delivered') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('conversions2') }}">
+                                    {{ __('BCE Conversions - 2') }}
                                 </a>
                             </li>
                             @endif

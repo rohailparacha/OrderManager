@@ -9,11 +9,13 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use GuzzleHttp\Client;
+use DB;
 use Illuminate\Http\Request;
 use App\logs;
 use App\log_batches;
 use App\products;
 use App\accounts;
+use App\sc_accounts;
 use App\Jobs\Repricing;
 use App\Jobs\Informed;
 use App\Exports\InformedExport;
@@ -41,13 +43,13 @@ class Repricing implements ShouldQueue
     private $offset;
     private $prodCount;
     public $batchId;
+    public $accountId; 
 
     public function __construct($collection, $status)
-    {
-        //
+    {        
         $this->collection = $collection; 
         $this->status = $status; 
-        $this->offset = -1;
+        $this->offset = -1;      
     }
 
     /**
@@ -56,25 +58,38 @@ class Repricing implements ShouldQueue
      * @return void
      */
     public function handle()
-    {                
+    {            
+        
+
         $status = $this->status; 
 
         $collection = $this->collection; 
-        $this->prodCount = count(products::all());
         
-        if($status=='new')
-            $this->newProducts($collection);
-        else
-            $this->repricing();        
-       
-        $this->recordId=0;
+        $accounts = accounts::all();
+
+        foreach($accounts as $account)
+        {
+            $this->offset = -1;     
+            
+            $this->prodCount = count(products::where('account',$account->store)->get());
+            
+            $this->accountId = $account->id;
+
+            if($status=='new')
+                $this->newProducts($collection);
+            else
+                $this->repricing();        
+        
+            $this->recordId=0;
+        }
+        
     }
 
     public function repricing()
     {
         $this->recordId = logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress','action'=>'Repricing']);
-        
-        $products = products::all();
+        $account = accounts::where('id',$this->accountId)->get()->first();
+        $products = products::where('account',$account->store)->get();
         
         $dataArray = array(); 
         foreach($products as $product)
@@ -182,9 +197,11 @@ class Repricing implements ShouldQueue
             
             $endPoint = "https://v3.synccentric.com/api/v3/products";
             
-            $token = env('SC_TOKEN', '');
-
-            $campaign = env('SC_CAMPAIGN','');
+          
+            $account = accounts::where('id',$this->accountId)->get()->first();
+            $sc_credentials = sc_accounts::where('id',$account->scaccount_id)->get()->first(); 
+            $token = $sc_credentials->token;
+            $campaign = $sc_credentials->campaign;            
 
             $data = array(); 
 
@@ -271,10 +288,10 @@ class Repricing implements ShouldQueue
         $client = new client(); 
         
         $endPoint = "https://v3.synccentric.com/api/v3/product_search";
-        
-        $token = env('SC_TOKEN', '');
-
-        $campaign = env('SC_CAMPAIGN','');
+        $account = accounts::where('id',$this->accountId)->get()->first();
+        $sc_credentials = sc_accounts::where('id',$account->scaccount_id)->get()->first(); 
+        $token = $sc_credentials->token;
+        $campaign = $sc_credentials->campaign;
 
         $data = array(); 
 
@@ -328,9 +345,10 @@ class Repricing implements ShouldQueue
         
         $endPoint = "https://v3.synccentric.com/api/v3/product_search/status";
         
-        $token = env('SC_TOKEN', '');
-
-        $campaign = env('SC_CAMPAIGN','');
+        $account = accounts::where('id',$this->accountId)->get()->first();
+        $sc_credentials = sc_accounts::where('id',$account->scaccount_id)->get()->first(); 
+        $token = $sc_credentials->token;
+        $campaign = $sc_credentials->campaign;
 
         $data = array(); 
 
@@ -400,14 +418,12 @@ class Repricing implements ShouldQueue
         
         }
 
-        catch (\GuzzleHttp\Exception\ClientException $e) {
+        catch (\GuzzleHttp\Exception\RequestException $e) {
             $response = $e->getResponse();
             $responseBodyAsString = $response->getBody()->getContents();
             logs::where('id',$this->recordId)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Failed','error'=>$responseBodyAsString]);   
       
-        }
-
-                    
+        }          
         
     }
 
@@ -418,9 +434,10 @@ class Repricing implements ShouldQueue
 
         $endPoint = "https://v3.synccentric.com/api/v3/products";
         
-        $token = env('SC_TOKEN', '');
-
-        $campaign = env('SC_CAMPAIGN','');
+        $account = accounts::where('id',$this->accountId)->get()->first();
+        $sc_credentials = sc_accounts::where('id',$account->scaccount_id)->get()->first(); 
+        $token = $sc_credentials->token;
+        $campaign = $sc_credentials->campaign;
         try{
         
             $promise = $client->requestAsync('GET', $endPoint,
@@ -616,9 +633,10 @@ class Repricing implements ShouldQueue
    
         $endPoint = "https://v3.synccentric.com/api/v3/products/";
         
-        $token = env('SC_TOKEN', '');
-
-        $campaign = env('SC_CAMPAIGN','');
+        $account = accounts::where('id',$this->accountId)->get()->first();
+        $sc_credentials = sc_accounts::where('id',$account->scaccount_id)->get()->first(); 
+        $token = $sc_credentials->token;
+        $campaign = $sc_credentials->campaign;
 
         $data = array(); 
 
@@ -670,9 +688,9 @@ class Repricing implements ShouldQueue
         $filename = date("d-m-Y")."-".time()."-import.csv";
         
         if($this->status=='new')
-            Excel::store(new InformedExport( $this->prodCount + ($this->offset * 5000)), $filename,'local');      
+            Excel::store(new InformedExport( $this->prodCount + ($this->offset * 5000), $this->accountId), $filename,'local');      
         else
-            Excel::store(new InformedExport($this->offset * 5000), $filename,'local');   
+            Excel::store(new InformedExport($this->offset * 5000, $this->accountId), $filename,'local');   
         
         $endPoint ='https://api.informed.co/v1/feed';
 
@@ -746,10 +764,10 @@ class Repricing implements ShouldQueue
             log_batches::where('id',$this->batchId)->update(['totalItems'=>$body->SuccessCount+$body->ErrorCount, 'successItems'=>$body->SuccessCount,'errorItems'=> $body->ErrorCount]);    
 
             if($this->status=='new')            
-                Informed::dispatch(( $this->prodCount + ($this->offset * 5000)),$this->recordId, $this->batchId)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
+                Informed::dispatch(( $this->prodCount + ($this->offset * 5000)),$this->recordId, $this->batchId,$this->accountId)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
 
             else
-                 Informed::dispatch($this->offset * 5000,$this->recordId, $this->batchId)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
+                 Informed::dispatch($this->offset * 5000,$this->recordId, $this->batchId,$this->accountId)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
            }
            else
            { 

@@ -3,9 +3,11 @@ use App\ebay_trackings;
 use App\carriers;
 use App\walmart_products;
 use App\orders;
+use App\conversions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Carbon\Carbon;
+use GuzzleHttp\Client;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -181,3 +183,144 @@ Route::post('walmart_product', function(Request $request) {
     ],201);
     
 });
+
+Route::get('conversions', function(Request $request) {
+    
+    $success=0;
+    $conversions = conversions::leftJoin('orders','conversions.order_id','orders.id')
+    ->select(['conversions.*','orders.sellOrderId','orders.buyerName','orders.address1','orders.address2','orders.city','orders.state','orders.postalCode','orders.country'])
+    ->where('conversions.status','!=','Delivered')
+    ->get(); 
+
+    return response()->json([
+        'conversions' => $conversions
+    ],200);
+    
+});
+
+Route::post('bce_update', function(Request $request) {
+    
+    $success=0;
+    $records = $request->data;
+
+    foreach($records as $record)
+    {        
+        if(empty(trim($record['sellOrderId'])))
+            continue;
+
+        $insert = orders::where('sellOrderId',$record['sellOrderId'])        
+        ->update([
+        'upsTrackingNumber'=>$record['tracking']   
+        ]);
+
+
+        if($insert)
+            $success++;
+    }
+
+    return response()->json([
+        'count' => $success
+    ],201);
+});
+
+Route::post('updateConversion', function(Request $request) {
+    
+    $success=0;
+    
+    $bceCarrier = carriers::where('name','Bluecare Express')->get()->first(); 
+
+    $order = orders::where('sellOrderId',$request->sellOrderId)->get()->first();
+
+    if(!$order->converted)    
+    {
+        $insert = orders::where('sellOrderId',$request->sellOrderId)
+        ->whereNull('poNumber')        
+        ->update([
+        'trackingNumber'=>$request->trackingNumber,
+        'newTrackingNumber'=>$request->newTrackingNumber,
+        'converted'=>true,                
+        'carrierName'=>$bceCarrier->id,
+        'of_bce_created_at'=>Carbon::now()
+        ]);
+
+        $client = new client(); 
+        $temp = array(); 
+        $temp['date'] = $order->of_bce_created_at;
+        $temp['storeName'] = $order->storeName;
+        $temp['buyerName'] = $order->buyerName;
+        $temp['sellOrderId'] = $order->sellOrderId;
+        $temp['poNumber'] = $order->poNumber;
+        $temp['city'] = $order->city;
+        $temp['state'] = $order->state;
+        $temp['postalCode'] = $order->postalCode;
+        $temp['trackingNumber'] = $order->trackingNumber;
+        $temp['newTrackingNumber'] = $order->newTrackingNumber;                        
+    
+        $body['data'] = $temp;
+    
+        $endPoint = env('BCE_SYNC_TOKEN', '');
+    
+        try{                    
+    
+            $response = $client->request('POST', $endPoint,
+            [
+                'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
+                'body' => json_encode($body)          
+            ]);    
+            
+            $statusCode = $response->getStatusCode();
+    
+            $body = json_decode($response->getBody()->getContents());    
+          
+        }
+        catch(\Exception $ex)
+        {
+           
+        }
+    }
+
+    $insert = conversions::where('order_id',$order->id)->update(['status'=>$request->status]); 
+
+ 
+
+    return response()->json([
+        'status' => 'success'
+    ],201);
+});
+
+Route::post('fullShipment', function(Request $request) {
+        $data = array(); 
+    
+        $data["Address"]= $request->Address;
+        $data["SaleChannel"]= $request->SaleChannel;
+        $data["TrackingLink"]= $request->TrackingLink;
+        $data["TrackingNumber"]= $request->TrackingNumber;
+        $data["TrackingPageHtml"]= $request->TrackingPageHtml;
+        
+        $client = new client(); 
+
+        $endPoint ="https://www.bluecare.express/api/FullTrackingPage";
+        
+        $token = '0ZVCBZNDV5ohLQSbIeTOzSkGN9RFtUtLS9Z0H8vQK7RMbB82';
+
+        $response = $client->request("POST", $endPoint,
+        [
+            "headers" => ["Content-Type" => "application/json", "Accept" => "application/json", "Authorization" => "bearer ".$token],
+            "body" => json_encode($data)
+        ]);    
+        
+
+        $statusCode = $response->getStatusCode();
+            
+        if($statusCode!=200)
+            return "Error";
+  
+        $body = json_decode($response->getBody()->getContents());       
+                
+        return response()->json([
+            'response' => $body
+        ],200);
+      
+});
+
+

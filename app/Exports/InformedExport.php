@@ -18,11 +18,13 @@ class InformedExport implements FromCollection,WithHeadings,ShouldAutoSize
     * @return \Illuminate\Support\Collection
     */
     protected $offset; 
+    protected $accountId;
 
 
-    public function __construct($offset)
+    public function __construct($offset, $accountId)
     {
         $this->offset = $offset;
+        $this->accountId= $accountId;
     }
 
     public function collection()
@@ -30,7 +32,10 @@ class InformedExport implements FromCollection,WithHeadings,ShouldAutoSize
         //
         $offset = $this->offset;
         
-        $products = products::select()->offset($offset)->limit(5000)->get();         
+        $account = accounts::where('id',$this->accountId)->get()->first();
+
+        $products = products::where('account',$account->store)->select()->offset($offset)->limit(5000)->get();         
+        
         $accounts = accounts::all(); 
         $accArray = array();
         foreach($accounts as $acc)

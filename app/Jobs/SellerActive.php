@@ -41,8 +41,9 @@ class SellerActive implements ShouldQueue
     public $id; 
     public $success;
     public $failure;
+    public $accountId;
 
-    public function __construct($offset, $limit,  $account, $id)
+    public function __construct($offset, $limit,  $account, $id, $accountId)
     {
         $this->offset = $offset; 
         $this->limit = $limit; 
@@ -50,6 +51,7 @@ class SellerActive implements ShouldQueue
         $this->id = $id;
         $this->success= 0;
         $this->failure= 0;
+        $this->accountId = $accountId;
     }
 
     /**
@@ -59,11 +61,10 @@ class SellerActive implements ShouldQueue
      */
     public function handle()
     {                
-        $products = products::offset($this->offset)->limit($this->limit)->get();
-        $this->updatePrices($products, $this->account);                
-        
+        $account = accounts::where('id',$this->accountId)->get()->first();      
 
-        
+        $products = products::where('account',$account->store)->offset($this->offset)->limit($this->limit)->get();
+        $this->updatePrices($products, $this->account);                        
     }
 
     public function updatePrices($products, $account)

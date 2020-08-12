@@ -35,7 +35,10 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('cancelledOrders','orderController@cancelledOrders')->name('cancelledOrders')->middleware('admin');
 	Route::get('shippedOrders','orderController@shippedOrders')->name('shippedOrders')->middleware('admin');
 	Route::get('conversions','orderController@conversions')->name('conversions')->middleware('admin');
-	
+	Route::get('conversions2','orderController@conversions2')->name('conversions2')->middleware('admin');
+	Route::get('deliveredConversions','orderController@deliveredConversions')->name('deliveredConversions')->middleware('admin');
+	Route::get('conversionssync','orderController@conversionssync')->name('conversionssync')->middleware('admin');	
+
 	Route::post('getManualBce','orderController@getManualBce')->middleware('admin');
 	Route::get('cancelOrder/{id}','orderController@cancelOrder')->name('cancelOrder');	
 	Route::get('sync','orderController@syncOrders')->name('sync')->middleware('admin');	

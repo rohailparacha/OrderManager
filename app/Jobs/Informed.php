@@ -38,12 +38,14 @@ class Informed implements ShouldQueue
     public $offset;
     public $recordId;
     public $batchId; 
+    public $accountId;
     
-    public function __construct($offset, $recordId, $batchId)
+    public function __construct($offset, $recordId, $batchId, $accountId)
     {
         $this->offset = $offset; 
         $this->recordId = $recordId;
         $this->batchId = $batchId;
+        $this->accountId = $accountId;
     }
 
     /**
@@ -70,7 +72,7 @@ class Informed implements ShouldQueue
 
         foreach($accounts as $account)
         {
-            SellerActive::dispatch($offset,$limit, $account->id, $id)->onConnection('informed')->onQueue('informed');   
+            SellerActive::dispatch($offset,$limit, $account->id, $id, $this->accountId)->onConnection('informed')->onQueue('informed');   
         }                
                     
     }
