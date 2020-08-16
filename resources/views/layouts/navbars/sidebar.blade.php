@@ -111,7 +111,19 @@
 
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('upsConversions') }}">
-                                    {{ __('UPS Conversions') }}
+                                    {{ __('UPS Conversions - Waiting For Tracking') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('upsApproval') }}">
+                                    {{ __('UPS Conversions - Waiting For Approval') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('upsShipped') }}">
+                                    {{ __('UPS Conversions - Shipped') }}
                                 </a>
                             </li>
                             @endif

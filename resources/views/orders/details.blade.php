@@ -815,10 +815,10 @@ td {
                             <tr>
                             <td style="width:45%;padding: 5px;"><strong>Tracking Number:</strong></td>
                             <td style="width:55%;padding: 5px;" >
-                                @if(empty($order->newTrackingNumber))
+                                @if(empty($order->upsTrackingNumber))
                                 {{$order->trackingNumber}}
                                 @else
-                                {{$order->newTrackingNumber}}
+                                {{$order->upsTrackingNumber}}
                                 @endif
                             </td>
                             </tr>

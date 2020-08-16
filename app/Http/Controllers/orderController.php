@@ -626,13 +626,17 @@ class orderController extends Controller
                 $orders = orders::where('isBCE',true)            
                 ->where(function($test){
                     $test->where('orders.status','processing');
-                    $test->orWhere('orders.status','shipped');
-                });                
+                })
+                ->whereNull('upsTrackingNumber')
+                ->orderBy('orders.date', 'ASC')
+                ;                
              
                 $count = orders::select()->where('isBCE',true)
                 ->where(function($test){
                     $test->where('status','processing');                
-                })->count(); 
+                })
+                ->whereNull('upsTrackingNumber')
+                ->count(); 
             }
     
             elseif(auth()->user()->role==2)
@@ -649,14 +653,17 @@ class orderController extends Controller
                 ->whereIn('storeName',$strArray)            
                 ->where(function($test){
                     $test->where('orders.status','processing');
-                    $test->orWhere('orders.status','shipped');
-                });
+                })
+                ->whereNull('upsTrackingNumber')
+                ->orderBy('orders.date', 'ASC');
                           
     
                 $count = orders::select()->where('isBCE',true)->whereIn('storeName',$strArray)
                 ->where(function($test){
                     $test->where('status','processing');                
-                })->count(); 
+                })
+                ->whereNull('upsTrackingNumber')
+                ->count(); 
     
                 
             }
@@ -1557,7 +1564,7 @@ class orderController extends Controller
             $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
             return view('orders.conversions2',compact('orders','credits','count','search','route'));
         }
-        else if($route == 'upsConversions')
+        else if($route == 'upsConversions' || $route == 'upsShipped' || $route =='upsApproval')
         {
            
            
@@ -1613,7 +1620,8 @@ class orderController extends Controller
                 $test->orWhere('upsTrackingNumber', 'LIKE', '%'.$query.'%');
                 $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
                 }) 
-                ->orderBy('orders.status', 'ASC')->paginate(100);
+                ->orderBy('orders.status', 'ASC')                
+                ->paginate(100);
 
                 $count = orders::select()->where('isBCE',true)->whereIn('storeName',$strArray)
                 ->where(function($test){
@@ -3073,6 +3081,13 @@ class orderController extends Controller
                    
                     $order = orders::where('id',$id)->update(['carrierName'=>$bceCarrier->id, 'newTrackingNumber'=>$tracking, 'status'=>'shipped']);
             }
+            elseif($source=='UPS')
+            {
+                $bceCarrier = carriers::where('name','UPS')->get()->first(); 
+                $this->shipOrder($id, $tracking, $bceCarrier->name,$status);
+                $order = orders::where('id',$id)->update(['carrierName'=>$bceCarrier->id, 'upsTrackingNumber'=>$tracking, 'status'=>'shipped']);
+                
+            }
             elseif($status=='new')
                 {
                     $this->shipOrder($id, $tracking, $carrierName->name,$status);
@@ -3537,16 +3552,18 @@ class orderController extends Controller
         {
             $orders = orders::where('isBCE',true)            
             ->where(function($test){
-                $test->where('orders.status','processing');
-                $test->orWhere('orders.status','shipped');
+                $test->where('orders.status','processing');                
             }) 
-            ->orderBy('orders.status', 'ASC')->paginate(100);
+            ->whereNull('orders.upsTrackingNumber')
+            ->orderBy('orders.date', 'ASC')->paginate(100);
             
          
             $count = orders::select()->where('isBCE',true)
             ->where(function($test){
                 $test->where('status','processing');                
-            })->count(); 
+            })
+            ->whereNull('orders.upsTrackingNumber')
+            ->count(); 
         }
 
         elseif(auth()->user()->role==2)
@@ -3564,13 +3581,16 @@ class orderController extends Controller
             ->where(function($test){
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.status','shipped');
-            }) 
-            ->orderBy('orders.status', 'ASC')->paginate(100);            
+            })
+            ->whereNull('orders.upsTrackingNumber') 
+            ->orderBy('orders.date', 'ASC')->paginate(100);            
 
             $count = orders::select()->where('isBCE',true)->whereIn('storeName',$strArray)
             ->where(function($test){
                 $test->where('status','processing');                
-            })->count(); 
+            })
+            ->whereNull('orders.upsTrackingNumber')
+            ->count(); 
 
             
         }
@@ -3589,6 +3609,134 @@ class orderController extends Controller
         $dateRange = $from .' - '.$to;
 
         return view('orders.upsconversions',compact('orders','count','stores','dateRange'));
+    }
+
+    public function upsApproval()
+    {               
+        
+        $count =0; 
+
+        if(auth()->user()->role==1)            
+        {
+            $orders = orders::where('isBCE',true)            
+            ->where(function($test){
+                $test->where('orders.status','processing');
+            }) 
+            ->whereNotNull('orders.upsTrackingNumber')
+            ->orderBy('orders.date', 'ASC')->paginate(100);
+            
+         
+            $count = orders::select()->where('isBCE',true)
+            ->where(function($test){
+                $test->where('status','processing');                
+            })
+            ->whereNotNull('orders.upsTrackingNumber')
+            ->count(); 
+        }
+
+        elseif(auth()->user()->role==2)
+        {
+            $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+            $strArray  = array();
+
+            foreach($stores as $str)
+            {
+                $strArray[]= $str->store;
+            }            
+            
+            $orders = orders::where('isBCE',true)
+            ->whereIn('storeName',$strArray)            
+            ->where(function($test){
+                $test->where('orders.status','processing');                
+            }) 
+            ->whereNotNull('orders.upsTrackingNumber')
+            ->orderBy('orders.date', 'ASC')->paginate(100);            
+
+            $count = orders::select()->where('isBCE',true)->whereIn('storeName',$strArray)
+            ->where(function($test){
+                $test->where('status','processing');                
+            })
+            ->whereNotNull('orders.upsTrackingNumber')
+            ->count(); 
+
+            
+        }
+            
+        else
+            $orders = array();
+
+        $stores = accounts::all();         
+        
+        $startDate = orders::where('isBCE',true)->min('date');
+        $endDate = orders::where('isBCE',true)->max('date');
+
+        $from = date("m/d/Y", strtotime($startDate));  
+        $to = date("m/d/Y", strtotime($endDate));  
+
+        $dateRange = $from .' - '.$to;
+
+        return view('orders.upsWaitingForApproval',compact('orders','count','stores','dateRange'));
+    }
+
+    public function upsShipped()
+    {               
+        
+        $count =0; 
+
+        if(auth()->user()->role==1)            
+        {
+            $orders = orders::where('isBCE',true)            
+            ->where(function($test){
+                $test->where('orders.status','shipped');
+            }) 
+            ->orderBy('orders.date', 'ASC')->paginate(100);
+            
+         
+            $count = orders::select()->where('isBCE',true)
+            ->where(function($test){
+                $test->where('status','shipped');                
+            })->count(); 
+        }
+
+        elseif(auth()->user()->role==2)
+        {
+            $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+            $strArray  = array();
+
+            foreach($stores as $str)
+            {
+                $strArray[]= $str->store;
+            }            
+            
+            $orders = orders::where('isBCE',true)
+            ->whereIn('storeName',$strArray)            
+            ->where(function($test){
+                $test->where('orders.status','shipped');
+            }) 
+            ->orderBy('orders.date', 'ASC')->paginate(100);            
+
+            $count = orders::select()->where('isBCE',true)->whereIn('storeName',$strArray)
+            ->where(function($test){
+                $test->where('status','shipped');                
+            })->count(); 
+
+            
+        }
+            
+        else
+            $orders = array();
+
+        $stores = accounts::all();         
+        
+        $startDate = orders::where('isBCE',true)->min('date');
+        $endDate = orders::where('isBCE',true)->max('date');
+
+        $from = date("m/d/Y", strtotime($startDate));  
+        $to = date("m/d/Y", strtotime($endDate));  
+
+        $dateRange = $from .' - '.$to;
+
+        return view('orders.upsShipped',compact('orders','count','stores','dateRange'));
     }
 
     public function conversionssync()

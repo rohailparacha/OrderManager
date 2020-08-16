@@ -222,68 +222,11 @@ Route::post('bce_update', function(Request $request) {
 
             $insert = orders::where('sellOrderId',$record['sellOrderId'])        
             ->update([
-            'upsTrackingNumber'=>$record['tracking'],
-            'status'=>'shipped',
+            'upsTrackingNumber'=>$record['tracking'],            
             'carrierName'=>$bceCarrier->id
             ]);
                         
-
-                $tracking = $record['tracking'];
-                $carrier = 'UPS';
-                $client = new Client();
-                
-                $data['SiteOrderID'] =$order->sellOrderId;
-                
-                $data['Site'] = $order->marketplace;
-        
-                $data['OrderStatus'] = "Shipped";  
-        
-                $order_details = order_details::where('order_id',$order->id)->get(); 
-        
-                foreach($order_details as $detail)
-                {
-                    $data2['siteItemId']=$detail->siteItemId;
-                
-                    $data2['OrderStatus']="Shipped";
-        
-                    $data2['ShippingTracking']=$tracking; 
-                    
-                    if(trim($carrier)=='Fedex')
-                    {
-                        if(strlen($tracking)>12)
-                            $data2['ShippingCarrier']='Fedex SmartPost';
-                        else
-                            $data2['ShippingCarrier']=$carrier;
-                    }
-                    else
-                    {
-                        $data2['ShippingCarrier']=$carrier;
-                    }
-        
-                    $data2['QuantityShipped'] = $detail->quantity;
-                    
-                    $data2['DateShipped'] = date('Y-m-d\TH:i:s');
-        
-                    $data2['GiftMessage'] = "Purchase Order " .$order->poNumber; 
-                    
-                    $data['orderDetails'][]= $data2;
-                }
-        
-                $credential = accounts::where('store',$order->storeName)->get()->first();        
-                
-                $response = $client->request('PUT', 'https://rest.selleractive.com:443/api/Order',
-                    [
-                        'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json', 'token' => 'test-token'],
-                        'body' => json_encode($data),
-                        'auth' => [
-                            $credential->username, 
-                            $credential->password
-                        ]
-                    ]);    
-                    
-                $statusCode = $response->getStatusCode();
-
-                if($insert)
+            if($insert)
                     $success++;
                                 
         }

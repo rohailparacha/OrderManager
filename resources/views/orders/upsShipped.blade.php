@@ -114,7 +114,7 @@ catch{
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-6">
-                                <h3 class="mb-0">{{ __('UPS Conversions') }}</h3>                                
+                                <h3 class="mb-0">{{ __('UPS Conversions - Shipped') }}</h3>                                
                             </div>  
                             <div class="col-6" style="text-align:right;">
                             <a href="conversionssync" class="btn btn-primary btn-md">Sync</a>                            

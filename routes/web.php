@@ -39,6 +39,8 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('deliveredConversions','orderController@deliveredConversions')->name('deliveredConversions')->middleware('admin');
 	Route::get('conversionssync','orderController@conversionssync')->name('conversionssync')->middleware('admin');	
 	Route::get('upsconversions','orderController@upsConversions')->name('upsConversions')->middleware('admin');	
+	Route::get('upsapproval','orderController@upsApproval')->name('upsApproval')->middleware('admin');	
+	Route::get('upsshipped','orderController@upsShipped')->name('upsShipped')->middleware('admin');	
 	Route::any('upsfilter','orderController@upsfilter')->name('upsfilter')->middleware('admin');
 	Route::any('upsexport','orderController@upsexport')->name('upsexport')->middleware('admin');	
 
