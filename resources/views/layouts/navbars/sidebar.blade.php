@@ -110,8 +110,8 @@
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('conversions2') }}">
-                                    {{ __('BCE Conversions - 2') }}
+                                <a class="nav-link" href="{{ route('upsConversions') }}">
+                                    {{ __('UPS Conversions') }}
                                 </a>
                             </li>
                             @endif

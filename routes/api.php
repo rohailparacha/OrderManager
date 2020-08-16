@@ -3,6 +3,7 @@ use App\ebay_trackings;
 use App\carriers;
 use App\walmart_products;
 use App\orders;
+use App\categories; 
 use App\conversions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -187,10 +188,12 @@ Route::post('walmart_product', function(Request $request) {
 Route::get('conversions', function(Request $request) {
     
     $success=0;
-    $conversions = conversions::leftJoin('orders','conversions.order_id','orders.id')
+  $conversions = conversions::leftJoin('orders','conversions.order_id','orders.id')
     ->select(['conversions.*','orders.sellOrderId','orders.buyerName','orders.address1','orders.address2','orders.city','orders.state','orders.postalCode','orders.country'])
-    ->where('conversions.status','!=','Delivered')
-    ->get(); 
+        ->where(function($test){
+        $test->whereNull('conversions.status');
+        $test->orWhere('conversions.status','!=','Delivered');
+    })->get(); 
 
     return response()->json([
         'conversions' => $conversions
@@ -208,14 +211,84 @@ Route::post('bce_update', function(Request $request) {
         if(empty(trim($record['sellOrderId'])))
             continue;
 
-        $insert = orders::where('sellOrderId',$record['sellOrderId'])        
-        ->update([
-        'upsTrackingNumber'=>$record['tracking']   
-        ]);
+        $order = orders::where('sellOrderId',$record['sellOrderId'])->get()->first(); 
 
+        if(empty($order)|| $order->status=='shipped')
+            continue;
+        
+        if(!empty($record['tracking']))
+        {
+            $bceCarrier = carriers::where('name','UPS')->get()->first();
 
-        if($insert)
-            $success++;
+            $insert = orders::where('sellOrderId',$record['sellOrderId'])        
+            ->update([
+            'upsTrackingNumber'=>$record['tracking'],
+            'status'=>'shipped',
+            'carrierName'=>$bceCarrier->id
+            ]);
+                        
+
+                $tracking = $record['tracking'];
+                $carrier = 'UPS';
+                $client = new Client();
+                
+                $data['SiteOrderID'] =$order->sellOrderId;
+                
+                $data['Site'] = $order->marketplace;
+        
+                $data['OrderStatus'] = "Shipped";  
+        
+                $order_details = order_details::where('order_id',$order->id)->get(); 
+        
+                foreach($order_details as $detail)
+                {
+                    $data2['siteItemId']=$detail->siteItemId;
+                
+                    $data2['OrderStatus']="Shipped";
+        
+                    $data2['ShippingTracking']=$tracking; 
+                    
+                    if(trim($carrier)=='Fedex')
+                    {
+                        if(strlen($tracking)>12)
+                            $data2['ShippingCarrier']='Fedex SmartPost';
+                        else
+                            $data2['ShippingCarrier']=$carrier;
+                    }
+                    else
+                    {
+                        $data2['ShippingCarrier']=$carrier;
+                    }
+        
+                    $data2['QuantityShipped'] = $detail->quantity;
+                    
+                    $data2['DateShipped'] = date('Y-m-d\TH:i:s');
+        
+                    $data2['GiftMessage'] = "Purchase Order " .$order->poNumber; 
+                    
+                    $data['orderDetails'][]= $data2;
+                }
+        
+                $credential = accounts::where('store',$order->storeName)->get()->first();        
+                
+                $response = $client->request('PUT', 'https://rest.selleractive.com:443/api/Order',
+                    [
+                        'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json', 'token' => 'test-token'],
+                        'body' => json_encode($data),
+                        'auth' => [
+                            $credential->username, 
+                            $credential->password
+                        ]
+                    ]);    
+                    
+                $statusCode = $response->getStatusCode();
+
+                if($insert)
+                    $success++;
+                                
+        }
+
+        
     }
 
     return response()->json([
@@ -234,7 +307,6 @@ Route::post('updateConversion', function(Request $request) {
     if(!$order->converted)    
     {
         $insert = orders::where('sellOrderId',$request->sellOrderId)
-        ->whereNull('poNumber')        
         ->update([
         'trackingNumber'=>$request->trackingNumber,
         'newTrackingNumber'=>$request->newTrackingNumber,
@@ -242,10 +314,12 @@ Route::post('updateConversion', function(Request $request) {
         'carrierName'=>$bceCarrier->id,
         'of_bce_created_at'=>Carbon::now()
         ]);
-
+        
         $client = new client(); 
         $temp = array(); 
-        $temp['date'] = $order->of_bce_created_at;
+        $dt = Carbon::now();
+        $temp['date'] = $dt->toDateTimeString()->format('m/d/Y');   
+        $temp['orderDate'] =  Carbon::parse(date_format($order->date,'m/d/Y'));
         $temp['storeName'] = $order->storeName;
         $temp['buyerName'] = $order->buyerName;
         $temp['sellOrderId'] = $order->sellOrderId;
@@ -253,15 +327,16 @@ Route::post('updateConversion', function(Request $request) {
         $temp['city'] = $order->city;
         $temp['state'] = $order->state;
         $temp['postalCode'] = $order->postalCode;
-        $temp['trackingNumber'] = $order->trackingNumber;
-        $temp['newTrackingNumber'] = $order->newTrackingNumber;                        
-    
+        $temp['trackingNumber'] = $request->trackingNumber;
+        $temp['newTrackingNumber'] = $request->newTrackingNumber;              
+        
+
         $body['data'] = $temp;
-    
+
         $endPoint = env('BCE_SYNC_TOKEN', '');
-    
+
         try{                    
-    
+
             $response = $client->request('POST', $endPoint,
             [
                 'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
@@ -269,26 +344,25 @@ Route::post('updateConversion', function(Request $request) {
             ]);    
             
             $statusCode = $response->getStatusCode();
-    
+
             $body = json_decode($response->getBody()->getContents());    
           
         }
         catch(\Exception $ex)
         {
-           
+            
         }
     }
 
     $insert = conversions::where('order_id',$order->id)->update(['status'=>$request->status]); 
-
- 
-
     return response()->json([
         'status' => 'success'
     ],201);
 });
 
 Route::post('fullShipment', function(Request $request) {
+        
+     
         $data = array(); 
     
         $data["Address"]= $request->Address;

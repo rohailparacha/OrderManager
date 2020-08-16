@@ -11,5 +11,5 @@ class conversions extends Model
 
     public $timestamps = false;
 
-    protected $fillable  = ['carrier','status','tracking','shipmentLink'];
+    protected $fillable  = ['order_id','carrier','status','tracking','shipmentLink'];
 }

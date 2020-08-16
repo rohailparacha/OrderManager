@@ -14,53 +14,46 @@
 }
 </style>
 
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
 <script>
-$(document).ready(function(){
-    $("button[name = 'shipBtn']").on('click',function(event){ 
-    
-    var btnId = '#'+this.id;
-    var id = $(btnId).attr('data-id');
-    var carrier = $(btnId).attr('data-carrier');
-    var tracking = $(btnId).attr('data-track');
-    
-    $.ajax({               
-               type: 'post',
-               url: '/updateOrder',
-               data: {
-               'carrier': carrier,
-               'id' : id,
-               'tracking' : tracking,
-               'status': 'new',
-               'type':'ship',
-               'source':'BCE'
-               },
-               headers: {
-                   'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-               },
-               success: function (data) {
-               console.log(data);
-               if (data == 'success') {
-                   $('#process').modal('hide');
-                   $('#errorShipping').hide();  
-                   document.location.reload();                       
-               } 
-               else
-               {                                
-                $('#errorShipping').show();
-               }
-             
-               },
-               
-               error: function(XMLHttpRequest, textStatus, errorThrown) {                
-                   $('#errorShipping').show();
-               }        
-           });
-
-
- });
+$(function() {
+  $('input[name="daterange"]').daterangepicker({
+    opens: 'left'
+  }, function(start, end, label) {
+    console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
+  });
 });
 </script>
-    <div class="container-fluid mt--7">
+
+<script>
+$(document).ready(function(){
+$(document).on("click", "#export", function(){		
+
+try{
+    var storeFilter = "<?php echo empty($storeFilter)?"":$storeFilter; ?>";
+    var daterange = "<?php echo $dateRange; ?>";
+
+var query = {                
+                storeFilter:storeFilter,
+                daterange:daterange
+            }
+
+var url = "/upsexport?" + $.param(query)
+
+window.location = url;
+
+}
+catch{
+    
+}
+});
+});
+</script>
+
+<div class="container-fluid mt--7">
         @if(Session::has('error_msg'))
         <div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>{{Session::get('error_msg')}}</div>
         @endif
@@ -77,7 +70,7 @@ $(document).ready(function(){
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-6">
-                                <h3 class="mb-0">{{ __('BCE Conversions - 2') }}</h3>                                
+                                <h3 class="mb-0">{{ __('UPS Conversions') }}</h3>                                
                             </div>  
                             <div class="col-6" style="text-align:right;">
                             <a href="conversionssync" class="btn btn-primary btn-md">Sync</a>                            
@@ -88,6 +81,46 @@ $(document).ready(function(){
                         </div>                        
                     </div>
                     
+                    <div class="row" style="margin-left:0px!important;">
+                        <div class="col-12 text-center" id="filters">
+                        <form action="upsfilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
+                            @csrf
+                            <div style="width:100%; padding-bottom:2%;">
+                                <div class="form-group">                                
+
+                                <div style="padding-right:1%;">
+                                <select class="form-control" name="storeFilter" style="margin-right:0%;width:180px;">
+                                    <option value="0">Store Name</option>
+                                    @foreach($stores as $store)
+                                    <option value="{{$store->id}}" {{ isset($storeFilter) && $storeFilter==$store->id?"selected":"" }}>{{$store->store}}</option>
+                                    @endforeach
+                                    
+                                    
+                                </select>
+                                </div>
+
+                                <div style="padding-right: 1%; float:right; width=170px; ">                                
+                                    <input class="form-control" type="text" name="daterange" value="{{$dateRange ?? ''}}" />
+                                </div>
+                                   
+                                                                        
+                                    
+                                    <input type="submit" value="Filter" class="btn btn-primary btn-md">     
+                                    <a id="export" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:10px;">Export</a>          
+                                </div>
+                                
+                            </div>
+                            
+                            
+                            
+                        </form>   
+                          
+                        
+                    </div>
+
+                    
+                </div>
+               
                     <div class="col-12">
                         @if (session('status'))
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -102,7 +135,7 @@ $(document).ready(function(){
                     <div class="card-header border-0" style="padding-top:0px;">
                         <div class="row align-items-center">
                             <div class="col-8">
-                        <strong><span  style="font-size:14px; color:red; padding-left:5px;">Unshipped BCE Records : {{$count}}</span></strong>
+                        <strong><span  style="font-size:14px; color:red; padding-left:5px;">Unshipped Records : {{$count}}</span></strong>
                             </div>
                         </div>
                     </div>
@@ -111,7 +144,8 @@ $(document).ready(function(){
                         <table class="table align-items-center table-flush">
                             <thead class="thead-light">
                                 <tr>
-                                    <th scope="col">{{ __('Date') }}</th>                                    
+                                    <th scope="col">{{ __('Date') }}</th>  
+                                    <th scope="col">{{ __('Order Date') }}</th>                                    
                                     <th scope="col">{{ __('Store Name') }}</th>                                    
                                     <th scope="col">{{ __('Buyer Name') }}</th>
                                     <th scope="col">{{ __('Sell Order Id') }}</th>
@@ -119,29 +153,28 @@ $(document).ready(function(){
                                     <th scope="col">{{ __('City') }}</th>
                                     <th scope="col">{{ __('State') }}</th>
                                     <th scope="col">{{ __('Zip Code') }}</th>
-                                    <th scope="col">{{ __('Old Tracking Number') }}</th>
-                                    <th scope="col">{{ __('BCE Tracking Number') }}</th>
+                                    <th scope="col">{{ __('Old Tracking Number') }}</th>                                    
                                     <th scope="col">{{ __('UPS Tracking Number') }}</th>
                                     <th scope="col"></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($orders as $order)
-                                    <tr>                                        
+                                    <tr>
+                                        <td>{{ $provider::getIranTime(date_format(date_create($order->of_bce_created_at), 'm/d/Y H:i:s')) }}</td>                                        
                                         <td>{{ $provider::getIranTime(date_format(date_create($order->date), 'm/d/Y H:i:s')) }}</td>
                                         <td>{{ $order->storeName }}</td>
                                         <td>{{ $order->buyerName }}</td>
                                         <td><a target="_blank" href="orderDetails/{{$order->id}}">{{ $order->sellOrderId }}</a></td>
-                                        <td>{{ $order->poNumber }}</td>
+                                        <td><a target="_blank" href="https://www.amazon.com/progress-tracker/package/ref=ppx_yo_dt_b_track_package?_encoding=UTF8&orderId={{$order->poNumber}}">{{ $order->poNumber }}</a></td>                                        
                                         <td>{{ $order->city }}</td>
                                         <td>{{ $order->state }}</td>
                                         <td>{{ $order->postalCode }}</td>
                                         <td>{{ $order->trackingNumber }}</td>
-                                        <td><a target="_blank" href="https://bluecare.express/Tracking?trackingReference={{ $order->newTrackingNumber }}">{{ $order->newTrackingNumber }}</a></td>
-
+                                        <td><a target="_blank" href="https://www.ups.com/track?loc=en_US&tracknum={{ $order->upsTrackingNumber }}">{{ $order->upsTrackingNumber }}</a></td>                                        
                                         <td>{{ $order->upsTrackingNumber }}</td>
                                         @if($order->status!='shipped')
-                                        <td><button name="shipBtn" id="ship{{$loop->iteration}}" data-id= {{$order->id}} data-track= {{$order->newTrackingNumber}} data-carrier= "Bluecare Express" class="btn btn-primary btn-sm">Ship</button></td>
+                                        <td>Unshipped</td>
                                         @else
                                         <td>Shipped</td>
                                         @endif

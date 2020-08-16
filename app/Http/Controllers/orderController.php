@@ -26,7 +26,9 @@ use App\transactions;
 use App\bank_accounts; 
 use App\accounting_categories;
 use App\categories;
+use App\conversions;
 use App\Exports\OrdersExport;
+use App\Exports\UPSExport;
 use App\Exports\AutoFulfillExport;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
@@ -111,10 +113,8 @@ class orderController extends Controller
             $trackingId = '';
             $carrier = '';
             if($order->account_id=='Samuel' || $order->account_id=='Jonathan')
-            {
-               
-                try{
-        
+            {               
+                try{        
                     $client = new client(); 
                     if($order->account_id=='Samuel')
                         $endPoint = env('SAMUEL_TOKEN', '');
@@ -147,7 +147,9 @@ class orderController extends Controller
                             
                             $bceCarrier = carriers::where('name','Bluecare Express')->get()->first(); 
 
-                            $order = orders::where('id',$order->id)->update(['carrierName'=>$bceCarrier->id,'trackingNumber'=>$trackingId,  'newTrackingNumber'=>$trackingId, 'converted'=>true]);
+                            $order = orders::where('id',$order->id)->update(['carrierName'=>$bceCarrier->id,'trackingNumber'=>$trackingId,  'newTrackingNumber'=>$trackingId, 'of_bce_created_at'=>Carbon::now(), 'isBCE'=>true ]);
+
+                            $this->sendOrderToSheet($order->id);
                         }
                         else
                         {
@@ -161,9 +163,9 @@ class orderController extends Controller
                             if(empty($carrierId))
                                 continue;
 
-                            $this->shipOrder($order->id, $trackingId, $carrier, 'new');
+                            $this->shipOrder($order->id, $trackingId, $carrierId->name, 'new');
                             
-                            $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId, 'trackingNumber'=>$trackingId, 'status'=>'shipped']);
+                            $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId, 'status'=>'shipped']);
                             
                             $shippedCounter++;
                         }
@@ -379,36 +381,49 @@ class orderController extends Controller
                                if($order->account_id=="Cindy")
                                {    
                                     if(empty($order->of_bce_created_at))
-                                        orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at' =>Carbon::now()]);
+                                        orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at' =>Carbon::now(),'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);
                                     else
-                                    orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId]);
+                                        orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);
+
+                                    $this->sendOrderToSheet($order->id);
+                                    
                                }
                                else
                                {
-                                $shipmentId = $this->getShipment(trim($number));
 
-                                if(empty($shipmentId) || $shipmentId== 'Error')
-                                        continue;
+                                $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId, 'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);   
+                                $this->sendOrderToSheet($order->id);
+                                $shippedCounter++;              
+                                $found = true; 
+                                
+                                //$shipmentId = $this->getShipment(trim($number));
+                                            
+                                //if(empty($shipmentId) || $shipmentId== 'Error')
+                                  //      continue;
                                         
-                                $resp = $this->getBceResponse($order->id,$shipmentId , $trackingId, 'Walmart',1);
+                                //$resp = $this->getBceResponse($order->id,$shipmentId , $trackingId, 'Walmart',1);
                                
-                               
-                               $forward = $this->forwardEmail(trim($number));
+                                //$resp = $this->insertConversionRecord($order->id,$shipmentId , $trackingId);
+                                //continue; 
 
-                                if(!empty($resp) && $resp!= 'Error')
-                                {
-                                    try{
+                                //$forward = $this->forwardEmail(trim($number));
+                               
+                                // if(!empty($resp) && $resp!= 'Error')
+                                // {
+                                //     try{
                                        
-                                        $order = orders::where('id',$order->id)->update(['carrierName'=>$bceCarrier->id, 'trackingNumber'=>$trackingId, 'newTrackingNumber'=>$resp, 'converted'=>true]);   
-                                        $shippedCounter++;              
-                                        $found = true; 
+                                //         $order = orders::where('id',$order->id)->update(['carrierName'=>$bceCarrier->id, 'trackingNumber'=>$trackingId, 'newTrackingNumber'=>$resp, 'converted'=>true]);   
+                                //         $shippedCounter++;              
+                                //         $found = true; 
                                         
-                                    }
-                                        catch(\Exception $ex)
-                                        {
+                                //     }
+                                //         catch(\Exception $ex)
+                                //         {
                         
-                                        }
-                                    }
+                                //         }
+                                //     }
+
+                                
                                 }
                                 
                             }
@@ -580,7 +595,94 @@ class orderController extends Controller
         return $innerHTML; 
     } 
 
+    public function upsexport(Request $request)
+    {        
 
+        $storeFilter = $request->storeFilter;
+        $daterange = $request->daterange;
+
+        $filename = date("d-m-Y")."-".time()."-ups-conversions.xlsx";
+        return Excel::download(new UPSExport($storeFilter,$daterange), $filename);
+    }
+
+    public function upsfilter(Request $request)
+    {
+        if($request->has('storeFilter'))
+            $storeFilter = $request->get('storeFilter');
+        
+        if($request->has('daterange'))
+            $dateRange = $request->get('daterange');  
+
+         $startDate = explode('-',$dateRange)[0];
+            $from = date("Y-m-d", strtotime($startDate));  
+         $endDate = explode('-',$dateRange)[1];
+            $to = date("Y-m-d", strtotime($endDate)); 
+
+
+            $count =0; 
+
+            if(auth()->user()->role==1)            
+            {
+                $orders = orders::where('isBCE',true)            
+                ->where(function($test){
+                    $test->where('orders.status','processing');
+                    $test->orWhere('orders.status','shipped');
+                });                
+             
+                $count = orders::select()->where('isBCE',true)
+                ->where(function($test){
+                    $test->where('status','processing');                
+                })->count(); 
+            }
+    
+            elseif(auth()->user()->role==2)
+            {
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+    
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }            
+                
+                $orders = orders::where('isBCE',true)
+                ->whereIn('storeName',$strArray)            
+                ->where(function($test){
+                    $test->where('orders.status','processing');
+                    $test->orWhere('orders.status','shipped');
+                });
+                          
+    
+                $count = orders::select()->where('isBCE',true)->whereIn('storeName',$strArray)
+                ->where(function($test){
+                    $test->where('status','processing');                
+                })->count(); 
+    
+                
+            }
+                
+        else
+                $orders = array();
+    
+        $stores = accounts::all();         
+
+        if(!empty($storeFilter)&& $storeFilter !=0)
+        {
+            $storeName = accounts::select()->where('id',$storeFilter)->get()->first();
+            $orders = $orders->where('storeName',$storeName->store);
+        }
+
+        if(!empty($startDate)&& !empty($endDate))
+        {
+            $orders = $orders->whereBetween('date', [$from.' 00:00:00', $to.' 23:59:59']);
+        }
+
+        $orders = $orders->orderBy('orders.status', 'ASC')->paginate(100); 
+        
+        $orders = $orders->appends('storeFilter',$storeFilter)->appends('daterange',$dateRange);
+
+        return view('orders.upsconversions',compact('orders','count','stores','dateRange','storeFilter'));
+    }
 
     public function filter(Request $request)
     {
@@ -1220,10 +1322,10 @@ class orderController extends Controller
            
            if(auth()->user()->role==1)
             {            
-                $orders = orders::select()->where('converted',true)
+                $orders = orders::leftJoin('conversions','orders.id','conversions.order_id')->select(['conversions.*','orders.*'])->where('converted',true)
                 ->where(function($test){
-                $test->where('status','processing');
-                $test->orWhere('status','shipped');
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
                 })
                 ->where(function($test) use ($query){
                 $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
@@ -1231,6 +1333,10 @@ class orderController extends Controller
                 $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
                 $test->orWhere('newTrackingNumber', 'LIKE', '%'.$query.'%');
                 $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                })
+                ->where(function($test){
+                    $test->whereNull('conversions.status');
+                    $test->orWhere('conversions.status','!=','Delivered');
                 }) 
                 
                 
@@ -1260,10 +1366,10 @@ class orderController extends Controller
                     $strArray[]= $str->store;
                 }                                                                
                 
-                $orders = orders::select()->where('converted',true)->whereIn('storeName',$strArray)
+                $orders = orders::leftJoin('conversions','orders.id','conversions.order_id')->select(['conversions.*','orders.*'])->where('converted',true)->whereIn('storeName',$strArray)
                 ->where(function($test){
-                $test->where('status','processing');
-                $test->orWhere('status','shipped');
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
                 })
                 ->where(function($test) use ($query){
                 $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
@@ -1272,6 +1378,10 @@ class orderController extends Controller
                 $test->orWhere('newTrackingNumber', 'LIKE', '%'.$query.'%');
                 $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
                 }) 
+                ->where(function($test){
+                    $test->whereNull('conversions.status');
+                    $test->orWhere('conversions.status','!=','Delivered');
+                })
                 
                 
                 ->orderBy('date', 'ASC')->paginate(100);
@@ -1293,10 +1403,10 @@ class orderController extends Controller
 
             else
             {
-                $orders = orders::select()->where('converted',true)->where('uid',auth()->user()->id)
+                $orders = orders::leftJoin('conversions','orders.id','conversions.order_id')->select(['conversions.*','orders.*'])->where('converted',true)->where('uid',auth()->user()->id)
                 ->where(function($test){
-                $test->where('status','processing');
-                $test->orWhere('status','shipped');
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
                 })
                 ->where(function($test) use ($query){
                 $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
@@ -1304,6 +1414,10 @@ class orderController extends Controller
                 $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
                 $test->orWhere('newTrackingNumber', 'LIKE', '%'.$query.'%');
                 $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                }) 
+                ->where(function($test){
+                    $test->whereNull('conversions.status');
+                    $test->orWhere('conversions.status','!=','Delivered');
                 }) 
                 
                 
@@ -1326,6 +1440,355 @@ class orderController extends Controller
 
             $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
             return view('orders.conversions',compact('orders','credits','count','search','route'));
+        }
+
+        else if($route == 'conversions2')
+        {
+           $credits = $this->getCredits();
+           
+           if(auth()->user()->role==1)
+            {            
+                $orders = orders::leftJoin('conversions','orders.id','conversions.order_id')->select(['conversions.*','orders.*'])->where('converted',true)
+                ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+                })
+                ->where(function($test) use ($query){
+                $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('upsTrackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('newTrackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                })           
+                ->orderBy('date', 'ASC')->paginate(100);
+
+                $count = orders::select()->where('converted',true)
+                ->where(function($test){
+                    $test->where('status','processing');
+                })
+                ->where(function($test) use ($query){
+                    $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('upsTrackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('newTrackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                    })                 
+                ->count(); 
+            }
+    
+            elseif(auth()->user()->role==2)
+            {
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+    
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }                                                                
+                
+                $orders = orders::leftJoin('conversions','orders.id','conversions.order_id')->select(['conversions.*','orders.*'])->where('converted',true)->whereIn('storeName',$strArray)
+                ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+                })
+                ->where(function($test) use ($query){
+                $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('newTrackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('upsTrackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                }) 
+                ->orderBy('date', 'ASC')->paginate(100);
+
+                $count = orders::select()->where('converted',true)->whereIn('storeName',$strArray)
+                ->where(function($test){
+                    $test->where('status','processing');
+                })
+                ->where(function($test) use ($query){
+                    $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('newTrackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('upsTrackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                    })                 
+                ->count(); 
+                
+            }
+
+            else
+            {
+                $orders = orders::leftJoin('conversions','orders.id','conversions.order_id')->select(['conversions.*','orders.*'])->where('converted',true)->where('uid',auth()->user()->id)
+                ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+                })
+                ->where(function($test) use ($query){
+                $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('newTrackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                $test->orWhere('upsTrackingNumber', 'LIKE', '%'.$query.'%');
+                }) 
+                
+                
+                ->orderBy('date', 'ASC')->paginate(100);
+
+                $count = orders::select()->where('converted',true)
+                ->where(function($test){
+                    $test->where('status','processing');
+                })
+                ->where(function($test) use ($query){
+                    $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('newTrackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('upsTrackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                    }) 
+                ->where('uid',auth()->user()->id)
+                ->count(); 
+            }
+
+            $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
+            return view('orders.conversions2',compact('orders','credits','count','search','route'));
+        }
+        else if($route == 'upsConversions')
+        {
+           
+           
+           if(auth()->user()->role==1)
+            {            
+                $orders = orders::select()->where('isBCE',true)
+                ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+                })
+                ->where(function($test) use ($query){
+                $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('upsTrackingNumber', 'LIKE', '%'.$query.'%');                
+                $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                })           
+                ->orderBy('orders.status', 'ASC')->paginate(100);
+
+                $count = orders::select()->where('isBCE',true)
+                ->where(function($test){
+                    $test->where('status','processing');
+                })
+                ->where(function($test) use ($query){
+                    $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('upsTrackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                    })                 
+                ->count(); 
+            }
+    
+            elseif(auth()->user()->role==2)
+            {
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+    
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }                                                                
+                
+                $orders = orders::select()->where('isBCE',true)->whereIn('storeName',$strArray)
+                ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+                })
+                ->where(function($test) use ($query){
+                $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');                
+                $test->orWhere('upsTrackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                }) 
+                ->orderBy('orders.status', 'ASC')->paginate(100);
+
+                $count = orders::select()->where('isBCE',true)->whereIn('storeName',$strArray)
+                ->where(function($test){
+                    $test->where('status','processing');
+                })
+                ->where(function($test) use ($query){
+                    $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');                    
+                    $test->orWhere('upsTrackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                    })                 
+                ->count(); 
+                
+            }
+
+            else
+            {
+                $orders = orders::select()->where('isBCE',true)->where('uid',auth()->user()->id)
+                ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+                })
+                ->where(function($test) use ($query){
+                $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                $test->orWhere('upsTrackingNumber', 'LIKE', '%'.$query.'%');
+                })                 
+                ->orderBy('orders.status', 'ASC')->paginate(100);
+
+                $count = orders::select()->where('isBCE',true)
+                ->where(function($test){
+                    $test->where('status','processing');
+                })
+                ->where(function($test) use ($query){
+                    $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');                    
+                    $test->orWhere('upsTrackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                    }) 
+                ->where('uid',auth()->user()->id)
+                ->count(); 
+            }
+
+            $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
+            $stores = accounts::all();
+            
+            $startDate = orders::where('isBCE',true)->min('date');
+            $endDate = orders::where('isBCE',true)->max('date');
+
+            $from = date("m/d/Y", strtotime($startDate));  
+            $to = date("m/d/Y", strtotime($endDate));  
+
+            $dateRange = $from .' - '.$to;
+            
+            return view('orders.upsconversions',compact('orders','count','search','route','stores','dateRange'));
+        }
+
+        else if($route == 'deliveredConversions')
+        {
+           $credits = $this->getCredits();
+           
+           if(auth()->user()->role==1)
+            {            
+                $orders = orders::leftJoin('conversions','orders.id','conversions.order_id')->select(['conversions.*','orders.*'])->where('converted',true)
+                ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+                })
+                ->where(function($test) use ($query){
+                $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('newTrackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                }) 
+                ->where('conversions.status','Delivered')
+                
+                
+                ->orderBy('date', 'ASC')->paginate(100);
+
+                $count = orders::select()->where('converted',true)
+                ->where(function($test){
+                    $test->where('status','processing');
+                })
+                ->where(function($test) use ($query){
+                    $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('newTrackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                    })                 
+                ->count(); 
+            }
+    
+            elseif(auth()->user()->role==2)
+            {
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+    
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }                                                                
+                
+                $orders = orders::leftJoin('conversions','orders.id','conversions.order_id')->select(['conversions.*','orders.*'])->where('converted',true)->whereIn('storeName',$strArray)
+                ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+                })
+                ->where(function($test) use ($query){
+                $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('newTrackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                }) ->where('conversions.status','Delivered')
+                
+                
+                
+                ->orderBy('date', 'ASC')->paginate(100);
+
+                $count = orders::select()->where('converted',true)->whereIn('storeName',$strArray)
+                ->where(function($test){
+                    $test->where('status','processing');
+                })
+                ->where(function($test) use ($query){
+                    $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('newTrackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                    })                 
+                ->count(); 
+                
+            }
+
+            else
+            {
+                $orders = orders::leftJoin('conversions','orders.id','conversions.order_id')->select(['conversions.*','orders.*'])->where('converted',true)->where('uid',auth()->user()->id)
+                ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+                })
+                ->where(function($test) use ($query){
+                $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('newTrackingNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                }) ->where('conversions.status','Delivered')
+                
+                
+                ->orderBy('date', 'ASC')->paginate(100);
+
+                $count = orders::select()->where('converted',true)
+                ->where(function($test){
+                    $test->where('status','processing');
+                })
+                ->where(function($test) use ($query){
+                    $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('newTrackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+                    }) 
+                ->where('uid',auth()->user()->id)
+                ->count(); 
+            }
+
+            $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
+            return view('orders.deliveredConversions',compact('orders','credits','count','search','route'));
         }
 
         else if($route == 'products')
@@ -2272,6 +2735,50 @@ class orderController extends Controller
         
     }
 
+    public function sendOrderToSheet($orderId)
+    {
+        $order = $orders::where('id',$orderId)->get()->first(); 
+
+        if(empty($order))
+            return; 
+
+        $client = new client(); 
+        $temp = array(); 
+        $dt = Carbon::now();
+        $temp['date'] = $dt->toDateTimeString()->format('m/d/Y');   
+        $temp['orderDate'] =  Carbon::parse(date_format($order->date,'m/d/Y'));
+        $temp['storeName'] = $order->storeName;
+        $temp['buyerName'] = $order->buyerName;
+        $temp['sellOrderId'] = $order->sellOrderId;
+        $temp['poNumber'] = $order->poNumber;
+        $temp['city'] = $order->city;
+        $temp['state'] = $order->state;
+        $temp['postalCode'] = $order->postalCode;
+        $temp['trackingNumber'] = $request->trackingNumber;              
+
+        $body['data'] = $temp;
+
+        $endPoint = env('BCE_SYNC_TOKEN', '');
+
+        try{                    
+
+            $response = $client->request('POST', $endPoint,
+            [
+                'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
+                'body' => json_encode($body)          
+            ]);    
+            
+            $statusCode = $response->getStatusCode();
+
+            $body = json_decode($response->getBody()->getContents());    
+          
+        }
+        catch(\Exception $ex)
+        {
+            
+        }
+    }
+
     public function sendToGoogle($endPoint, $orders)
     {
         $client = new client(); 
@@ -2913,12 +3420,17 @@ class orderController extends Controller
 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',true)
+            $orders = orders::leftJoin('conversions','orders.id','conversions.order_id')            
+            ->select(['conversions.*','orders.*'])->where('converted',true)
             ->where(function($test){
-                $test->where('status','processing');
-                $test->orWhere('status','shipped');
+                $test->whereNull('conversions.status');
+                $test->orWhere('conversions.status','!=','Delivered');
+            })
+            ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
             }) 
-            ->orderBy('status', 'DESC')->paginate(100);
+            ->orderBy('orders.status', 'DESC')->paginate(100);
 
             $count = orders::select()->where('converted',true)
             ->where(function($test){
@@ -2936,12 +3448,16 @@ class orderController extends Controller
                 $strArray[]= $str->store;
             }
             
-            $orders = orders::select()->where('converted',true)->whereIn('storeName',$strArray)
+            $orders = orders::leftJoin('conversions','orders.id','conversions.order_id')->select(['conversions.*','orders.*'])->where('converted',true)->whereIn('storeName',$strArray)
             ->where(function($test){
-                $test->where('status','processing');
-                $test->orWhere('status','shipped');
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
             }) 
-            ->orderBy('status', 'DESC')->paginate(100);
+            ->where(function($test){
+                $test->whereNull('conversions.status');
+                $test->orWhere('conversions.status','!=','Delivered');
+            })
+            ->orderBy('orders.status', 'DESC')->paginate(100);
 
             $count = orders::select()->where('converted',true)->whereIn('storeName',$strArray)
             ->where(function($test){
@@ -2956,6 +3472,216 @@ class orderController extends Controller
         
 
         return view('orders.conversions',compact('orders','credits','count'));
+    }
+
+    public function conversions2()
+    {               
+        
+        $count =0; 
+
+        if(auth()->user()->role==1)            
+        {
+            $orders = orders::leftJoin('conversions','orders.id','conversions.order_id')            
+            ->select(['conversions.*','orders.*'])->where('converted',true)            
+            ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+            }) 
+            ->orderBy('orders.status', 'DESC')->paginate(100);
+            
+         
+            $count = orders::select()->where('converted',true)
+            ->where(function($test){
+                $test->where('status','processing');                
+            })->count(); 
+        }
+
+        elseif(auth()->user()->role==2)
+        {
+            $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+            $strArray  = array();
+
+            foreach($stores as $str)
+            {
+                $strArray[]= $str->store;
+            }
+            
+            $orders = orders::leftJoin('conversions','orders.id','conversions.order_id')->select(['conversions.*','orders.*'])->where('converted',true)->whereIn('storeName',$strArray)
+            ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+            }) 
+          
+            ->orderBy('orders.status', 'DESC')->paginate(100);
+
+            $count = orders::select()->where('converted',true)->whereIn('storeName',$strArray)
+            ->where(function($test){
+                $test->where('status','processing');                
+            })->count(); 
+
+            
+        }
+            
+        else
+            $orders = array();
+                
+        return view('orders.conversions2',compact('orders','count'));
+    }
+
+    public function upsConversions()
+    {               
+        
+        $count =0; 
+
+        if(auth()->user()->role==1)            
+        {
+            $orders = orders::where('isBCE',true)            
+            ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+            }) 
+            ->orderBy('orders.status', 'ASC')->paginate(100);
+            
+         
+            $count = orders::select()->where('isBCE',true)
+            ->where(function($test){
+                $test->where('status','processing');                
+            })->count(); 
+        }
+
+        elseif(auth()->user()->role==2)
+        {
+            $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+            $strArray  = array();
+
+            foreach($stores as $str)
+            {
+                $strArray[]= $str->store;
+            }            
+            
+            $orders = orders::where('isBCE',true)
+            ->whereIn('storeName',$strArray)            
+            ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+            }) 
+            ->orderBy('orders.status', 'ASC')->paginate(100);            
+
+            $count = orders::select()->where('isBCE',true)->whereIn('storeName',$strArray)
+            ->where(function($test){
+                $test->where('status','processing');                
+            })->count(); 
+
+            
+        }
+            
+        else
+            $orders = array();
+
+        $stores = accounts::all();         
+        
+        $startDate = orders::where('isBCE',true)->min('date');
+        $endDate = orders::where('isBCE',true)->max('date');
+
+        $from = date("m/d/Y", strtotime($startDate));  
+        $to = date("m/d/Y", strtotime($endDate));  
+
+        $dateRange = $from .' - '.$to;
+
+        return view('orders.upsconversions',compact('orders','count','stores','dateRange'));
+    }
+
+    public function conversionssync()
+    {            
+        $client = new client(); 
+        
+        $endPoint = env('BCE_SYNC_TOKEN', '');
+        
+        try{
+        $response = $client->request('GET', $endPoint,
+        [
+            'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
+            'query' => ['function' => 'processOrders']           
+        ]);
+        
+        }
+
+        catch (\GuzzleHttp\Exception\ClientException $e) {
+            $response = $e->getResponse();
+            $responseBodyAsString = $response->getBody()->getContents();
+            
+            Session::flash('error_msg', $responseBodyAsString);
+            return redirect()->route('conversions2');
+        }
+        
+        $statusCode = $response->getStatusCode();
+            
+        
+        if($statusCode!=200)
+        {
+            Session::flash('error_msg', __('Trackings Syncing Failed'));
+            return redirect()->route('conversions2');
+        }
+                    
+        $body = json_decode($response->getBody()->getContents());
+        
+        Session::flash('success_msg', $body->count. __(' Trackings Synced'));
+        return redirect()->route('conversions2');        
+    }
+
+    public function deliveredConversions()
+    {       
+        $credits = $this->getCredits(); 
+        
+        $count =0; 
+
+        if(auth()->user()->role==1)            
+        {
+            $orders = orders::leftJoin('conversions','orders.id','conversions.order_id')->select(['conversions.*','orders.*'])->where('converted',true)
+            ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+            }) 
+            ->where('conversions.status','Delivered')
+            ->orderBy('orders.status', 'DESC')->paginate(100);
+
+            $count = orders::select()->where('converted',true)
+            ->where(function($test){
+                $test->where('status','processing');                
+            })->count(); 
+        }
+
+        elseif(auth()->user()->role==2)
+        {
+            $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+            $strArray  = array();
+
+            foreach($stores as $str)
+            {
+                $strArray[]= $str->store;
+            }
+            
+            $orders = orders::leftJoin('conversions','orders.id','conversions.order_id')->select(['conversions.*','orders.*'])->where('converted',true)->whereIn('storeName',$strArray)
+            ->where(function($test){
+                $test->where('orders.status','processing');
+                $test->orWhere('orders.status','shipped');
+            }) 
+            ->where('conversions.status','Delivered')
+            ->orderBy('orders.status', 'DESC')->paginate(100);
+
+            $count = orders::select()->where('converted',true)->whereIn('storeName',$strArray)
+            ->where(function($test){
+                $test->where('status','processing');                
+            })->count(); 
+
+            
+        }
+            
+        else
+            $orders = array();
+        
+
+        return view('orders.deliveredConversions',compact('orders','credits','count'));
     }
 
     
@@ -3116,23 +3842,40 @@ class orderController extends Controller
         
     }
 
+    public function insertConversionRecord($orderId, $shipmentId,$trackingNumber)
+    {
+        $order = orders::where('id',$orderId)->get()->first();
+        
+        if(empty($order) || empty($order->id))
+            return "Error";   
+
+        $insert = conversions::updateOrCreate(
+            ['order_id'=>$orderId],    
+            ['carrier'=>'Amazon','tracking'=>$trackingNumber,'shipmentLink'=>"https://www.amazon.com/progress-tracker/package/ref=pe_2640190_232586610_TE_typ?_encoding=UTF8&from=gp&itemId=&orderId=".$order->poNumber."&packageIndex=0&shipmentId=".$shipmentId]
+        );
+        
+      
+        return;
+    }
+
     public function getBceResponse($orderId, $shipmentId,$trackingNumber, $channel, $type)
     {
         $endPoint = env('BCE_URL', '');
         
         $token = env('BCE_TOKEN', '');
         
-        $client = new client(); 
+        $client = new client();         
         
         $order = orders::where('id',$orderId)->get()->first();
         
         if(empty($order) || empty($order->id))
-            return "Error";
+            return "Error";        
 
         $data = array(); 
-
+    
         $data["Address"]["Name"] = $order->buyerName;
         $data["Address"]["Line1"] = $order->address1;
+        $data["Address"]["Line2"] = $order->address2;
         $data["Address"]["City"] =  $order->city;
         $data["Address"]["State"] =  $order->state;
         $data["Address"]["ZIPCode"] =  $order->postalCode;

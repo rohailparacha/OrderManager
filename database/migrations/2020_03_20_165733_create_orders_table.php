@@ -42,6 +42,7 @@ class CreateOrdersTable extends Migration
             $table->text('trackingNumber')->nullable();
             $table->text('newTrackingNumber')->nullable();
             $table->boolean('converted')->default(false);
+            $table->boolean('isBCE')->default(false);
             $table->integer('assigned')->default(0);
             $table->enum('status', ['unshipped','pending','shipped','cancelled','processing']);
             $table->enum('flag', ['0','1','2','3','4','5','6']);
