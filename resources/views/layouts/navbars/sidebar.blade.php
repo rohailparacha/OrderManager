@@ -74,6 +74,12 @@
                                 {{ __('New Orders') }}
                             </a>
                             </li>
+
+                            <li class="nav-item">
+                            <a class="nav-link" href="{{ route('newOrdersFlagged') }}">
+                                {{ __('New Orders - Flagged') }}
+                            </a>
+                            </li>
                             @endif
                             @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(2,json_decode(auth()->user()->assigned_pages))))                       
                             <li class="nav-item">
@@ -186,11 +192,7 @@
                                     {{ __('Processed Orders') }}
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link"  href="{{ route('cindybce') }}">
-                                    {{ __('BCE Pending') }}
-                                </a>
-                            </li>
+                            
                             <li class="nav-item">
                                 <a class="nav-link"  href="{{ route('cindycancel') }}">
                                     {{ __('Cancel Pending') }}

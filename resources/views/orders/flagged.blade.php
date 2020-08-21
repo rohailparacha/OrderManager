@@ -66,7 +66,7 @@ var query = {
                 stateFilter:stateFilter,
                 amountFilter:amountFilter,
                 sourceFilter:sourceFilter,
-                route:'new'
+                route:'flagged'
             }
 
 
@@ -105,7 +105,7 @@ catch{
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-6">
-                                <h3 class="mb-0">{{ __('New Orders') }}</h3>
+                                <h3 class="mb-0">{{ __('New Orders - Flagged') }}</h3>
                             </div>  
                             
                             <div class="col-6" style="text-align:right;">
@@ -138,7 +138,7 @@ catch{
 
                             <div class="row" style="margin-left:0px!important;">
                         <div class="col-12 text-center" id="filters">
-                        <form action="orderFilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
+                        <form action="orderFilterFlagged" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
                             @csrf
                             <div style="width:100%; padding-bottom:2%;">
                                 <div class="form-group">

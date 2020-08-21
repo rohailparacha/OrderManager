@@ -150,7 +150,8 @@ Route::post('jonathan_update', function(Request $request) {
         'poNumber'=>$record['poNumber'],        
         'afpoNumber'=>$record['afpoNumber'],
         'account_id'=>'Jonathan',        
-        'status'=>'processing'
+        'status'=>'processing',
+        'itemId'=>$record['itemId']
         ]);
 
 
@@ -205,9 +206,11 @@ Route::post('bce_update', function(Request $request) {
     
     $success=0;
     $records = $request->data;
+    $bceCarrier = carriers::where('name','UPS')->get()->first();
 
     foreach($records as $record)
-    {        
+    {  
+        try{      
         if(empty(trim($record['sellOrderId'])))
             continue;
 
@@ -218,17 +221,21 @@ Route::post('bce_update', function(Request $request) {
         
         if(!empty($record['tracking']))
         {
-            $bceCarrier = carriers::where('name','UPS')->get()->first();
-
-            $insert = orders::where('sellOrderId',$record['sellOrderId'])        
+            $insert = orders::where('sellOrderId',$record['sellOrderId'])                    
             ->update([
-            'upsTrackingNumber'=>$record['tracking'],            
-            'carrierName'=>$bceCarrier->id
+            'upsTrackingNumber'=>$record['tracking'],         
+            'carrierName'=>$bceCarrier->id,
+            'isBCE'=>true
             ]);
                         
             if($insert)
                     $success++;
                                 
+        }
+        }
+        catch(\Exception $ex)
+        {
+            
         }
 
         

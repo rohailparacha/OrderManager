@@ -880,7 +880,7 @@ td {
                                 @foreach ($details as $detail)
                                     <tr>
                                         <td width="9%" class="specifictd"><img src="{{ $detail->image }}" width="75px" height="75px"></td>
-                                        <td width="26%">{{ $detail->name }}</td>
+                                        <td width="26%">{{ $detail->title }}</td>
                                         <td width="13%" class="specifictd">{{ $detail->SKU }}</td>
                                         <td width="13%" class="specifictd">{{ $detail->upc }}</td>
                                         @if($detail->quantity>1)

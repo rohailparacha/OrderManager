@@ -24,15 +24,17 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
     protected $stateFilter; 
     protected $amountFilter; 
     protected $sourceFilter; 
+    protected $route; 
 
 
-    public function __construct($storeFilter,$marketFilter,$stateFilter, $amountFilter, $sourceFilter)
+    public function __construct($storeFilter,$marketFilter,$stateFilter, $amountFilter, $sourceFilter, $route)
     {
         $this->storeFilter = $storeFilter;
         $this->marketFilter = $marketFilter;
         $this->stateFilter = $stateFilter;
         $this->amountFilter = $amountFilter;
         $this->sourceFilter = $sourceFilter;
+        $this->route = $route; 
     }
 
     public function collection()
@@ -42,6 +44,7 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
         $stateFilter = $this->stateFilter;
         $amountFilter = $this->amountFilter;
         $sourceFilter = $this->sourceFilter;
+        $route = $this->route; 
 
         $minAmount = trim(explode('-',$amountFilter)[0]);
         $maxAmount = trim(explode('-',$amountFilter)[1]);
@@ -51,8 +54,14 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
         ->leftJoin('ebay_products','order_details.SKU','=','ebay_products.sku')
         ->where('flag','!=','8')
         ->where('flag','!=','9')
-        ->where('flag','!=','10')
-        ->select(['orders.*',DB::raw('IFNULL( products.lowestPrice, 0) as lowestPrice'),'products.asin','ebay_products.sku']);
+        ->where('flag','!=','10');
+        
+        if($route == 'new')
+            $orders = $orders->where('flag','0');
+        else
+            $orders = $orders->where('flag','!=','0');
+
+        $orders = $orders->select(['orders.*',DB::raw('IFNULL( products.lowestPrice, 0) as lowestPrice'),'products.asin','ebay_products.sku']);
         
         
         if(!empty($storeFilter)&& $storeFilter !=0)

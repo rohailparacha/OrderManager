@@ -7,6 +7,7 @@ use App\orders;
 use App\accounts;
 use App\carriers; 
 use App\order_details;
+use App\gmail_accounts;
 use App\User;
 use App\Exports\ReportExport;
 use Excel; 
@@ -51,8 +52,8 @@ class reportsController extends Controller
             $carrierArr[$carrier->id]= $carrier->name; 
         }
 
-        
-        return view('report.index',compact('orders','stores','dateRange','statusFilter','marketFilter','storeFilter','userFilter','carrierArr', 'users'));
+        $accounts = gmail_accounts::all(); 
+        return view('report.index',compact('accounts','orders','stores','dateRange','statusFilter','marketFilter','storeFilter','userFilter','carrierArr', 'users'));
     }
 
     public function export(Request $request)
@@ -147,7 +148,9 @@ class reportsController extends Controller
             $carrierArr[$carrier->id]= $carrier->name; 
         }
 
-        return view('report.index',compact('orders','stores','dateRange','statusFilter','marketFilter','storeFilter','userFilter','carrierArr','users'));
+        $accounts = gmail_accounts::all(); 
+
+        return view('report.index',compact('accounts','orders','stores','dateRange','statusFilter','marketFilter','storeFilter','userFilter','carrierArr','users'));
     }
 
     public function getTotalShipping($id)

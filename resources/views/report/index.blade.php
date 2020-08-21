@@ -170,6 +170,7 @@ window.location = url;
                                     <th scope="col">{{ __('Buyer Name') }}</th>
                                     <th scope="col">{{ __('Sell Order Id') }}</th>
                                     <th scope="col">{{ __('Sell Total') }}</th>
+                                    <th scope="col">{{ __('Purchase Account') }}</th>
                                     <th scope="col">{{ __('Purchase Order ID') }}</th>
                                     <th scope="col">{{ __('Purchase Total') }}</th>
                                     <th scope="col">{{ __('Carrier Name') }}</th>
@@ -188,17 +189,27 @@ window.location = url;
                                         <td>{{ $order->buyerName }}</td>
                                         <td>{{ $order->sellOrderId }}</td>                                                                                                                        
                                         <td>{{ number_format((float)$order->totalAmount +(float)$order->shippingPrice , 2, '.', '') }}</td>
-                                        <td>{{ $order->poNumber }}</td>
+                                        <td>
+                                        @foreach($accounts as $account)
+                                            @if($account->id == $order->account_id)
+                                                {{$account->email}}
+                                            @endif 
+                                        @endforeach
+                                        @if(!is_numeric($order->account_id))
+                                        {{$order->account_id}}
+                                        @endif
+                                        </td>
+                                        <td><a target="_blank" href="https://www.amazon.com/progress-tracker/package/ref=ppx_yo_dt_b_track_package?_encoding=UTF8&itemId=klpjsskrrrpoqn&orderId={{$order->poNumber}}">{{ $order->poNumber }}</a></td>  
                                         <td>{{ number_format((float)$order->poTotalAmount, 2, '.', '') }}</td>
                                         @if(!empty($order->carrierName))
                                         <td>{{ $carrierArr[$order->carrierName] }}</td>
                                         @else
                                         <td>{{ $order->carrierName }}</td>
                                         @endif
-                                        @if(empty($order->newTrackingNumber))
+                                        @if(empty($order->upsTrackingNumber))
                                         <td>{{ $order->trackingNumber }}</td>
                                         @else
-                                        <td>{{ $order->newTrackingNumber }}</td>
+                                        <td>{{ $order->upsTrackingNumber }}</td>
                                         @endif
                                         <td>{{ $order->status }}</td>
                                         <td><a href="orderDetails/{{$order->id}}" class="btn btn-primary btn-sm">Details</a></td>

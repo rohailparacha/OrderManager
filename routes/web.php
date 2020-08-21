@@ -31,6 +31,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::put('profile', ['as' => 'profile.update', 'uses' => 'ProfileController@update']);
 	Route::put('profile/password', ['as' => 'profile.password', 'uses' => 'ProfileController@password']);
 	Route::get('newOrders','orderController@newOrders')->name('newOrders')->middleware('admin');
+	Route::get('newOrdersFlagged','orderController@newOrdersFlagged')->name('newOrdersFlagged')->middleware('admin');
 	Route::get('processedOrders','orderController@processedOrders')->name('processedOrders')->middleware('admin');
 	Route::get('cancelledOrders','orderController@cancelledOrders')->name('cancelledOrders')->middleware('admin');
 	Route::get('shippedOrders','orderController@shippedOrders')->name('shippedOrders')->middleware('admin');
@@ -70,6 +71,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('orderFlag/{id}/{flag}','orderController@orderFlag')->middleware('admin');
 	Route::get('orderFlag/{route}/{id}/{flag}','orderController@orderFlagRoute')->middleware('admin');
 	Route::any('orderFilter','orderController@filter')->middleware('admin');
+	Route::any('orderFilterFlagged','orderController@filterFlagged')->middleware('admin');
 	
 	
 	Route::any('assignFilter','orderController@assignFilter')->middleware('admin');
@@ -231,7 +233,7 @@ Route::group(['middleware' => 'auth'], function () {
 	//cindy orders
 	Route::get('autoFulfillProcess','orderFulfillmentController@autoFulfillProcess')->name('autoFulfillProcess')->middleware('admin');	
 	
-	Route::get('autofulfillconversions','orderFulfillmentController@autofulfillconversions')->name('cindybce')->middleware('admin');	
+	//Route::get('autofulfillconversions','orderFulfillmentController@autofulfillconversions')->name('cindybce')->middleware('admin');	
 	Route::get('autofulfillProcessed','orderFulfillmentController@autofulfillProcessed')->name('cindyprocessed')->middleware('admin');	
 
 	Route::get('autofulfillCancel','orderFulfillmentController@autofulfillCancel')->name('cindycancel')->middleware('admin');		

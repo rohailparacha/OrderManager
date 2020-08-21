@@ -210,7 +210,7 @@ catch{
                                         <td>{{ $order->storeName }}</td>
                                         <td>{{ $order->buyerName }}</td>
                                         <td><a target="_blank" href="orderDetails/{{$order->id}}">{{ $order->sellOrderId }}</a></td>
-                                        <td><a target="_blank" href="https://www.amazon.com/progress-tracker/package/ref=ppx_yo_dt_b_track_package?_encoding=UTF8&orderId={{$order->poNumber}}">{{ $order->poNumber }}</a></td>                                        
+                                        <td><a target="_blank" href="https://www.amazon.com/progress-tracker/package/ref=ppx_yo_dt_b_track_package?_encoding=UTF8&itemId=klpjsskrrrpoqn&orderId={{$order->poNumber}}">{{ $order->poNumber }}</a></td>                                        
                                         <td>{{ $order->city }}</td>
                                         <td>{{ $order->state }}</td>
                                         <td>{{ $order->postalCode }}</td>
