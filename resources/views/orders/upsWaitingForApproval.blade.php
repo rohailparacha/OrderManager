@@ -114,7 +114,7 @@ catch{
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-6">
-                                <h3 class="mb-0">{{ __('UPS Conversions') }}</h3>                                
+                                <h3 class="mb-0">{{ __('UPS Conversions - Waiting For Approval') }}</h3>                                
                             </div>  
                             <div class="col-6" style="text-align:right;">
                             <a href="conversionssync" class="btn btn-primary btn-md">Sync</a>                            
@@ -199,6 +199,7 @@ catch{
                                     <th scope="col">{{ __('Zip Code') }}</th>
                                     <th scope="col">{{ __('Old Tracking Number') }}</th>                                    
                                     <th scope="col">{{ __('UPS Tracking Number') }}</th>
+                                    <th scope="col">{{ __('Issues') }}</th>
                                     <th scope="col">Action</th>
                                 </tr>
                             </thead>
@@ -216,10 +217,21 @@ catch{
                                         <td>{{ $order->postalCode }}</td>
                                         <td>{{ $order->trackingNumber }}</td>
                                         <td><a target="_blank" href="https://www.ups.com/track?loc=en_US&tracknum={{ $order->upsTrackingNumber }}">{{ $order->upsTrackingNumber }}</a></td>                                                 
+                                        <td>
+                                        @if(!empty($order->upsFlags))
+                                        @foreach(json_decode($order->upsFlags) as $ord)
+                                        {{$ord}} -
+                                        @endforeach
+                                        @endif
+                                        </td>
                                         @if(empty($order->upsTrackingNumber))
-                                        <td>UPS Tracking Missing</td>
-                                                                            @elseif($order->status!='shipped')
-                                            <td><button name="shipBtn" id="ship{{$loop->iteration}}" data-id= {{$order->id}} data-track= {{$order->upsTrackingNumber}} data-carrier= "UPS" class="btn btn-primary btn-sm">Ship</button></td>
+                                            <td>UPS Tracking Missing</td>
+                                        @elseif($order->status!='shipped')
+                                            @if(empty($order->upsFlags))
+                                                <td><button name="shipBtn" id="ship{{$loop->iteration}}" data-id= {{$order->id}} data-track= {{$order->upsTrackingNumber}} data-carrier= "UPS" class="btn btn-primary btn-sm">Ship</button></td>
+                                            @else
+                                                <td><button name="shipBtn" id="ship{{$loop->iteration}}" data-id= {{$order->id}} data-track= {{$order->upsTrackingNumber}} data-carrier= "UPS" class="btn btn-primary btn-sm" disabled>Ship</button></td>
+                                            @endif
                                         @else
                                             <td>Shipped</td>
                                         @endif

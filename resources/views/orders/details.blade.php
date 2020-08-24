@@ -102,7 +102,10 @@ $('#btnBce').on('click',function(event){
     $('#modal-ship-edit').show(); 
     $('#ship').modal('show');      
     $('#carrierTbx').val(order.carrierName);
-    $('#trackingTbx').val(order.trackingNumber);
+    if(order.upsTrackingNumber=='')
+        $('#trackingTbx').val(order.trackingNumber);
+    else
+        $('#trackingTbx').val(order.upsTrackingNumber);
  });
 
  $('#modal-ship-edit').on('click',function(event){ 

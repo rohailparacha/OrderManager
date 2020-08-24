@@ -8,6 +8,7 @@ use Redirect;
 use Response; 
 use Session;
 use GuzzleHttp\Client;
+use App\orders;
 
 class keepaController extends Controller
 {
@@ -22,7 +23,8 @@ class keepaController extends Controller
     {        
         return view('keepa.index');
     }
-
+   
+    
     public function getResponse(Request $request)
     {
         $input = [
@@ -48,7 +50,7 @@ class keepaController extends Controller
         try{
             $client = new client(); 
             $endPoint = "https://api.keepa.com/product";
-            $key="f26tbbe0537u7c8d13tffvgkq4b8s1jd9cipv51uvbagasg3q8g07d2gfjmboti4";
+            $key="";
 
             $response = $client->request('GET', $endPoint,
             [

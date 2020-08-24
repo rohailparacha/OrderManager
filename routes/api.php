@@ -202,49 +202,9 @@ Route::get('conversions', function(Request $request) {
     
 });
 
-Route::post('bce_update', function(Request $request) {
-    
-    $success=0;
-    $records = $request->data;
-    $bceCarrier = carriers::where('name','UPS')->get()->first();
 
-    foreach($records as $record)
-    {  
-        try{      
-        if(empty(trim($record['sellOrderId'])))
-            continue;
 
-        $order = orders::where('sellOrderId',$record['sellOrderId'])->get()->first(); 
-
-        if(empty($order)|| $order->status=='shipped')
-            continue;
-        
-        if(!empty($record['tracking']))
-        {
-            $insert = orders::where('sellOrderId',$record['sellOrderId'])                    
-            ->update([
-            'upsTrackingNumber'=>$record['tracking'],         
-            'carrierName'=>$bceCarrier->id,
-            'isBCE'=>true
-            ]);
-                        
-            if($insert)
-                    $success++;
-                                
-        }
-        }
-        catch(\Exception $ex)
-        {
-            
-        }
-
-        
-    }
-
-    return response()->json([
-        'count' => $success
-    ],201);
-});
+Route::post('bce_update','UPSController@index');
 
 Route::post('updateConversion', function(Request $request) {
     
