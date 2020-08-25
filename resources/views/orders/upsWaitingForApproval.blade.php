@@ -219,8 +219,12 @@ catch{
                                         <td><a target="_blank" href="https://www.ups.com/track?loc=en_US&tracknum={{ $order->upsTrackingNumber }}">{{ $order->upsTrackingNumber }}</a></td>                                                 
                                         <td>
                                         @if(!empty($order->upsFlags))
-                                        @foreach(json_decode($order->upsFlags) as $ord)
+                                        @foreach(json_decode($order->upsFlags) as $key=>$ord)
+                                        @if($key+1 != count(json_decode($order->upsFlags)))
                                         {{$ord}} -
+                                        @else
+                                        {{$ord}}
+                                        @endif
                                         @endforeach
                                         @endif
                                         </td>

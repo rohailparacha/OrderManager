@@ -20,10 +20,11 @@ class UPSController extends Controller
             $success=0;
             $records = $request->data;
             $bceCarrier = carriers::where('name','UPS')->get()->first();
-            $issues = '';
+          
             foreach($records as $record)
             {              
-                try{      
+                try{    
+                $issues = '';  
                 if(empty(trim($record['sellOrderId'])))
                     continue;
         

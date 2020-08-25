@@ -422,7 +422,7 @@ $(document).ready(function(){
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">                                    
-                                                            if(empty($route))                               
+                                                        @if(empty($route))                               
                                                         <form action="{{ route('samuelDeleteReturn', $return->id) }}" method="post">
                                                         @else
                                                         <form action="/samuelDeleteReturn/{{$route}}/{{$return->id}}" method="post">
