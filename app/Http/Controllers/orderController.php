@@ -10,6 +10,7 @@ use App\flags;
 use App\reasons;
 use DB;
 use Carbon\Carbon;
+use App\amazon_settings;
 use App\User;
 use App\returns;
 use App\states;
@@ -1376,6 +1377,7 @@ class orderController extends Controller
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
                     $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                    $test->orWhere('upsTrackingNumber', 'LIKE', '%'.$query.'%');
                     $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
                 })                
                 ->orderBy('date', 'ASC')->paginate(100);
@@ -1389,6 +1391,7 @@ class orderController extends Controller
                         $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                         $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
                         $test->orWhere('trackingNumber', 'LIKE', '%'.$query.'%');
+                        $test->orWhere('upsTrackingNumber', 'LIKE', '%'.$query.'%');
                         $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
                 })                
                 ->orderBy('date', 'ASC')->paginate(100);
@@ -1939,9 +1942,19 @@ class orderController extends Controller
         }
 
         else if($route == 'products')
-        {
-            $last_run = products::max('modified_at');   
-            $products = products::select()
+        {    $setting = amazon_settings::get()->first();
+            $prd = products::whereIn('asin', function($query) use($setting){
+                    $query->select('SKU')
+                    ->from(with(new order_details)->getTable())
+                    ->join('orders','order_details.order_id','orders.id')
+                    ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+                    ->groupBy('SKU')
+                    ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                    })
+                    ->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+        
+            $last_run = $prd->max('modified_at');   
+            $products = $prd
             ->where(function($test) use ($query){
                 $test->where('asin', 'LIKE', '%'.$query.'%');
                 $test->orWhere('upc', 'LIKE', '%'.$query.'%');
@@ -1952,12 +1965,12 @@ class orderController extends Controller
             $accounts = accounts::select()->get(); 
             $strategyCodes = array(); 
             
-            $maxSellers = ceil(products::where(function($test) use ($query){
+            $maxSellers = ceil($prd->where(function($test) use ($query){
                 $test->where('asin', 'LIKE', '%'.$query.'%');
                 $test->orWhere('upc', 'LIKE', '%'.$query.'%');
             })->max('totalSellers'));
             
-            $maxPrice = ceil(products::where(function($test) use ($query){
+            $maxPrice = ceil($prd->where(function($test) use ($query){
                 $test->where('asin', 'LIKE', '%'.$query.'%');
                 $test->orWhere('upc', 'LIKE', '%'.$query.'%');
             })->max('price'));
@@ -1978,6 +1991,61 @@ class orderController extends Controller
             
             $products = $products->appends('searchQuery',$query)->appends('route', $route);
             return view('products.index',compact('products','strategyCodes','strategies','accounts','maxSellers','maxPrice','minAmount','maxAmount','minSeller','maxSeller','accountFilter','strategyFilter','last_run','search','route'));
+      
+        }
+
+        else if($route == 'secondaryproducts')
+        {
+            $setting = amazon_settings::get()->first();
+        
+            $prd = products::whereNotIn('asin', function($query) use($setting){
+                    $query->select('SKU')
+                    ->from(with(new order_details)->getTable())
+                    ->join('orders','order_details.order_id','orders.id')
+                    ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+                    ->groupBy('SKU')
+                    ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                    })
+                    ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+            
+            $last_run = $prd->max('modified_at');   
+            $products = $prd
+            ->where(function($test) use ($query){
+                $test->where('asin', 'LIKE', '%'.$query.'%');
+                $test->orWhere('upc', 'LIKE', '%'.$query.'%');
+            })
+            ->paginate(100); 
+
+            $strategies = strategies::select()->get(); 
+            $accounts = accounts::select()->get(); 
+            $strategyCodes = array(); 
+            
+            $maxSellers = ceil($prd->where(function($test) use ($query){
+                $test->where('asin', 'LIKE', '%'.$query.'%');
+                $test->orWhere('upc', 'LIKE', '%'.$query.'%');
+            })->max('totalSellers'));
+            
+            $maxPrice = ceil($prd->where(function($test) use ($query){
+                $test->where('asin', 'LIKE', '%'.$query.'%');
+                $test->orWhere('upc', 'LIKE', '%'.$query.'%');
+            })->max('price'));
+
+            $minAmount = 0;
+            $maxAmount = $maxPrice;
+            $minSeller = 0;
+            $maxSeller = $maxSellers;
+    
+            $accountFilter = 0; 
+            $strategyFilter = 0; 
+    
+            foreach($strategies as $strategy)
+            {
+                $strategyCodes[$strategy->id] = $strategy->code;
+            }
+            
+            
+            $products = $products->appends('searchQuery',$query)->appends('route', $route);
+            return view('products.secondary',compact('products','strategyCodes','strategies','accounts','maxSellers','maxPrice','minAmount','maxAmount','minSeller','maxSeller','accountFilter','strategyFilter','last_run','search','route'));
       
         }
         elseif($route == 'ebayProducts')
@@ -3237,13 +3305,24 @@ class orderController extends Controller
             }
             elseif($status=='new')
                 {
+                    $count = orders::where('trackingNumber',$tracking)->get()->first(); 
+                    if(!empty($count))
+                        return "Tracking Number Duplicate - ".$count->poNumber;
+                    else{
                     $this->shipOrder($id, $tracking, $carrierName->name,$status);
                     $order = orders::where('id',$id)->update(['carrierName'=>$carrier, 'trackingNumber'=>$tracking, 'status'=>'shipped']);
+                    }
                 }
             else
                 {
+                    $count = orders::where('trackingNumber',$tracking)->get()->first(); 
+                    if(!empty($count))
+                        return "Tracking Number Duplicate - ".$count->poNumber;
+                    else
+                    {
                     $this->shipOrder($id, $tracking, $carrierName->name,$status);
                     $order = orders::where('id',$id)->update(['carrierName'=>$carrier, 'trackingNumber'=>$tracking,'newTrackingNumber'=>'', 'upsTrackingNumber'=>'','converted'=>'0']);
+                    }
                 }
                 
 

@@ -368,7 +368,19 @@
                         @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(7,json_decode(auth()->user()->assigned_pages))))                       
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('products') }}">
-                                    {{ __('Amazon Products') }}
+                                    {{ __('Amazon Primary') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('secondaryproducts') }}">
+                                    {{ __('Amazon Secondary') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('amazonsettings') }}">
+                                    {{ __('Amazon Product Settings') }}
                                 </a>
                             </li>
                             @endif

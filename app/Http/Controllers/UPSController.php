@@ -218,7 +218,7 @@ class UPSController extends Controller
         if(count($flags)>0)
             return $flags;
 
-        if($this->checkDuplicate($trackingNumber))
+        if($this->checkDuplicate($orderId,$trackingNumber))
             $flags[]='Duplicate';
 
         if($this->checkDate($orderId,$labelCreateDate))
@@ -263,9 +263,9 @@ class UPSController extends Controller
         
     }
 
-    public function checkDuplicate($trackingNumber)
+    public function checkDuplicate($orderId, $trackingNumber)
     {
-        $count = orders::where('upsTrackingNumber',trim($trackingNumber))->count();
+        $count = orders::where('upsTrackingNumber',trim($trackingNumber))->where('id','!=',$orderId)->count();
         if($count>0)
             return true; 
         else

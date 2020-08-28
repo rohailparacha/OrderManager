@@ -6,8 +6,10 @@ use Illuminate\Http\Request;
 use App\strategies;
 use App\logs;
 use App\log_batches;
+use App\amazon_settings;
 use Carbon\Carbon;
 use App\products;
+use App\order_details;
 use App\accounts;
 use App\Jobs\Repricing;
 use Illuminate\Support\Facades\Input;
@@ -60,6 +62,7 @@ class productsController extends Controller
         return view('logs',compact('logs'));
     }
 
+    
     public function getLogBatches(Request $request)
         {
             $id = $request['id'];
@@ -90,14 +93,25 @@ class productsController extends Controller
     
     public function index()
     {          
-     
-        $last_run = products::max('modified_at');      
-        $products = products::select()->paginate(100); 
+        $setting = amazon_settings::get()->first();
+        $prd = products::whereIn('asin', function($query) use($setting){
+            $query->select('SKU')
+            ->from(with(new order_details)->getTable())
+            ->join('orders','order_details.order_id','orders.id')
+            ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+            ->groupBy('SKU')
+            ->havingRaw('count(*) > ?', [$setting->soldQty]);
+            })
+            ->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+            
+        $last_run = $prd->max('modified_at');      
+        $products = $prd->paginate(100);
+
         $strategies = strategies::select()->get(); 
         $accounts = accounts::select()->get(); 
         $strategyCodes = array(); 
-        $maxSellers = ceil(products::max('totalSellers'));
-        $maxPrice = ceil(products::max('price'));
+        $maxSellers = ceil($prd->max('totalSellers'));
+        $maxPrice = ceil($prd->max('price'));
         $minAmount = 0;
         $maxAmount = $maxPrice;
         $minSeller = 0;
@@ -112,6 +126,45 @@ class productsController extends Controller
         }
 
         return view('products.index',compact('products','strategyCodes','strategies','accounts','maxSellers','maxPrice','minAmount','maxAmount','minSeller','maxSeller','accountFilter','strategyFilter','last_run'));
+    }
+
+    public function secondaryProducts()
+    {          
+
+        $setting = amazon_settings::get()->first();
+         
+        $prd = products::whereNotIn('asin', function($query) use($setting){
+            $query->select('SKU')
+            ->from(with(new order_details)->getTable())
+            ->join('orders','order_details.order_id','orders.id')
+            ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+            ->groupBy('SKU')
+            ->havingRaw('count(*) > ?', [$setting->soldQty]);
+            })
+            ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+            $last_run = $prd->max('modified_at');     
+            $products = $prd->paginate(100);
+
+
+        $strategies = strategies::select()->get(); 
+        $accounts = accounts::select()->get(); 
+        $strategyCodes = array(); 
+        $maxSellers = ceil($prd->max('totalSellers'));
+        $maxPrice = ceil($prd->max('price'));
+        $minAmount = 0;
+        $maxAmount = $maxPrice;
+        $minSeller = 0;
+        $maxSeller = $maxSellers;
+
+        $accountFilter = 0; 
+        $strategyFilter = 0; 
+
+        foreach($strategies as $strategy)
+        {
+            $strategyCodes[$strategy->id] = $strategy->code;
+        }
+
+        return view('products.secondary',compact('products','strategyCodes','strategies','accounts','maxSellers','maxPrice','minAmount','maxAmount','minSeller','maxSeller','accountFilter','strategyFilter','last_run'));
     }
 
 
@@ -132,13 +185,35 @@ class productsController extends Controller
         $sellerFilter = $request->sellerFilter;
         $amountFilter = $request->amountFilter; 
 
-        $filename = date("d-m-Y")."-".time()."-products.xlsx";
-        return Excel::download(new ProductsExport($accountFilter,$strategyFilter,$sellerFilter,$amountFilter), $filename);
+        $filename = date("d-m-Y")."-".time()."-primary-products.xlsx";
+        return Excel::download(new ProductsExport($accountFilter,$strategyFilter,$sellerFilter,$amountFilter,1), $filename);
+    }
+
+    public function secondaryExport(Request $request)
+    {        
+        $accountFilter = $request->accountFilter;
+        $strategyFilter = $request->strategyFilter;
+        $sellerFilter = $request->sellerFilter;
+        $amountFilter = $request->amountFilter; 
+
+        $filename = date("d-m-Y")."-".time()."-secondary-products.xlsx";
+        return Excel::download(new ProductsExport($accountFilter,$strategyFilter,$sellerFilter,$amountFilter,2), $filename);
     }
 
     public function filter(Request $request)
     {
-        $last_run = products::max('modified_at');      
+        $setting = amazon_settings::get()->first();
+        $prd = products::whereIn('asin', function($query) use($setting){
+            $query->select('SKU')
+            ->from(with(new order_details)->getTable())
+            ->join('orders','order_details.order_id','orders.id')
+            ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+            ->groupBy('SKU')
+            ->havingRaw('count(*) > ?', [$setting->soldQty]);
+            })
+            ->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+
+        $last_run = $prd->max('modified_at');      
         if($request->has('accountFilter'))
             $accountFilter = $request->get('accountFilter');
         if($request->has('strategyFilter'))
@@ -156,7 +231,8 @@ class productsController extends Controller
         $maxSeller = trim(explode('-',$sellerFilter)[1]);        
 
         //now show orders
-        $products = products::select();
+
+        $products= $prd; 
                            
 
         if(!empty($accountFilter)&& $accountFilter !=0)
@@ -184,22 +260,100 @@ class productsController extends Controller
             $strategyCodes[$strategy->id] = $strategy->code;
         }
 
-        $maxSellers = ceil(products::max('totalSellers'));
-        $maxPrice = ceil(products::max('price'));
+        $maxSellers = ceil($prd->max('totalSellers'));
+        $maxPrice = ceil($prd->max('price'));
         return view('products.index',compact('products','strategyCodes','strategies','accounts','maxSellers','maxPrice','accountFilter','strategyFilter','minAmount','maxAmount','minSeller','maxSeller','last_run'));
-    }   
+    }  
+    
+    public function secondaryFilter(Request $request)
+    {
+        $setting = amazon_settings::get()->first();
+        $prd = products::whereNotIn('asin', function($query) use($setting){
+            $query->select('SKU')
+            ->from(with(new order_details)->getTable())
+            ->join('orders','order_details.order_id','orders.id')
+            ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+            ->groupBy('SKU')
+            ->havingRaw('count(*) > ?', [$setting->soldQty]);
+            })
+            ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+
+        $last_run = $prd->max('modified_at'); 
+
+        if($request->has('accountFilter'))
+            $accountFilter = $request->get('accountFilter');
+        if($request->has('strategyFilter'))
+            $strategyFilter = $request->get('strategyFilter');  
+        if($request->has('sellerFilter'))
+            $sellerFilter = $request->get('sellerFilter');
+        if($request->has('amountFilter'))
+            $amountFilter = $request->get('amountFilter');
+        
+        
+        $minAmount = trim(explode('-',$amountFilter)[0]);
+        $maxAmount = trim(explode('-',$amountFilter)[1]);
+        
+        $minSeller = trim(explode('-',$sellerFilter)[0]);
+        $maxSeller = trim(explode('-',$sellerFilter)[1]);        
+
+        //now show orders
+        $products = $prd;
+                           
+
+        if(!empty($accountFilter)&& $accountFilter !=0)
+        {   
+            $account= accounts::where('id',$accountFilter)->get()->first();          
+            $products = $products->where('account',$account->store);
+        }
+
+        if(!empty($strategyFilter)&& $strategyFilter !=0)
+        {            
+            $products = $products->where('strategy_id',$strategyFilter);
+        }
+
+            $products = $products->whereBetween('totalSellers',[$minSeller,$maxSeller]);            
+        
+            $products = $products->whereBetween('price',[$minAmount,$maxAmount]);
+        
+        $products  = $products->paginate(100)->appends('accountFilter',$accountFilter)->appends('strategyFilter',$strategyFilter)->appends('sellerFilter',$sellerFilter)->appends('amountFilter',$amountFilter);
+
+        $strategies = strategies::select()->get(); 
+        $accounts = accounts::select()->get(); 
+        $strategyCodes = array(); 
+        foreach($strategies as $strategy)
+        {
+            $strategyCodes[$strategy->id] = $strategy->code;
+        }
+
+        $maxSellers = ceil($prd->max('totalSellers'));
+        $maxPrice = ceil($prd->max('price'));
+        return view('products.secondary',compact('products','strategyCodes','strategies','accounts','maxSellers','maxPrice','accountFilter','strategyFilter','minAmount','maxAmount','minSeller','maxSeller','last_run'));
+    } 
 
     public function getFile()
     {
-        $filename = date("d-m-Y")."-".time()."-sa-api-export.xlsx";
-        return Excel::download(new SellerActiveExport(), $filename);   
+        $filename = date("d-m-Y")."-".time()."-primary-sa-api-export.xlsx";
+        return Excel::download(new SellerActiveExport(1), $filename);   
+    }
+
+    public function secondaryGetFile()
+    {
+        $filename = date("d-m-Y")."-".time()."-secondary-sa-api-export.xlsx";
+        return Excel::download(new SellerActiveExport(2), $filename);   
     }
 
     public function exportAsins(Request $request)
     {
         $i = $request->range;        
-        $filename = date("d-m-Y")."-".time()."-asins-export.csv";
-        return Excel::download(new AsinsExport($i), $filename);   
+        $filename = date("d-m-Y")."-".time()."-primary-asins-export.csv";
+        return Excel::download(new AsinsExport($i,1), $filename);   
+    }
+
+    public function secondaryExportAsins(Request $request)
+    {
+        $i = $request->range;        
+        $filename = date("d-m-Y")."-".time()."-secondary-asins-export.csv";
+        return Excel::download(new AsinsExport($i,2), $filename);   
     }
     
     public function uploadSubmit(Request $request)
@@ -255,7 +409,7 @@ class productsController extends Controller
         $collection = $import->data;
                 
         $status = 'new';
-        Repricing::dispatch($collection, $status);
+        Repricing::dispatch($collection, $status,1);
         
         Session::flash('success_msg', 'Import in progress. Check logs for details');
         return redirect()->route('products');
@@ -388,7 +542,6 @@ class productsController extends Controller
         
         return redirect()->route('products');  
     }
-
    
 
     public function repricing()
@@ -397,11 +550,24 @@ class productsController extends Controller
         
         $status = 'old';
 
-        Repricing::dispatch($collection, $status);        
+        Repricing::dispatch($collection, $status, 1);        
         
         Session::flash('success_msg', 'Repricing in progress. Please check logs page for updates.');
         
         return redirect()->route('products');  
+    }
+
+    public function secondaryRepricing()
+    {
+        $collection = array(); 
+        
+        $status = 'old';
+
+        Repricing::dispatch($collection, $status, 2);        
+        
+        Session::flash('success_msg', 'Repricing in progress. Please check logs page for updates.');
+        
+        return redirect()->route('secondaryproducts');  
     }
 
     public function editAmzProduct(Request $request)

@@ -84,10 +84,10 @@ table {
                                         <td width="8%">{{ number_format((float)$order->poTotalAmount, 2, '.', '') }}</td>                                
                                         
                                         <td width="10%">
-                                        @if(empty($order->newTrackingNumber))
+                                        @if(empty($order->upsTrackingNumber))
                                             {{$order->trackingNumber}}
                                         @else
-                                            {{$order->newTrackingNumber}}
+                                            {{$order->upsTrackingNumber}}
                                         @endif
                                         </td>
 

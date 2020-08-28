@@ -86,6 +86,7 @@ $('#btnBce').on('click',function(event){
 
  $('#btnShip').on('click',function(event){
     $('#errorShipping').hide(); 
+    $('#dupIssue').hide(); 
     $('#errorCarrier').hide(); 
     $('#modal-ship').show(); 
     $('#modal-edit').hide(); 
@@ -97,6 +98,7 @@ $('#btnBce').on('click',function(event){
  $('#updateShip').on('click',function(event){
     var order = <?php echo json_encode($order); ?>;
     $('#errorShipping').hide(); 
+    $('#dupIssue').hide(); 
     $('#errorCarrier').hide(); 
     $('#modal-ship').hide(); 
     $('#modal-ship-edit').show(); 
@@ -162,8 +164,14 @@ $('#btnBce').on('click',function(event){
                if (data == 'success') {
                    $('#process').modal('hide');
                    $('#errorShipping').hide();  
+                   $('#dupIssue').hide(); 
                    document.location.reload();                       
                } 
+               else if(data.startsWith("Tracking Number"))
+               {
+                    $('#dupIssue').text(data);
+                    $('#dupIssue').show(); 
+               }
                else
                {                                
                 $('#errorShipping').show();
@@ -445,8 +453,14 @@ $('#btnBce').on('click',function(event){
                if (data == 'success') {
                    $('#process').modal('hide');
                    $('#errorShipping').hide();  
+                   $('#dupIssue').hide();
                    document.location.reload();                       
                } 
+               else if(data.startsWith("Tracking Number"))
+               {                   
+                    $('#dupIssue').text(data);
+                    $('#dupIssue').show(); 
+               }
                else
                {                                
                 $('#errorShipping').show();
@@ -1096,6 +1110,10 @@ td {
       <div class="alert alert-danger" id="errorShipping" style="display:none">
             Error while shipping order. Please check the inputs below: 
        </div>
+       
+       <div class="alert alert-danger" id="dupIssue" style="display:none">             
+       </div>
+
        <div class="alert alert-danger" id="errorCarrier" style="display:none">
             Please select carrier.
        </div>

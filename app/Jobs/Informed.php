@@ -14,6 +14,8 @@ use App\logs;
 use App\products;
 use App\accounts;
 use App\blacklist;
+use App\order_details; 
+use App\amazon_settings; 
 use App\log_batches;
 use App\Jobs\Repricing;
 use App\Jobs\SellerActive;
@@ -39,13 +41,15 @@ class Informed implements ShouldQueue
     public $recordId;
     public $batchId; 
     public $accountId;
+    public $flag;
     
-    public function __construct($offset, $recordId, $batchId, $accountId)
+    public function __construct($offset, $recordId, $batchId, $accountId, $flag)
     {
         $this->offset = $offset; 
         $this->recordId = $recordId;
         $this->batchId = $batchId;
         $this->accountId = $accountId;
+        $this->flag = $flag;
     }
 
     /**
@@ -69,10 +73,11 @@ class Informed implements ShouldQueue
         $id = log_batches::insertGetId(['log_id'=>$this->recordId,'name'=>$name->name,'date_started'=>date('Y-m-d H:i:s'),'stage'=>'SellerActive','status'=>'In Progress']);   
         
         $accounts = accounts::all();         
+        
 
         foreach($accounts as $account)
         {
-            SellerActive::dispatch($offset,$limit, $account->id, $id, $this->accountId)->onConnection('informed')->onQueue('informed');   
+            SellerActive::dispatch($offset,$limit, $account->id, $id, $this->accountId, $this->flag)->onConnection('informed')->onQueue('informed');   
         }                
                     
     }

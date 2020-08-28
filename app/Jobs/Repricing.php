@@ -14,6 +14,8 @@ use Illuminate\Http\Request;
 use App\logs;
 use App\log_batches;
 use App\products;
+use App\order_details; 
+use App\amazon_settings; 
 use App\accounts;
 use App\sc_accounts;
 use App\Jobs\Repricing;
@@ -44,11 +46,13 @@ class Repricing implements ShouldQueue
     private $prodCount;
     public $batchId;
     public $accountId; 
+    public $flag;
 
-    public function __construct($collection, $status)
+    public function __construct($collection, $status, $flag)
     {        
         $this->collection = $collection; 
         $this->status = $status; 
+        $this->flag = $flag;
         $this->offset = -1;      
     }
 
@@ -62,16 +66,43 @@ class Repricing implements ShouldQueue
         
 
         $status = $this->status; 
-
+        
         $collection = $this->collection; 
         
         $accounts = accounts::all();
-
+        $flag = $this->flag;
         foreach($accounts as $account)
         {
-            $this->offset = -1;     
-            
-            $this->prodCount = count(products::where('account',$account->store)->get());
+            $this->offset = -1; 
+            $setting = amazon_settings::get()->first();   
+           
+            if($flag==1)
+            {
+                $prd = products::whereIn('asin', function($query) use($setting){
+                    $query->select('SKU')
+                    ->from(with(new order_details)->getTable())
+                    ->join('orders','order_details.order_id','orders.id')
+                    ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+                    ->groupBy('SKU')
+                    ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                    })
+                    ->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+        
+            }
+            else
+            {
+                $prd = products::whereNotIn('asin', function($query) use($setting){
+                    $query->select('SKU')
+                    ->from(with(new order_details)->getTable())
+                    ->join('orders','order_details.order_id','orders.id')
+                    ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+                    ->groupBy('SKU')
+                    ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                    })
+                    ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+            }
+
+            $this->prodCount = count($prd->where('account',$account->store)->get());
             
             $this->accountId = $account->id;
 
@@ -89,9 +120,40 @@ class Repricing implements ShouldQueue
     {
         $this->recordId = logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress','action'=>'Repricing']);
         $account = accounts::where('id',$this->accountId)->get()->first();
-        $products = products::where('account',$account->store)->get();
+        
+        $flag = $this->flag; 
+
+        $setting = amazon_settings::get()->first();   
+           
+        if($flag==1)
+        {
+            $prd = products::whereIn('asin', function($query) use($setting){
+                $query->select('SKU')
+                ->from(with(new order_details)->getTable())
+                ->join('orders','order_details.order_id','orders.id')
+                ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+                ->groupBy('SKU')
+                ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                })
+                ->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+    
+        }
+        else
+        {
+            $prd = products::whereNotIn('asin', function($query) use($setting){
+                $query->select('SKU')
+                ->from(with(new order_details)->getTable())
+                ->join('orders','order_details.order_id','orders.id')
+                ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+                ->groupBy('SKU')
+                ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                })
+                ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+        }
+        $products = $prd->where('account',$account->store)->get();
         
         $dataArray = array(); 
+
         foreach($products as $product)
         {
             try{
@@ -688,9 +750,9 @@ class Repricing implements ShouldQueue
         $filename = date("d-m-Y")."-".time()."-import.csv";
         
         if($this->status=='new')
-            Excel::store(new InformedExport( $this->prodCount + ($this->offset * 5000), $this->accountId), $filename,'local');      
+            Excel::store(new InformedExport( $this->prodCount + ($this->offset * 5000), $this->accountId, $this->flag), $filename,'local');      
         else
-            Excel::store(new InformedExport($this->offset * 5000, $this->accountId), $filename,'local');   
+            Excel::store(new InformedExport($this->offset * 5000, $this->accountId, $this->flag), $filename,'local');   
         
         $endPoint ='https://api.informed.co/v1/feed';
 
@@ -764,10 +826,10 @@ class Repricing implements ShouldQueue
             log_batches::where('id',$this->batchId)->update(['totalItems'=>$body->SuccessCount+$body->ErrorCount, 'successItems'=>$body->SuccessCount,'errorItems'=> $body->ErrorCount]);    
 
             if($this->status=='new')            
-                Informed::dispatch(( $this->prodCount + ($this->offset * 5000)),$this->recordId, $this->batchId,$this->accountId)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
+                Informed::dispatch(( $this->prodCount + ($this->offset * 5000)),$this->recordId, $this->batchId,$this->accountId, $this->flag)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
 
             else
-                 Informed::dispatch($this->offset * 5000,$this->recordId, $this->batchId,$this->accountId)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
+                 Informed::dispatch($this->offset * 5000,$this->recordId, $this->batchId,$this->accountId,  $this->flag)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
            }
            else
            { 

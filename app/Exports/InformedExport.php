@@ -8,6 +8,9 @@ use App\products;
 use App\blacklist;
 use DB;
 use App\accounts; 
+use App\amazon_settings;
+use App\order_details;
+use Carbon\Carbon;
 
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -19,12 +22,14 @@ class InformedExport implements FromCollection,WithHeadings,ShouldAutoSize
     */
     protected $offset; 
     protected $accountId;
+    protected $flag; 
 
 
-    public function __construct($offset, $accountId)
+    public function __construct($offset, $accountId, $flag)
     {
         $this->offset = $offset;
         $this->accountId= $accountId;
+        $this->flag= $flag;
     }
 
     public function collection()
@@ -34,7 +39,37 @@ class InformedExport implements FromCollection,WithHeadings,ShouldAutoSize
         
         $account = accounts::where('id',$this->accountId)->get()->first();
 
-        $products = products::where('account',$account->store)->select()->offset($offset)->limit(5000)->get();         
+        $flag =  $this->flag;
+
+        $setting = amazon_settings::get()->first();
+
+        if($flag==1)
+        {
+            $prd = products::whereIn('asin', function($query) use($setting){
+                $query->select('SKU')
+                ->from(with(new order_details)->getTable())
+                ->join('orders','order_details.order_id','orders.id')
+                ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+                ->groupBy('SKU')
+                ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                })
+                ->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+    
+        }
+        else
+        {
+            $prd = products::whereNotIn('asin', function($query) use($setting){
+                $query->select('SKU')
+                ->from(with(new order_details)->getTable())
+                ->join('orders','order_details.order_id','orders.id')
+                ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+                ->groupBy('SKU')
+                ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                })
+                ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+        }
+
+        $products = $prd->where('account',$account->store)->select()->offset($offset)->limit(5000)->get();         
         
         $accounts = accounts::all(); 
         $accArray = array();

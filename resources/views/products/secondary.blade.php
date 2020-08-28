@@ -149,7 +149,7 @@ var query = {
             }
 
 
-var url = "/productexport?" + $.param(query)
+var url = "/secondaryproductexport?" + $.param(query)
 
 window.location = url;
 
@@ -180,7 +180,7 @@ catch{
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-8">
-                                <h3 class="mb-0">{{ __('Amazon Primary Products') }}</h3>
+                                <h3 class="mb-0">{{ __('Amazon Secondary Products') }}</h3>
                             </div>                              
                             
                         </div>
@@ -232,7 +232,7 @@ catch{
                     </div>
                     <div class="row" style="margin-left:0px!important;">
                  <div class="col-12 text-center" id="filters">
-                <form action="productsfilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
+                <form action="secondaryfilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
                     @csrf
                     <div style="width:100%; padding-bottom:2%;">
                         <div class="form-group">
@@ -289,12 +289,12 @@ catch{
                     {{ $provider::getIranTime(date_format(date_create($last_run), 'm/d/Y H:i:s')) }}                                        
                     </p>
                 </form>   
-                <a href="./repricing" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px; margin-bottom:20px; ">Repricing</a>   
-                <a href="./getfile" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px; margin-bottom:20px; ">Download Products</a>   
+                <a href="./secondaryrepricing" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px; margin-bottom:20px; ">Repricing</a>   
+                <a href="./getsecondaryfile" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px; margin-bottom:20px; ">Download Products</a>   
                 <a href="./template" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px; margin-bottom:20px; ">Template File</a>   
                 
                 
-                <form method="post" style="float:right;" class="form-inline" action="exportAsins" autocomplete="off">
+                <form method="post" style="float:right;" class="form-inline" action="secondaryExportAsins" autocomplete="off">
                             @csrf
                                                         
                             <div class="form-group">
@@ -335,7 +335,7 @@ catch{
                         <table class="table align-items-center table-flush">
                             <thead class="thead-light">
                                 <tr>
-                                    <th scope="col" width="8%" >{{ __('Image') }}</th>
+                                <th scope="col" width="8%" >{{ __('Image') }}</th>
                                     <th scope="col" width="9%" >{{ __('Created Date') }}</th>
                                     <th scope="col" width="7%">{{ __('Store Name') }}</th>
                                     <th scope="col" width="9%">{{ __('ASIN') }}</th>

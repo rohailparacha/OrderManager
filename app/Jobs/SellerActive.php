@@ -12,8 +12,9 @@ use Illuminate\Http\Request;
 use App\strategies;
 use App\logs;
 use App\log_batches;
-
 use App\products;
+use App\order_details; 
+use App\amazon_settings; 
 use App\accounts;
 use App\blacklist;
 use App\Jobs\Repricing;
@@ -42,8 +43,9 @@ class SellerActive implements ShouldQueue
     public $success;
     public $failure;
     public $accountId;
+    public $flag; 
 
-    public function __construct($offset, $limit,  $account, $id, $accountId)
+    public function __construct($offset, $limit,  $account, $id, $accountId, $flag)
     {
         $this->offset = $offset; 
         $this->limit = $limit; 
@@ -52,6 +54,7 @@ class SellerActive implements ShouldQueue
         $this->success= 0;
         $this->failure= 0;
         $this->accountId = $accountId;
+        $this->flag = $flag; 
     }
 
     /**
@@ -63,7 +66,36 @@ class SellerActive implements ShouldQueue
     {                
         $account = accounts::where('id',$this->accountId)->get()->first();      
 
-        $products = products::where('account',$account->store)->offset($this->offset)->limit($this->limit)->get();
+        $setting = amazon_settings::get()->first();   
+           
+        $flag = $this->flag; 
+            if($flag==1)
+            {
+                $prd = products::whereIn('asin', function($query) use($setting){
+                    $query->select('SKU')
+                    ->from(with(new order_details)->getTable())
+                    ->join('orders','order_details.order_id','orders.id')
+                    ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+                    ->groupBy('SKU')
+                    ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                    })
+                    ->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+        
+            }
+            else
+            {
+                $prd = products::whereNotIn('asin', function($query) use($setting){
+                    $query->select('SKU')
+                    ->from(with(new order_details)->getTable())
+                    ->join('orders','order_details.order_id','orders.id')
+                    ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+                    ->groupBy('SKU')
+                    ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                    })
+                    ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+            }
+
+        $products = $prd->where('account',$account->store)->offset($this->offset)->limit($this->limit)->get();
         $this->updatePrices($products, $this->account);                        
     }
 

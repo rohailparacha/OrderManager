@@ -94,21 +94,37 @@ Route::group(['middleware' => 'auth'], function () {
 
 	//Products Route
 	Route::get('/products', 'productsController@index')->name('products')->middleware('admin');
+	Route::get('/secondaryproducts', 'productsController@secondaryProducts')->name('secondaryproducts')->middleware('admin');
+
 	Route::post('/upload', 'productsController@uploadSubmit');
 	Route::post('/manualReprice', 'productsController@manualReprice');
+
 	Route::any('productexport','productsController@export')->name('productexport')->middleware('admin');	
+	Route::any('secondaryproductexport','productsController@secondaryExport')->name('secondaryproductexport')->middleware('admin');	
+
 	Route::any('productsfilter','productsController@filter')->middleware('admin');
+	Route::any('secondaryfilter','productsController@secondaryFilter')->middleware('admin');
+	
 	Route::get('deleteProduct/{id}','productsController@deleteProduct')->middleware('admin');
 	Route::get('/template', 'productsController@getTemplate');
+
 	Route::get('repricing','productsController@repricing');
+	Route::get('secondaryrepricing','productsController@secondaryRepricing');
 
 	Route::get('getfile','productsController@getFile');
+	Route::get('getsecondaryfile','productsController@secondaryGetFile');
+	
 	Route::post('exportAsins','productsController@exportAsins');
+	Route::post('secondaryExportAsins','productsController@secondaryExportAsins');
 
 	Route::get('logs','productsController@getLogs')->name('logs')->middleware('admin');
 	Route::post('getLogs','productsController@getLogBatches')->name('getLogBatches')->middleware('admin');
 	Route::post('/editAmzProduct', 'productsController@editAmzProduct')->middleware('admin');
 
+
+	Route::get('/amazonSettings', 'amazonSettingsController@amazonsettings')->name('amazonsettings');
+	Route::post('/storeAmazonSettings', 'amazonSettingsController@storeSettings');
+	
 	//eBay Route
 	Route::get('/products/ebay', 'ebayController@index')->name('ebayProducts')->middleware('admin');	
 	Route::post('/addEbayProduct', 'ebayController@addProduct');
