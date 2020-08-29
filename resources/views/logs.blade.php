@@ -114,17 +114,17 @@ $(document).ready(function(){
                             <thead class="thead-light">
                                 <tr>
                                     <th scope="col" width="3%"></th>
-                                    <th scope="col" width="11%">{{ __('Batch Name') }}</th>
-                                    <th scope="col" width="11%">{{ __('Start Time') }}</th>
-                                    <th scope="col" width="11%">{{ __('Finished Time') }}</th>
-                                    <th scope="col" width="9%">{{ __('Total Identifiers') }}</th>
+                                    <th scope="col" width="8%">{{ __('Batch Name') }}</th>
+                                    <th scope="col" width="10%">{{ __('Start Time') }}</th>
+                                    <th scope="col" width="10%">{{ __('Finished Time') }}</th>
+                                    <th scope="col" width="10%">{{ __('Total Identifiers') }}</th>
                                     <th scope="col" width="9%">{{ __('Total Errors') }}</th>
-                                    <th scope="col" width="9%">{{ __('Total Successful') }}</th>
+                                    <th scope="col" width="10%">{{ __('Total Successful') }}</th>
                                     <th scope="col" width="9%">{{ __('Stage') }}</th>
                                     <th scope="col" width="9%">{{ __('Status') }}</th>
-                                    <th scope="col" width="6%">{{ __('Action') }}</th> 
-                                    <th scope="col" width="12%">{{ __('Error') }}</th> 
-                                    <th scope="col" width="6%">{{ __('SC Account') }}</th> 
+                                    <th scope="col" width="12%">{{ __('Action') }}</th> 
+                                    <th scope="col" width="15%">{{ __('Error') }}</th> 
+                                    <th scope="col" width="10%">{{ __('SC Account') }}</th> 
                                                                       
                                 </tr>
                             </thead>
@@ -156,7 +156,7 @@ $(document).ready(function(){
                                     </tr>
 
                                     <tr>
-                                        <td colspan="11" class="hiddenRow">
+                                        <td colspan="12" class="hiddenRow">
                                             <div class="accordian-body collapse" id="logs-{{$log->id}}">
                                             
                                             </div> </td>

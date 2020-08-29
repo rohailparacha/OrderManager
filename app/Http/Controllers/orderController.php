@@ -2745,7 +2745,7 @@ class orderController extends Controller
         $temp = array(); 
         $dt = Carbon::now();
         
-        $temp['date'] =  date_format(date_create($order->of_bce_created_at), 'm/d/Y');
+        $temp['date'] =  date_format(date_create($order->dueShip), 'm/d/Y');
         
         $temp['orderDate'] = date_format(date_create($order->date), 'm/d/Y');
         
