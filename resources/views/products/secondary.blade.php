@@ -365,7 +365,7 @@ catch{
                                         <td width="8%" class="specifictd">{{ number_format((float)$product->price, 2, '.', '') }}</td>                                        
                                         <td width="8%" class="specifictd"><a href="https://amazon.com/dp/{{$product->asin}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a></td>
                                         <td width="6%" class="specifictd">
-                                        <a class="btn btn-primary btn-sm" href="deleteProduct/{{$product->id}}" onclick="return confirm('Are you sure you want to delete this product?')">Delete</a>
+                                        <a class="btn btn-primary btn-sm" href="deleteSecondaryProduct/{{$product->id}}" onclick="return confirm('Are you sure you want to delete this product?')">Delete</a>
                                         
                                         </td>
                                         <td width="4%" class="text-right">

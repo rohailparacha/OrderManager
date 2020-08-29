@@ -1941,73 +1941,37 @@ class orderController extends Controller
             return view('orders.deliveredConversions',compact('orders','credits','count','search','route'));
         }
 
-        else if($route == 'products')
-        {    $setting = amazon_settings::get()->first();
-            $prd = products::whereIn('asin', function($query) use($setting){
-                    $query->select('SKU')
-                    ->from(with(new order_details)->getTable())
-                    ->join('orders','order_details.order_id','orders.id')
-                    ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
-                    ->groupBy('SKU')
-                    ->havingRaw('count(*) > ?', [$setting->soldQty]);
-                    })
-                    ->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
-        
-            $last_run = $prd->max('modified_at');   
-            $products = $prd
-            ->where(function($test) use ($query){
-                $test->where('asin', 'LIKE', '%'.$query.'%');
-                $test->orWhere('upc', 'LIKE', '%'.$query.'%');
-            })
-            ->paginate(100); 
-
-            $strategies = strategies::select()->get(); 
-            $accounts = accounts::select()->get(); 
-            $strategyCodes = array(); 
-            
-            $maxSellers = ceil($prd->where(function($test) use ($query){
-                $test->where('asin', 'LIKE', '%'.$query.'%');
-                $test->orWhere('upc', 'LIKE', '%'.$query.'%');
-            })->max('totalSellers'));
-            
-            $maxPrice = ceil($prd->where(function($test) use ($query){
-                $test->where('asin', 'LIKE', '%'.$query.'%');
-                $test->orWhere('upc', 'LIKE', '%'.$query.'%');
-            })->max('price'));
-
-            $minAmount = 0;
-            $maxAmount = $maxPrice;
-            $minSeller = 0;
-            $maxSeller = $maxSellers;
-    
-            $accountFilter = 0; 
-            $strategyFilter = 0; 
-    
-            foreach($strategies as $strategy)
-            {
-                $strategyCodes[$strategy->id] = $strategy->code;
-            }
-            
-            
-            $products = $products->appends('searchQuery',$query)->appends('route', $route);
-            return view('products.index',compact('products','strategyCodes','strategies','accounts','maxSellers','maxPrice','minAmount','maxAmount','minSeller','maxSeller','accountFilter','strategyFilter','last_run','search','route'));
-      
-        }
-
-        else if($route == 'secondaryproducts')
+        else if($route == 'products' || $route == 'secondaryproducts')
         {
             $setting = amazon_settings::get()->first();
         
-            $prd = products::whereNotIn('asin', function($query) use($setting){
+            $prd = products::where(function($searchbox) use($setting){
+                $searchbox->where(function($test) use($setting){
+                    $test->whereIn('asin', function($query) use($setting){
                     $query->select('SKU')
+                    
                     ->from(with(new order_details)->getTable())
                     ->join('orders','order_details.order_id','orders.id')
                     ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
                     ->groupBy('SKU')
                     ->havingRaw('count(*) > ?', [$setting->soldQty]);
-                    })
-                    ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
-            
+                    });
+                    $test->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+                });
+                $searchbox->orWhere(function($test) use($setting){
+        
+                    $test->whereNotIn('asin', function($query) use($setting){
+                        $query->select('SKU')
+                        ->from(with(new order_details)->getTable())
+                        ->join('orders','order_details.order_id','orders.id')
+                        ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+                        ->groupBy('SKU')
+                        ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                        });
+                    $test->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+                });
+                });
+
             $last_run = $prd->max('modified_at');   
             $products = $prd
             ->where(function($test) use ($query){
@@ -2146,7 +2110,7 @@ class orderController extends Controller
             
         }
 
-        else if($route == 'returns' || $route == 'refunds' || $route =='completed')
+    else if($route == 'returns' || $route == 'refunds' || $route =='completed')
         {
             
                 if(auth()->user()->role==1)
@@ -3120,7 +3084,7 @@ class orderController extends Controller
             }
             elseif($status=='new')
                 {
-                    $count = orders::where('trackingNumber',$tracking)->get()->first(); 
+                    $count = orders::where('trackingNumber',$tracking)->where('id','!=',$id)->get()->first(); 
                     if(!empty($count))
                         return "Tracking Number Duplicate - ".$count->poNumber;
                     else{
@@ -3130,7 +3094,7 @@ class orderController extends Controller
                 }
             else
                 {
-                    $count = orders::where('trackingNumber',$tracking)->get()->first(); 
+                    $count = orders::where('trackingNumber',$tracking)->where('id','!=',$id)->get()->first(); 
                     if(!empty($count))
                         return "Tracking Number Duplicate - ".$count->poNumber;
                     else
@@ -3931,7 +3895,6 @@ class orderController extends Controller
 
         return redirect()->route($route);        
     }
-
     public function deliveredConversions()
     {       
         $credits = $this->getCredits(); 

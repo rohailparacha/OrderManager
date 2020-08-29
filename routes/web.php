@@ -106,6 +106,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::any('secondaryfilter','productsController@secondaryFilter')->middleware('admin');
 	
 	Route::get('deleteProduct/{id}','productsController@deleteProduct')->middleware('admin');
+	Route::get('deleteSecondaryProduct/{id}','productsController@deleteSecondaryProduct')->middleware('admin');
 	Route::get('/template', 'productsController@getTemplate');
 
 	Route::get('repricing','productsController@repricing');

@@ -542,6 +542,30 @@ class productsController extends Controller
         
         return redirect()->route('products');  
     }
+
+    public function deleteSecondaryProduct($id)
+    {            
+        $sc_id =  products::where('id',$id)->get()->first();
+        
+        $temp = products::where('id','=',$id)->delete(); 
+
+        try{
+            $file1 = public_path('images/amazon/' . $sc_id->asin.'.jpg');            
+            $files = array($file1);
+            File::delete($files);
+        }
+        catch(\Exception $ex)
+        {
+
+        }  
+
+        if(empty($sc_id))
+            return redirect()->route('secondaryproducts');                          
+        else
+            Session::flash('success_msg', $sc_id->asin.' Was Deleted Succesfully');
+        
+        return redirect()->route('secondaryproducts');  
+    }
    
 
     public function repricing()
