@@ -117,7 +117,7 @@ catch{
                                 <h3 class="mb-0">{{ __('UPS Conversions - Waiting For Approval') }}</h3>                                
                             </div>  
                             <div class="col-6" style="text-align:right;">
-                            <a href="conversionssync" class="btn btn-primary btn-md">Sync</a>                            
+                            <a href="conversionssync/2" class="btn btn-primary btn-md">Sync</a>                            
                             @if(!empty($search) && $search==1)
                                 <a href="{{ route($route) }}"class="btn btn-primary btn-md">Go Back</a>
                             @endif 

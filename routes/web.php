@@ -38,7 +38,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('conversions','orderController@conversions')->name('conversions')->middleware('admin');
 	Route::get('conversions2','orderController@conversions2')->name('conversions2')->middleware('admin');
 	Route::get('deliveredConversions','orderController@deliveredConversions')->name('deliveredConversions')->middleware('admin');
-	Route::get('conversionssync','orderController@conversionssync')->name('conversionssync')->middleware('admin');	
+	Route::get('conversionssync/{id}','orderController@conversionssync')->name('conversionssync')->middleware('admin');	
 	Route::get('upsconversions','orderController@upsConversions')->name('upsConversions')->middleware('admin');	
 	Route::get('upsapproval','orderController@upsApproval')->name('upsApproval')->middleware('admin');	
 	Route::get('upsshipped','orderController@upsShipped')->name('upsShipped')->middleware('admin');	

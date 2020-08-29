@@ -2148,9 +2148,6 @@ class orderController extends Controller
 
         else if($route == 'returns' || $route == 'refunds' || $route =='completed')
         {
-
-            if($route == 'returns')
-            {
             
                 if(auth()->user()->role==1)
                 {
@@ -2162,7 +2159,11 @@ class orderController extends Controller
                         $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
                         $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
                         }) 
-                    ->whereNull('returns.status')
+                        ->where(function($test2){
+                            $test2->whereNull('returns.status');
+                            $test2->orWhere('returns.status','refunded');
+                            $test2->orWhere('returns.status','returned');
+                        })
                     ->orderBy('created_at','desc')
                     ->paginate(100);
                 }
@@ -2186,7 +2187,11 @@ class orderController extends Controller
                         $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
                         $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
                         })    
-                    ->whereNull('returns.status')     
+                        ->where(function($test2){
+                            $test2->whereNull('returns.status');
+                            $test2->orWhere('returns.status','refunded');
+                            $test2->orWhere('returns.status','returned');
+                        })    
                     
                     ->whereIn('orders.storeName',$strArray)  
                     ->orderBy('created_at','desc')           
@@ -2204,7 +2209,11 @@ class orderController extends Controller
                         $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
                         })    
                     ->where('orders.uid',auth()->user()->id)  
-                    ->whereNull('returns.status')   
+                    ->where(function($test2){
+                        $test2->whereNull('returns.status');
+                        $test2->orWhere('returns.status','refunded');
+                        $test2->orWhere('returns.status','returned');
+                    })
                     ->orderBy('created_at','desc')           
                     ->paginate(100);
                 }
@@ -2245,201 +2254,7 @@ class orderController extends Controller
 
                 $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
                 return view('returns.return',compact('returns','accounts','stores','search','route'));
-            }
-
-            else if($route == 'refunds')
-            {
             
-                if(auth()->user()->role==1)
-                {
-                    $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
-                    ->select(['orders.*','returns.*'])
-                    ->where(function($test) use ($query){
-                        $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
-                        }) 
-                    ->where('returns.status','returned')
-                    ->orderBy('returnDate','desc')
-                    ->paginate(100);
-                }
-        
-                elseif(auth()->user()->role==2)
-                {
-                    
-                    $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
-                    $strArray  = array();
-        
-                    foreach($stores as $str)
-                    {
-                        $strArray[]= $str->store;
-                    }
-                                    
-                    $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
-                    ->select(['orders.*','returns.*'])       
-                    ->where(function($test) use ($query){
-                        $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
-                        })          
-                    ->where('returns.status','returned')
-                    ->whereIn('orders.storeName',$strArray)
-                    ->orderBy('returnDate','desc')             
-                    ->paginate(100);
-                }
-            
-                else
-                {
-                    $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
-                    ->select(['orders.*','returns.*'])
-                    ->where(function($test) use ($query){
-                        $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
-                        })    
-                    ->where('orders.uid',auth()->user()->id)  
-                    ->where('returns.status','returned')       
-                    ->orderBy('returnDate','desc')       
-                    ->paginate(100);
-                }
-
-                foreach($returns as $return)
-                {
-                    $order_details = order_details::where('order_id',$return->order_id)->get(); 
-                    if(empty($order_details))
-                        continue;
-                    
-                    
-                    foreach($order_details as $detail)
-                    {
-                        $amz = products::where('asin',$detail->SKU)->get()->first(); 
-                        if(empty($amz))
-                            {
-                                $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
-                                if(empty($ebay))
-                                    $sources[]= 'N/A'; 
-                                else
-                                    $sources[]= 'Ebay'; 
-
-                            }
-                        else
-                                    $sources[]= 'Amazon'; 
-
-                        $b = array_unique($sources); 
-
-                        if(count($b)==1)
-                            $return->source = $b[0];
-                        else
-                            $return->source = 'Mix';
-                    }
-                }
-                
-                $accounts = gmail_accounts::all();
-                $stores = accounts::all();         
-
-                $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
-                return view('returns.refund',compact('returns','accounts','stores','search','route'));
-            }
-
-            else if($route == 'completed')
-            {
-            
-                if(auth()->user()->role==1)
-                {
-                    $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
-                    ->select(['orders.*','returns.*'])
-                    ->where(function($test) use ($query){
-                        $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
-                        }) 
-                    ->where('returns.status','refunded')
-                    ->orderBy('refundDate','desc')
-                    ->paginate(100);
-                }
-        
-                elseif(auth()->user()->role==2)
-                {
-                    
-                    $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
-                    $strArray  = array();
-        
-                    foreach($stores as $str)
-                    {
-                        $strArray[]= $str->store;
-                    }
-                                    
-                    $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
-                    ->select(['orders.*','returns.*'])       
-                    ->where(function($test) use ($query){
-                        $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
-                        }) 
-                    ->where('returns.status','refunded')         
-                    ->whereIn('orders.storeName',$strArray)   
-                    ->orderBy('refundDate','desc')          
-                    ->paginate(100);
-                }
-            
-                else
-                {
-                    $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
-                    ->select(['orders.*','returns.*'])
-                    ->where(function($test) use ($query){
-                        $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
-                        $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
-                        })    
-                    ->where('orders.uid',auth()->user()->id)   
-                    ->where('returns.status','refunded')       
-                    ->orderBy('refundDate','desc')      
-                    ->paginate(100);
-                }
-
-                foreach($returns as $return)
-                {
-                    $order_details = order_details::where('order_id',$return->order_id)->get(); 
-                    if(empty($order_details))
-                        continue;
-                    
-                    
-                    foreach($order_details as $detail)
-                    {
-                        $amz = products::where('asin',$detail->SKU)->get()->first(); 
-                        if(empty($amz))
-                            {
-                                $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
-                                if(empty($ebay))
-                                    $sources[]= 'N/A'; 
-                                else
-                                    $sources[]= 'Ebay'; 
-
-                            }
-                        else
-                                    $sources[]= 'Amazon'; 
-
-                        $b = array_unique($sources); 
-
-                        if(count($b)==1)
-                            $return->source = $b[0];
-                        else
-                            $return->source = 'Mix';
-                    }
-                }
-                
-                $accounts = gmail_accounts::all();
-                $stores = accounts::all();         
-
-                $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
-                return view('returns.complete',compact('returns','accounts','stores','search','route'));
-            }
         }
 
         else if($route == 'product.report')
@@ -4066,8 +3881,17 @@ class orderController extends Controller
         return view('orders.upsShipped',compact('orders','count','stores','dateRange'));
     }
 
-    public function conversionssync()
+    public function conversionssync($id)
     {            
+        $route = 'upsConversions';
+
+        if($id==1)
+            $route = 'upsConversions';
+        elseif($id==2)
+            $route = 'upsApproval';
+        elseif($id==3)
+            $route = 'upsShipped';
+        
         $client = new client(); 
         
         $endPoint = env('BCE_SYNC_TOKEN', '');
@@ -4086,7 +3910,7 @@ class orderController extends Controller
             $responseBodyAsString = $response->getBody()->getContents();
             
             Session::flash('error_msg', $responseBodyAsString);
-            return redirect()->route('upsConversions');
+            return redirect()->route($route);
         }
         
         $statusCode = $response->getStatusCode();
@@ -4095,7 +3919,7 @@ class orderController extends Controller
         if($statusCode!=200)
         {
             Session::flash('error_msg', __('Trackings Syncing Failed'));
-            return redirect()->route('upsConversions');
+            return redirect()->route($route);
         }
                     
         $body = json_decode($response->getBody()->getContents());
@@ -4105,7 +3929,7 @@ class orderController extends Controller
         else
             Session::flash('success_msg', $body->count. __(' Trackings Synced'));
 
-        return redirect()->route('upsConversions');        
+        return redirect()->route($route);        
     }
 
     public function deliveredConversions()
