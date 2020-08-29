@@ -24,6 +24,7 @@ class CreateLogsTable extends Migration
             $table->enum('stage',['SyncCentric','Informed','SellerActive'])->nullable();
             $table->enum('status',['Failed','Completed','In Progress']);
             $table->string('action')->nullable();
+            $table->string('scaccount')->nullable();
         });
     }
 

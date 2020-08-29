@@ -20,15 +20,13 @@ class InformedExport implements FromCollection,WithHeadings,ShouldAutoSize
     /**
     * @return \Illuminate\Support\Collection
     */
-    protected $offset; 
-    protected $accountId;
+    protected $offset;     
     protected $flag; 
 
 
-    public function __construct($offset, $accountId, $flag)
+    public function __construct($offset, $flag)
     {
-        $this->offset = $offset;
-        $this->accountId= $accountId;
+        $this->offset = $offset;        
         $this->flag= $flag;
     }
 
@@ -36,8 +34,6 @@ class InformedExport implements FromCollection,WithHeadings,ShouldAutoSize
     {
         //
         $offset = $this->offset;
-        
-        $account = accounts::where('id',$this->accountId)->get()->first();
 
         $flag =  $this->flag;
 
@@ -69,7 +65,7 @@ class InformedExport implements FromCollection,WithHeadings,ShouldAutoSize
                 ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
         }
 
-        $products = $prd->where('account',$account->store)->select()->offset($offset)->limit(5000)->get();         
+        $products = $prd->select()->offset($offset)->limit(5000)->get();         
         
         $accounts = accounts::all(); 
         $accArray = array();

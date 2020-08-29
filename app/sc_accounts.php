@@ -11,5 +11,5 @@ class sc_accounts extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['token','campaign','name'];
+    protected $fillable = ['token','campaign','name','products'];
 }

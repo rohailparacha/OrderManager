@@ -44,6 +44,7 @@ class productsController extends Controller
     public function getLogs()
     {
         $logs = logs::select()->orderBy('date_started', 'desc')->paginate(100);
+        
          foreach($logs as $log)
         {
             if(!empty($log->date_started))
@@ -57,6 +58,10 @@ class productsController extends Controller
                 $log->date_completed = Carbon::createFromFormat('Y-m-d H:i:s', $log->date_completed, 'UTC')
             ->setTimezone('America/Los_Angeles');       
             }
+
+            $log->cnt = log_batches::where('log_id',$log->id)->where('status','In Progress')->count(); 
+
+
             
         }
         return view('logs',compact('logs'));
@@ -409,7 +414,7 @@ class productsController extends Controller
         $collection = $import->data;
                 
         $status = 'new';
-        Repricing::dispatch($collection, $status,1);
+        Repricing::dispatch($collection, $status,3);
         
         Session::flash('success_msg', 'Import in progress. Check logs for details');
         return redirect()->route('products');

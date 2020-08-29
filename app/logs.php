@@ -15,5 +15,5 @@ class logs extends Model
      * @var array
      */
 
-    protected $fillable = ['id','date_started','date_completed','identifiers','errorItems','successItems','completed','error','status','stage','action'];
+    protected $fillable = ['id','date_started','date_completed','identifiers','errorItems','successItems','completed','error','status','stage','action','scaccount'];
 }

@@ -41,19 +41,17 @@ class SellerActive implements ShouldQueue
     public $limit; 
     public $id; 
     public $success;
-    public $failure;
-    public $accountId;
+    public $failure;    
     public $flag; 
 
-    public function __construct($offset, $limit,  $account, $id, $accountId, $flag)
+    public function __construct($offset, $limit,  $account, $id, $flag)
     {
         $this->offset = $offset; 
         $this->limit = $limit; 
         $this->account = $account;
         $this->id = $id;
         $this->success= 0;
-        $this->failure= 0;
-        $this->accountId = $accountId;
+        $this->failure= 0;        
         $this->flag = $flag; 
     }
 
@@ -64,7 +62,7 @@ class SellerActive implements ShouldQueue
      */
     public function handle()
     {                
-        $account = accounts::where('id',$this->accountId)->get()->first();      
+            
 
         $setting = amazon_settings::get()->first();   
            
@@ -95,7 +93,7 @@ class SellerActive implements ShouldQueue
                     ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
             }
 
-        $products = $prd->where('account',$account->store)->offset($this->offset)->limit($this->limit)->get();
+        $products = $prd->offset($this->offset)->limit($this->limit)->get();
         $this->updatePrices($products, $this->account);                        
     }
 

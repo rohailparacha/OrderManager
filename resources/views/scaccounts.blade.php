@@ -4,8 +4,6 @@
     @include('layouts.headers.cards')
     <script>
 $(document).ready(function(){
- 
-  
         $('#btnAddCat').on('click',function(event){ 
         $('#addCat').modal('show');  
         $('#editTitle').hide();
@@ -16,6 +14,9 @@ $(document).ready(function(){
         $('#addSuccess').hide();
         $(".print-error-msg").hide();
         $('#error').hide();
+        $( "#new" ).prop( "checked", false );
+        $( "#primary" ).prop( "checked", false );
+        $( "#secondary" ).prop( "checked", false );
         });
 
        
@@ -27,11 +28,29 @@ $(document).ready(function(){
         campaign = link.data("campaign"),
         token = link.data('token'),   
         name = link.data('name');
+        products = link.data('products');
+        
+        if(jQuery.inArray('1', products) !== -1)
+            $( "#primary" ).prop( "checked", true );
+        else
+            $( "#primary" ).prop( "checked", false );
+            
+        if(jQuery.inArray('2', products) !== -1)
+            $( "#secondary" ).prop( "checked", true );
+        else
+            $( "#secondary" ).prop( "checked", false );
+        
+        if(jQuery.inArray('3', products) !== -1)
+            $( "#new" ).prop( "checked", true );
+        else
+            $( "#new" ).prop( "checked", false );
+
         $(".print-error-msg").hide();
         $('#catId').val(id);
         $('#campaignTbx').val(campaign);
         $('#nameTbx').val(name);
         $('#tokenTbx').val(token);
+        $('#pages').val(products);
         $('#addTitle').hide();
         $('#modal-que-save').hide();  
         $('#editTitle').show();
@@ -46,6 +65,16 @@ $(document).ready(function(){
             var campaign = $('#campaignTbx').val();
             var token = $('#tokenTbx').val();
             var name = $('#nameTbx').val();
+
+            var prods = [];
+
+            if($('#primary').is(":checked"))
+                prods.push(1);
+            if($('#secondary').is(":checked"))
+                prods.push(2);
+            if($('#new').is(":checked"))
+                prods.push(3);    
+                            
             $.ajax({
                 
             type: 'post',
@@ -53,7 +82,8 @@ $(document).ready(function(){
             data: {
             'campaign': campaign,
             'token' : token,
-            'name':name
+            'name':name,
+            'products':prods
             },
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -87,6 +117,17 @@ $(document).ready(function(){
            var token = $('#tokenTbx').val();
            var id = $('#catId').val();
            var name = $('#nameTbx').val();
+
+           var prods = [];
+
+           if($('#primary').is(":checked"))
+                prods.push(1);
+            if($('#secondary').is(":checked"))
+                prods.push(2);
+            if($('#new').is(":checked"))
+                prods.push(3);           
+           
+
            $.ajax({
                
            type: 'post',
@@ -95,7 +136,8 @@ $(document).ready(function(){
            'campaign': campaign,
            'id': id,
            'token' : token,
-           'name':name
+           'name':name,
+           'products':prods
            },
            headers: {
                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -174,7 +216,7 @@ $(document).ready(function(){
                                                         <form action="{{ route('scAccountDelete', $account->id) }}" method="post">
                                                             @csrf
                                                             @method('delete')                                                                                                                                                         
-                                                            <a class="dropdown-item"  data-toggle="modal" data-target="#addCat" data-campaign= "{{$account->campaign}}" data-token="{{$account->token}}" data-name="{{$account->name}}" data-id="{{$account->id}}" id="btnEditCat" href="#">{{ __('Edit') }}</a>
+                                                            <a class="dropdown-item"  data-toggle="modal" data-target="#addCat" data-products = "{{$account->products}}" data-campaign= "{{$account->campaign}}" data-token="{{$account->token}}" data-name="{{$account->name}}" data-id="{{$account->id}}" id="btnEditCat" href="#">{{ __('Edit') }}</a>
                                                             @if(auth()->user()->role==1|| auth()->user()->role==2)
                                                             <button type="button" class="dropdown-item" onclick="confirm('{{ __("Are you sure you want to delete this account?") }}') ? this.parentElement.submit() : ''">
                                                                 {{ __('Delete') }}
@@ -279,6 +321,35 @@ $(document).ready(function(){
        </div>
 </div>
 
+<br/><br/>
+
+<div class="row">
+<div class="col-sm-1 form-group" style="max-width:2%;margin-top: 0.6rem;">                                    
+    <input  type="checkbox" id="primary" }}>  
+</div>
+
+<div class="col-sm-3 form-control-label">
+           <label for="email_address_2">@lang('Primary Products')</label>
+</div>
+
+<div class="col-sm-1 form-group" style="max-width:2%;margin-top: 0.6rem;">                                    
+    <input  type="checkbox" id="secondary" name="pricecheck" {{!empty($settings->amountCheck) && $settings->amountCheck==true?'checked':''}}>  
+</div>
+
+<div class="col-sm-3 form-control-label">
+           <label for="email_address_2">@lang('Secondary Products')</label>
+</div>
+
+
+<div class="col-sm-1 form-group" style="max-width:2%;margin-top: 0.6rem;">                                    
+    <input  type="checkbox" id="new" name="pricecheck" {{!empty($settings->amountCheck) && $settings->amountCheck==true?'checked':''}}>  
+</div>
+
+<div class="col-sm-3 form-control-label">
+           <label for="email_address_2">@lang('New Products')</label>
+</div>
+
+</div>
        
    </form>
       </div>

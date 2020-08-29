@@ -18,7 +18,7 @@ class scAccountsController extends Controller
 
 
     public function accounts()
-    {
+    {        
         $accounts = sc_accounts::select()->paginate(100);
         return view('scaccounts', compact('accounts'));
     }
@@ -28,12 +28,14 @@ class scAccountsController extends Controller
         $input = [
             'token' => $request->get('token'),            
             'campaign' => $request->get('campaign'),            
-            'name' => $request->get('name'),            
+            'name' => $request->get('name'),     
+            'products'=>$request->get('products')       
         ];  			
         $rules = [
                 'token'    => 'required|unique:sc_accounts',
                 'campaign'    => 'required',
                 'name'    => 'required|unique:sc_accounts',                       
+                'products'=>'required'
         ];
         
 
@@ -43,8 +45,9 @@ class scAccountsController extends Controller
         {        
             return response()->json(['error'=>$validator->errors()->all()]);
         }     
-        	
-		$data = ['campaign' =>  $formData['campaign'], 'token' =>  $formData['token'], 'name' =>  $formData['name']];
+            
+        
+		$data = ['campaign' =>  $formData['campaign'], 'token' =>  $formData['token'], 'name' =>  $formData['name'], 'products' =>  $formData['products']];
 		$created = sc_accounts::insert($data);		 
         
         if($created)
@@ -71,13 +74,15 @@ class scAccountsController extends Controller
             'id' => $request->get('id'),
             'token' => $request->get('token'),            
             'campaign' => $request->get('campaign'),
-            'name' => $request->get('name')
+            'name' => $request->get('name'),
+            'products'=>$request->get('products')
         ];  			
         $rules = [
                 'id'    => 'required',
                 'token' => 'required|unique:sc_accounts,token,' . $request->get('id'),
                 'campaign' => 'required',
-                'name' => 'required|unique:sc_accounts,name,' . $request->get('id'),                       
+                'name' => 'required|unique:sc_accounts,name,' . $request->get('id'),     
+                'products'=>'required'                 
         ];
         
 
@@ -92,6 +97,7 @@ class scAccountsController extends Controller
         $campaign = $formData['campaign'];
         $token =  $formData['token'];
         $name =  $formData['name'];
+        $products = $formData['products'];
         
         try{
         $obj = sc_accounts::find($id);
@@ -99,7 +105,7 @@ class scAccountsController extends Controller
         $obj->campaign = $campaign;
         $obj->token = $token;
         $obj->name = $name;
-
+        $obj->products = json_encode($products);
         $obj->save();
             return "success";
             Session::flash('success_msg', __("Success. Account updated successfully."));

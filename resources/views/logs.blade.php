@@ -123,7 +123,8 @@ $(document).ready(function(){
                                     <th scope="col" width="9%">{{ __('Stage') }}</th>
                                     <th scope="col" width="9%">{{ __('Status') }}</th>
                                     <th scope="col" width="6%">{{ __('Action') }}</th> 
-                                    <th scope="col" width="18%">{{ __('Error') }}</th> 
+                                    <th scope="col" width="12%">{{ __('Error') }}</th> 
+                                    <th scope="col" width="6%">{{ __('SC Account') }}</th> 
                                                                       
                                 </tr>
                             </thead>
@@ -142,9 +143,16 @@ $(document).ready(function(){
                                         <td width="10%">{{ $log->errorItems }}</td>
                                         <td width="10%">{{ $log->successItems }}</td>
                                         <td width="10%">{{ $log->stage }}</td>
+                                        @if($log->cnt>0)
+                                        <td width="10%">In Progress</td>
+                                        @else
                                         <td width="10%">{{ $log->status }}</td>
+                                        @endif
+                                        
                                         <td width="10%">{{ $log->action }}</td>
-                                        <td width="26%">{{ $log->error }}</td>                                                                                                                         
+                                        <td width="12%">{{ $log->error }}</td>     
+                                        <td width="6%">{{ $log->scaccount }}</td>      
+    
                                     </tr>
 
                                     <tr>

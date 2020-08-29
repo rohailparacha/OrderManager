@@ -18,6 +18,7 @@ class CreateScAccountsTable extends Migration
             $table->string('campaign');
             $table->string('token');
             $table->string('name');
+            $table->string('products')->nullable();
         });
     }
 

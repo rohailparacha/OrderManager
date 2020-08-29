@@ -45,7 +45,11 @@ class Repricing implements ShouldQueue
     private $offset;
     private $prodCount;
     public $batchId;
-    public $accountId; 
+    public $token; 
+    public $campaign; 
+    public $scid; 
+    
+ 
     public $flag;
 
     public function __construct($collection, $status, $flag)
@@ -63,65 +67,91 @@ class Repricing implements ShouldQueue
      */
     public function handle()
     {            
+        $scaccounts = sc_accounts::all(); 
+        $status = $this->status; 
+        $flag = $this->flag;
+
+        $scid="";
+        foreach($scaccounts as $sc)
+        {
+            $tempers = json_decode($sc->products); 
+            if(in_array($flag,$tempers))
+            {
+                $scid = $sc->id;
+                break;
+            }
+                
+        }
+
+        if(empty($scid))
+        {
+            echo ('Sync Centric Account Not Found - Terminating');
+            die(); 
+        }
+        
+        
+        $sc_credentials = sc_accounts::where('id',$scid)->get()->first(); 
+        
+        $this->scid = $sc_credentials->name;
+        $this->token = $sc_credentials->token;
+        $this->campaign = $sc_credentials->campaign;            
+
+        $setting = amazon_settings::get()->first();   
+        $flag = $this->flag;
+        if($flag==1)
+        {
+            $prd = products::whereIn('asin', function($query) use($setting){
+                $query->select('SKU')
+                ->from(with(new order_details)->getTable())
+                ->join('orders','order_details.order_id','orders.id')
+                ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+                ->groupBy('SKU')
+                ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                })
+                ->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+    
+        }
+        else
+        {
+            $prd = products::whereNotIn('asin', function($query) use($setting){
+                $query->select('SKU')
+                ->from(with(new order_details)->getTable())
+                ->join('orders','order_details.order_id','orders.id')
+                ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+                ->groupBy('SKU')
+                ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                })
+                ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+        }
+
+      
+
+        $collection = $this->collection; 
+        $this->prodCount = $prd->count();
+        
+        if($status=='new')
+            $this->newProducts($collection);
+        else
+            $this->repricing();        
+       
+        $this->recordId=0;
         
 
         $status = $this->status; 
         
         $collection = $this->collection; 
         
-        $accounts = accounts::all();
-        $flag = $this->flag;
-        foreach($accounts as $account)
-        {
-            $this->offset = -1; 
-            $setting = amazon_settings::get()->first();   
-           
-            if($flag==1)
-            {
-                $prd = products::whereIn('asin', function($query) use($setting){
-                    $query->select('SKU')
-                    ->from(with(new order_details)->getTable())
-                    ->join('orders','order_details.order_id','orders.id')
-                    ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
-                    ->groupBy('SKU')
-                    ->havingRaw('count(*) > ?', [$setting->soldQty]);
-                    })
-                    ->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
-        
-            }
-            else
-            {
-                $prd = products::whereNotIn('asin', function($query) use($setting){
-                    $query->select('SKU')
-                    ->from(with(new order_details)->getTable())
-                    ->join('orders','order_details.order_id','orders.id')
-                    ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
-                    ->groupBy('SKU')
-                    ->havingRaw('count(*) > ?', [$setting->soldQty]);
-                    })
-                    ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
-            }
-
-            $this->prodCount = count($prd->where('account',$account->store)->get());
-            
-            $this->accountId = $account->id;
-
-            if($status=='new')
-                $this->newProducts($collection);
-            else
-                $this->repricing();        
-        
-            $this->recordId=0;
-        }
         
     }
 
     public function repricing()
     {
-        $this->recordId = logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress','action'=>'Repricing']);
-        $account = accounts::where('id',$this->accountId)->get()->first();
-        
         $flag = $this->flag; 
+        
+        if($flag==1)
+            $this->recordId = logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress','action'=>'Primary Items - Repricing','scaccount'=> $this->scid]);
+        elseif ($flag == 2)
+            $this->recordId = logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress','action'=>'Secondary Items - Repricing','scaccount'=> $this->scid]);        
 
         $setting = amazon_settings::get()->first();   
            
@@ -150,7 +180,7 @@ class Repricing implements ShouldQueue
                 })
                 ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
         }
-        $products = $prd->where('account',$account->store)->get();
+        $products = $prd->get();
         
         $dataArray = array(); 
 
@@ -259,11 +289,12 @@ class Repricing implements ShouldQueue
             
             $endPoint = "https://v3.synccentric.com/api/v3/products";
             
-          
-            $account = accounts::where('id',$this->accountId)->get()->first();
-            $sc_credentials = sc_accounts::where('id',$account->scaccount_id)->get()->first(); 
-            $token = $sc_credentials->token;
-            $campaign = $sc_credentials->campaign;            
+            $status = $this->status; 
+            $flag = $this->flag; 
+            
+            $token = $this->token;
+            $campaign = $this->campaign;
+
 
             $data = array(); 
 
@@ -346,15 +377,13 @@ class Repricing implements ShouldQueue
 
     public function searchProducts($collection)
     {
-       
         $client = new client(); 
         
         $endPoint = "https://v3.synccentric.com/api/v3/product_search";
-        $account = accounts::where('id',$this->accountId)->get()->first();
-        $sc_credentials = sc_accounts::where('id',$account->scaccount_id)->get()->first(); 
-        $token = $sc_credentials->token;
-        $campaign = $sc_credentials->campaign;
-
+        
+        $token = $this->token;
+        $campaign = $this->campaign;
+        
         $data = array(); 
 
         $data["campaign_id"] = $campaign;
@@ -407,10 +436,8 @@ class Repricing implements ShouldQueue
         
         $endPoint = "https://v3.synccentric.com/api/v3/product_search/status";
         
-        $account = accounts::where('id',$this->accountId)->get()->first();
-        $sc_credentials = sc_accounts::where('id',$account->scaccount_id)->get()->first(); 
-        $token = $sc_credentials->token;
-        $campaign = $sc_credentials->campaign;
+        $token = $this->token;
+        $campaign = $this->campaign;
 
         $data = array(); 
 
@@ -496,10 +523,9 @@ class Repricing implements ShouldQueue
 
         $endPoint = "https://v3.synccentric.com/api/v3/products";
         
-        $account = accounts::where('id',$this->accountId)->get()->first();
-        $sc_credentials = sc_accounts::where('id',$account->scaccount_id)->get()->first(); 
-        $token = $sc_credentials->token;
-        $campaign = $sc_credentials->campaign;
+        $token = $this->token;
+        $campaign = $this->campaign;
+
         try{
         
             $promise = $client->requestAsync('GET', $endPoint,
@@ -695,10 +721,8 @@ class Repricing implements ShouldQueue
    
         $endPoint = "https://v3.synccentric.com/api/v3/products/";
         
-        $account = accounts::where('id',$this->accountId)->get()->first();
-        $sc_credentials = sc_accounts::where('id',$account->scaccount_id)->get()->first(); 
-        $token = $sc_credentials->token;
-        $campaign = $sc_credentials->campaign;
+        $token = $this->token;
+        $campaign = $this->campaign;
 
         $data = array(); 
 
@@ -750,9 +774,9 @@ class Repricing implements ShouldQueue
         $filename = date("d-m-Y")."-".time()."-import.csv";
         
         if($this->status=='new')
-            Excel::store(new InformedExport( $this->prodCount + ($this->offset * 5000), $this->accountId, $this->flag), $filename,'local');      
+            Excel::store(new InformedExport( $this->prodCount + ($this->offset * 5000), $this->flag), $filename,'local');      
         else
-            Excel::store(new InformedExport($this->offset * 5000, $this->accountId, $this->flag), $filename,'local');   
+            Excel::store(new InformedExport($this->offset * 5000, $this->flag), $filename,'local');   
         
         $endPoint ='https://api.informed.co/v1/feed';
 
@@ -826,10 +850,10 @@ class Repricing implements ShouldQueue
             log_batches::where('id',$this->batchId)->update(['totalItems'=>$body->SuccessCount+$body->ErrorCount, 'successItems'=>$body->SuccessCount,'errorItems'=> $body->ErrorCount]);    
 
             if($this->status=='new')            
-                Informed::dispatch(( $this->prodCount + ($this->offset * 5000)),$this->recordId, $this->batchId,$this->accountId, $this->flag)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
+                Informed::dispatch(( $this->prodCount + ($this->offset * 5000)),$this->recordId, $this->batchId, $this->flag)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
 
             else
-                 Informed::dispatch($this->offset * 5000,$this->recordId, $this->batchId,$this->accountId,  $this->flag)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
+                 Informed::dispatch($this->offset * 5000,$this->recordId, $this->batchId,  $this->flag)->onConnection('informed')->onQueue('informed')->delay(now()->addMinutes(60));
            }
            else
            { 
