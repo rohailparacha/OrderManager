@@ -32,7 +32,8 @@ class CreateProductsTable extends Migration
             $table->integer('60days')->default(0);
             $table->integer('90days')->default(0);
             $table->integer('120days')->default(0);
-
+            $table->string('wmid')->nullable(); 
+            $table->string('wmimage')->nullable(); 
             $table->foreign('strategy_id')->references('id')->on('strategies');
         });
     }

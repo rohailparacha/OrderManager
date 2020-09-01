@@ -22,6 +22,9 @@ table {
   table-layout: fixed;
 }
 
+.btn-sm{
+    font-size:0.65rem;
+}
 @media (min-width: 768px)
 {
     .main-content .container-fluid
@@ -289,6 +292,7 @@ catch{
                     {{ $provider::getIranTime(date_format(date_create($last_run), 'm/d/Y H:i:s')) }}                                        
                     </p>
                 </form>   
+
                 <a href="./secondaryrepricing" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px; margin-bottom:20px; ">Repricing</a>   
                 <a href="./getsecondaryfile" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px; margin-bottom:20px; ">Download Products</a>   
                 <a href="./template" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px; margin-bottom:20px; ">Template File</a>   
@@ -331,21 +335,44 @@ catch{
 
             
         </div>
+
+        <div class="row" style="padding-top:2%; padding-bottom:2%;">
+        
+        <div class="col-md-6 offset-md-6">
+                <a href="./wmtemplate" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:10px; margin-bottom:20px; ">WM Template</a> 
+                            <form class="form-inline" action="/uploadwm" method="post" enctype="multipart/form-data" style="float:right;">
+                            {{ csrf_field() }}
+                                <div class="form-group">
+
+                                    <input type="hidden" value="1" name="route" />
+
+                                    <input type="file" class="form-control" name="file" />                
+                            
+                                    <input type="submit" class="btn btn-primary" value="Import WM" style="margin-left:10px;"/>
+                                   
+                                </div>
+                            
+                            </form>
+                </div>
+        </div>
                     <div class="table-responsive">
-                        <table class="table align-items-center table-flush">
+                    <table class="table align-items-center table-flush">
                             <thead class="thead-light">
                                 <tr>
-                                <th scope="col" width="8%" >{{ __('Image') }}</th>
+                                    <th scope="col" width="8%" >{{ __('Image') }}</th>
+                                    <th scope="col" width="8%" >{{ __('WM Image') }}</th>
                                     <th scope="col" width="9%" >{{ __('Created Date') }}</th>
                                     <th scope="col" width="7%">{{ __('Store Name') }}</th>
                                     <th scope="col" width="9%">{{ __('ASIN') }}</th>
                                     
                                     <th scope="col" width="9%">{{ __('UPC') }}</th>
+                                    <th scope="col" width="9%">{{ __('WM ID') }}</th>
                                     
                                     <th scope="col" width="18%">{{ __('Title') }}</th>
                                     <th scope="col" width="8%">{{ __('Total FBA Sellers') }}</th>
                                     <th scope="col" width="8%">{{ __('Lowest FBA Price') }}</th>
                                     <th scope="col" width="8%">{{ __('Price') }}</th>                                    
+                                    <th scope="col" width="8%">{{ __('WM Link') }}</th>    
                                     <th scope="col" width="8%">{{ __('Link') }}</th>                                    
                                     <th scope="col" width="6%">{{ __('Action') }}</th>
                                     <th scope="col" width="3%"></th>
@@ -355,17 +382,26 @@ catch{
                                 @foreach ($products as $product)
                                     <tr>                                                                             
                                         <td width="8%"><img src="{{ $product->image }}" width="75px" height="75px"></td>
+                                        <td width="8%">
+                                        @if(!empty($product->wmimage))
+                                        <img src="{{ $product->wmimage }}" width="75px" height="75px">
+                                        @endif
+                                        </td>
                                         <td width="9%">{{ date_format(date_create($product->created_at), 'm/d/Y') }}</td> 
                                         <td width="8%" class="specifictd">{{ $product->account }}</td>
                                         <td width="9%" class="specifictd">{{ $product->asin }}</td>
                                         <td width="9%" class="specifictd">{{ $product->upc }}</td>
+                                        <td width="9%" class="specifictd">{{ $product->wmid }}</td>
                                         <td width="20%">{{ $product->title }}</td>
                                         <td width="8%"  class="specifictd">{{ $product->totalSellers }}</td>
                                         <td width="8%" class="specifictd">{{ number_format((float)$product->lowestPrice, 2, '.', '') }}</td>
                                         <td width="8%" class="specifictd">{{ number_format((float)$product->price, 2, '.', '') }}</td>                                        
+                                        <td width="9%" class="specifictd">
+                                        <a href="https://www.walmart.com/ip/{{ $product->wmid }}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a>
+                                        </td>
                                         <td width="8%" class="specifictd"><a href="https://amazon.com/dp/{{$product->asin}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a></td>
                                         <td width="6%" class="specifictd">
-                                        <a class="btn btn-primary btn-sm" href="deleteSecondaryProduct/{{$product->id}}" onclick="return confirm('Are you sure you want to delete this product?')">Delete</a>
+                                        <a class="btn btn-primary btn-sm" href="deleteProduct/{{$product->id}}" onclick="return confirm('Are you sure you want to delete this product?')">Delete</a>
                                         
                                         </td>
                                         <td width="4%" class="text-right">

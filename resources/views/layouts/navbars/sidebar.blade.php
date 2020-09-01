@@ -80,6 +80,12 @@
                                 {{ __('New Orders - Flagged') }}
                             </a>
                             </li>
+
+                            <li class="nav-item">
+                            <a class="nav-link" href="{{ route('newOrdersExpensive') }}">
+                                {{ __('New Orders - Expensive') }}
+                            </a>
+                            </li>
                             @endif
                             @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(2,json_decode(auth()->user()->assigned_pages))))                       
                             <li class="nav-item">
@@ -226,7 +232,7 @@
                 <li class="nav-item">
                     <a class="nav-link active" href="#samuel" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
                         <i class="fa fa-sort text-primary" ></i>
-                        <span class="nav-link-text text-primary" >{{ __('Samuel') }}</span>
+                        <span class="nav-link-text text-primary" >{{ __('Voughn') }}</span>
                     </a>
 
                     <div class="collapse show" id="samuel">
@@ -264,7 +270,7 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('samuelSetting') }}">
-                                    {{ __('Samuel - Order Fulfillment Setting') }}
+                                    {{ __('Voughn - Order Fulfillment Setting') }}
                                 </a>
                             </li>
                             
@@ -528,7 +534,14 @@
                                     Purchase Report
                                 </a>
                             </li>
-
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('dailyReport') }}">
+                                    Daily Report
+                                </a>
+                            </li>
+                            
+                            
 
                         @endif
                         </ul>

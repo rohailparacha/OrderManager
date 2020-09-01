@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use DB;
 use App\accounts;
 use App\settings;
 use App\carriers; 
@@ -60,11 +61,11 @@ class samuelController extends Controller
                         $total = $total + 0; 
                     }
                     else
-                    $total = $total + $price->ebayPrice;   
+                    $total = $total + ($price->ebayPrice * $detail->quantity);   
                 }
 
             else
-                $total = $total + $price->lowestPrice;
+                $total = $total + ($price->lowestPrice * $detail->quantity);
         }
 
         return $total;
@@ -216,7 +217,7 @@ class samuelController extends Controller
         $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
         ->leftJoin('products','order_details.SKU','=','products.asin')
         ->leftJoin('ebay_products','order_details.SKU','=','ebay_products.sku')
-        ->select(['orders.*',DB::raw('IFNULL( products.lowestPrice, 0) + IFNULL( ebay_products.ebayPrice, 0) as lowestPrice'),'products.asin','ebay_products.sku']);
+        ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) + IFNULL( ebay_products.ebayPrice * order_details.quantity, 0) as lowestPrice'),'products.asin','ebay_products.sku']);
         
         if(!empty($storeFilter)&& $storeFilter !=0)
         {
@@ -246,7 +247,8 @@ class samuelController extends Controller
 
 
         
-        $orders = $orders->whereBetween(DB::raw('IFNULL( products.lowestPrice, 0) + IFNULL( ebay_products.ebayPrice, 0)'),[$minAmount,$maxAmount]);
+        $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',$minAmount);
+        $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$maxAmount);
 
         if(!empty($stateFilter)&& $stateFilter !='0')
         {           
@@ -282,7 +284,7 @@ class samuelController extends Controller
         $maxPrice = ceil(orders::where('status','unshipped')->where('flag','10')->max('totalAmount'));
         foreach($orders as $order)
         {
-            $order->lowestPrice = $this->getLowestPrice($order->id);
+            
             $order->shippingPrice = $this->getTotalShipping($order->id);
             
 

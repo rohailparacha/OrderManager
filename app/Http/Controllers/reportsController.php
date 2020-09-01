@@ -8,6 +8,7 @@ use App\accounts;
 use App\carriers; 
 use App\order_details;
 use App\gmail_accounts;
+use App\informed_settings;
 use App\User;
 use App\Exports\ReportExport;
 use Excel; 
@@ -21,6 +22,18 @@ class reportsController extends Controller
         $this->middleware('auth');
     }
 
+    public function dailyReport()
+    {
+        $settings = informed_settings::all();
+        $labels= array(); 
+        $datasets = array(); 
+        foreach($settings as $setting)
+        {   
+            $labels[]= $setting->minAmount."-".$setting->maxAmount;
+        }
+
+        return view('report.dailyReport','settings');
+    }
     public function index()
     {
         $startDate = orders::min('date');

@@ -24,6 +24,7 @@ use Image;
 use App\Imports\ProductsImport;
 use App\Exports\ProductsExport;
 use App\Imports\PricesImport;
+use App\Imports\WMProductsImport;
 use App\Exports\AsinsExport;
 use App\Exports\SellerActiveExport;
 use Psr\Http\Message\ResponseInterface;
@@ -88,11 +89,19 @@ class productsController extends Controller
         }
             return json_encode($logs);
         }
+
+    
     
     public function getTemplate()
     {
         //PDF file is stored under project/public/download/info.pdf
         $file="./templates/template.csv";
+        return Response::download($file);
+    }
+
+    public function getWMTemplate()
+    {
+        $file="./templates/wmtemplate.csv";
         return Response::download($file);
     }
     
@@ -335,16 +344,23 @@ class productsController extends Controller
         return view('products.secondary',compact('products','strategyCodes','strategies','accounts','maxSellers','maxPrice','accountFilter','strategyFilter','minAmount','maxAmount','minSeller','maxSeller','last_run'));
     } 
 
-    public function getFile()
+    public function getFile(Request $request)
     {
+        $i = $request->range;   
+        if($i==0)
+            return redirect()->route('products')->withStatus(__('Please Select Range'));
+        
         $filename = date("d-m-Y")."-".time()."-primary-sa-api-export.xlsx";
-        return Excel::download(new SellerActiveExport(1), $filename);   
+        return Excel::download(new SellerActiveExport($i, 1), $filename);   
     }
 
-    public function secondaryGetFile()
+    public function secondaryGetFile(Request $request)
     {
+        $i = $request->range;   
+        if($i==0)
+            return redirect()->route('products')->withStatus(__('Please Select Range'));   
         $filename = date("d-m-Y")."-".time()."-secondary-sa-api-export.xlsx";
-        return Excel::download(new SellerActiveExport(2), $filename);   
+        return Excel::download(new SellerActiveExport($i, 2), $filename);   
     }
 
     public function exportAsins(Request $request)
@@ -418,6 +434,83 @@ class productsController extends Controller
         
         Session::flash('success_msg', 'Import in progress. Check logs for details');
         return redirect()->route('products');
+
+    }
+    public function uploadWmFile(Request $request)
+    {
+        $input = [
+            'file' => $request->file           
+        ];
+
+        $rules = [
+            'file'    => 'required'  
+        ];
+
+        $tag = $request->route; 
+
+        if($tag == '1')
+            $route = 'products';
+        else
+            $route = 'secondaryproducts';
+
+        $validator = Validator::make($input,$rules);
+
+        if($validator->fails())
+        {
+            Session::flash('error_msg', __('File is required'));
+            return redirect()->route($route);
+        }
+
+        if($request->hasFile('file'))
+        {
+        
+            $allowedfileExtension=['csv','xls','xlsx'];
+        
+            $file = $request->file('file');
+          
+            $filename = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $check=in_array($extension,$allowedfileExtension);
+            
+            if($check)
+            {                
+                $filename = $request->file->store('imports');   
+                           
+                Session::flash('success_msg', __('File Uploaded Successfully'));
+            }
+
+           else
+             {
+                Session::flash('error_msg', __('Invalid File Extension'));
+                return redirect()->route($route);
+             }
+            
+
+        }
+        else
+        {
+            
+        }
+        $import = new WMProductsImport;
+        Excel::import($import, $filename);
+        $collection = $import->data;
+        $cnt =0; 
+        foreach($collection as $col)
+        {
+            try{
+                $update = products::where('asin',$col['sku'])->update(['wmid'=>$col['id'], 'wmimage'=>$col['link']]);
+                if($update)
+                $cnt++;
+            }
+            catch(\Exception $ex)
+            {
+
+            }
+            
+        }   
+        
+        Session::flash('success_msg', $cnt. ' WM Items Imported Successfully');
+        return redirect()->route($route);
 
     }
 

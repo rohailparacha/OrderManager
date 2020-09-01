@@ -39,6 +39,7 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
 
     public function collection()
     {        
+        $dataArray = array(); 
         $storeFilter = $this->storeFilter;
         $marketFilter = $this->marketFilter;
         $stateFilter = $this->stateFilter;
@@ -49,20 +50,22 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
         $minAmount = trim(explode('-',$amountFilter)[0]);
         $maxAmount = trim(explode('-',$amountFilter)[1]);
             
+        $val = flags::where('name','Expensive')->get()->first(); 
+
         $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
         ->leftJoin('products','order_details.SKU','=','products.asin')
-        ->leftJoin('ebay_products','order_details.SKU','=','ebay_products.sku')
+        ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')            
+        ->groupBy('orders.id')        
         ->where('flag','!=','8')
         ->where('flag','!=','9')
         ->where('flag','!=','10');
         
         if($route == 'new')
-            $orders = $orders->where('flag','0');
+            $orders = $orders->where('flag','0')->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<',floatval($val->color));
+        elseif($route=='flagged')
+            $orders = $orders->where('flag','!=','0')->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<',floatval($val->color));
         else
-            $orders = $orders->where('flag','!=','0');
-
-        $orders = $orders->select(['orders.*',DB::raw('IFNULL( products.lowestPrice, 0) as lowestPrice'),'products.asin','ebay_products.sku']);
-        
+            $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',floatval($val->color));
         
         if(!empty($storeFilter)&& $storeFilter !=0)
         {
@@ -92,7 +95,9 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
 
 
         
-        $orders = $orders->whereBetween(DB::raw('IFNULL( products.lowestPrice, 0)'),[$minAmount,$maxAmount]);
+        $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',$minAmount);
+        $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$maxAmount);
+
 
         if(!empty($stateFilter)&& $stateFilter !='0')
         {           
@@ -224,17 +229,16 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
                         $total = $total + 0; 
                     }
                     else
-                    $total = $total + $price->ebayPrice;   
+                    $total = $total + ($price->ebayPrice * $detail->quantity);   
                 }
 
             else
-                $total = $total + $price->lowestPrice;
+                $total = $total + ($price->lowestPrice * $detail->quantity);
         }
 
         return $total;
 
     }
-
     public function columnFormats(): array
     {
         return [

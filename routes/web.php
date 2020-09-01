@@ -31,7 +31,9 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::put('profile', ['as' => 'profile.update', 'uses' => 'ProfileController@update']);
 	Route::put('profile/password', ['as' => 'profile.password', 'uses' => 'ProfileController@password']);
 	Route::get('newOrders','orderController@newOrders')->name('newOrders')->middleware('admin');
+	Route::get('/reset/{id}','orderController@reset')->name('reset')->middleware('admin');
 	Route::get('newOrdersFlagged','orderController@newOrdersFlagged')->name('newOrdersFlagged')->middleware('admin');
+	Route::get('newOrdersExpensive','orderController@newOrdersExpensive')->name('newOrdersExpensive')->middleware('admin');
 	Route::get('processedOrders','orderController@processedOrders')->name('processedOrders')->middleware('admin');
 	Route::get('cancelledOrders','orderController@cancelledOrders')->name('cancelledOrders')->middleware('admin');
 	Route::get('shippedOrders','orderController@shippedOrders')->name('shippedOrders')->middleware('admin');
@@ -44,6 +46,8 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('upsshipped','orderController@upsShipped')->name('upsShipped')->middleware('admin');	
 	Route::any('upsfilter','orderController@upsfilter')->name('upsfilter')->middleware('admin');
 	Route::any('upsexport','orderController@upsexport')->name('upsexport')->middleware('admin');	
+	Route::get('lookup','orderController@lookup')->name('lookup')->middleware('admin');
+	Route::any('lookupFilter','orderController@filterLookup')->middleware('admin');
 
 	Route::post('getManualBce','orderController@getManualBce')->middleware('admin');
 	Route::get('cancelOrder/{id}','orderController@cancelOrder')->name('cancelOrder');	
@@ -65,6 +69,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::post('updateaccount','accountsController@update')->name('updateaccount')->middleware('admin');
 	Route::post('checkPass','orderController@checkPass')->name('checkPass');
 	Route::get('report','reportsController@index')->name('report')->middleware('admin');
+	Route::get('dailyReport','reportsController@dailyReport')->name('dailyReport')->middleware('admin');
 	Route::any('filter','reportsController@filter')->name('filter')->middleware('admin');
 	Route::any('export','reportsController@export')->name('export')->middleware('admin');	
 	Route::get('getAmzDetails','orderController@getAmazonDetails')->middleware('admin');
@@ -72,6 +77,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('orderFlag/{route}/{id}/{flag}','orderController@orderFlagRoute')->middleware('admin');
 	Route::any('orderFilter','orderController@filter')->middleware('admin');
 	Route::any('orderFilterFlagged','orderController@filterFlagged')->middleware('admin');
+	Route::any('orderFilterExpensive','orderController@filterExpensive')->middleware('admin');
 	
 	
 	Route::any('assignFilter','orderController@assignFilter')->middleware('admin');
@@ -93,10 +99,12 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::delete('/gmailAccountDelete/{id}','gmailController@delAccount')->name('gmailAccountDelete')->middleware('admin');
 
 	//Products Route
+	
 	Route::get('/products', 'productsController@index')->name('products')->middleware('admin');
 	Route::get('/secondaryproducts', 'productsController@secondaryProducts')->name('secondaryproducts')->middleware('admin');
 
 	Route::post('/upload', 'productsController@uploadSubmit');
+	Route::post('/uploadwm', 'productsController@uploadWmFile');
 	Route::post('/manualReprice', 'productsController@manualReprice');
 
 	Route::any('productexport','productsController@export')->name('productexport')->middleware('admin');	
@@ -108,12 +116,13 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('deleteProduct/{id}','productsController@deleteProduct')->middleware('admin');
 	Route::get('deleteSecondaryProduct/{id}','productsController@deleteSecondaryProduct')->middleware('admin');
 	Route::get('/template', 'productsController@getTemplate');
+	Route::get('/wmtemplate', 'productsController@getWMTemplate');
 
 	Route::get('repricing','productsController@repricing');
 	Route::get('secondaryrepricing','productsController@secondaryRepricing');
 
-	Route::get('getfile','productsController@getFile');
-	Route::get('getsecondaryfile','productsController@secondaryGetFile');
+	Route::post('getfile','productsController@getFile');
+	Route::post('getsecondaryfile','productsController@secondaryGetFile');
 	
 	Route::post('exportAsins','productsController@exportAsins');
 	Route::post('secondaryExportAsins','productsController@secondaryExportAsins');
@@ -360,6 +369,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('/flags', 'flagsController@flags')->name('flags')->middleware('admin');
 	Route::post('/addFlag', 'flagsController@addFlag')->middleware('admin');
 	Route::post('/editFlag', 'flagsController@editFlag')->middleware('admin');
+	Route::post('/editExpensive', 'flagsController@editExpensive')->middleware('admin');
 	Route::delete('/FlagDelete/{id}','flagsController@delFlag')->name('flagDelete')->middleware('admin');
 
 	//blacklist reasons

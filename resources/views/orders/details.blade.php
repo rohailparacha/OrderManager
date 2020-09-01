@@ -33,6 +33,35 @@ th
 }
 
 </style>
+
+<style>
+td,th {
+  white-space: normal !important; 
+  word-wrap: break-word;
+  padding-left:1rem!important;
+  padding-right:1rem!important;  
+}
+table {
+  table-layout: fixed;
+}
+
+
+
+@media (min-width: 768px)
+{
+    .main-content .container-fluid
+    {
+        padding-right: 12px !important;
+        padding-left: 12px !important;
+    }
+
+    .container{
+        margin:0px; 
+        max-width:1250px;
+    }
+}
+</style>
+
 <script>
 
 $(document).ready(function(){
@@ -666,7 +695,7 @@ td {
                     </div>
 
                     <div class="container" style="padding-bottom:5%; ">
-                    <div class="row">
+                    <div class="row" style="margin-left:20px;">
 
                     <div class="col-md-6">
                         <div class="card">
@@ -860,6 +889,8 @@ td {
                     <div class="row">
                     
                     <div class="col-md-4 offset-md-8"  style="float:right;">
+                    
+
                         @if(($order->status=='unshipped' || $order->status=='pending' || auth()->user()->role==1) && $order->status!='cancelled')            
                             <button id="btnCancel" class="btn btn-danger btn-md" style="float:right;"><i class="fa fa-window-close"></i>  Cancel Order</button>                                        
                         @endif
@@ -867,6 +898,8 @@ td {
                         @if(!$order->converted && $order->status=='processing')
                             <button id="btnBce" class="btn btn-primary btn-md" style="float:right;margin-right:5px;"><i class="fa fa-retweet"></i>  BCE Conversion</button>                    
                         @endif
+
+                        <a href="../reset/{{$order->id}}" class="btn btn-warning btn-md" style="color: black;background: yellow;border-color: yellow;float:right;margin-right:5px;">RESET</a>                                        
                     </div>
                     </div>
                     
@@ -883,23 +916,28 @@ td {
                         <table class="table align-items-center table-flush">
                             <thead class="thead-light">
                                 <tr>
-                                    <th width="9%" scope="col">{{ __('Image') }}</th>
-                                    <th width="26%" scope="col">{{ __('Product Name') }}</th>
-                                    <th width="13%" scope="col">{{ __('SKU') }}</th>
-                                    <th width="13%" scope="col">{{ __('UPC') }}</th>
-                                    <th width="11%" scope="col">{{ __('Quantity') }}</th>
-                                    <th width="9%" scope="col">{{ __('Unit Price') }}</th>
-                                    <th width="9%" scope="col">{{ __('Total Price') }}</th>
-                                    <th width="9%" scope="col">{{ __('Link') }}</th>
+                                    <th width="9%" scope="col">{{ __('Amazon Image') }}</th>
+                                    <th width="9%" scope="col">{{ __('WM Image') }}</th>
+                                    <th width="18%" scope="col">{{ __('Product Name') }}</th>
+                                    <th width="10%" scope="col">{{ __('SKU') }}</th>
+                                    <th width="10%" scope="col">{{ __('UPC') }}</th>
+                                    <th width="10%" scope="col">{{ __('WM ID') }}</th>
+                                    <th width="8%" scope="col">{{ __('Quantity') }}</th>
+                                    <th width="8%" scope="col">{{ __('Unit Price') }}</th>
+                                    <th width="8%" scope="col">{{ __('Total Price') }}</th>
+                                    <th width="10%" scope="col">{{ __('WM Link') }}</th>
+                                    <th width="10%" scope="col">{{ __('Amazon Link') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($details as $detail)
                                     <tr>
                                         <td width="9%" class="specifictd"><img src="{{ $detail->image }}" width="75px" height="75px"></td>
+                                        <td width="9%" class="specifictd"><img src="{{ $detail->wmimage }}" width="75px" height="75px"></td>
                                         <td width="26%">{{ $detail->title }}</td>
                                         <td width="13%" class="specifictd">{{ $detail->SKU }}</td>
                                         <td width="13%" class="specifictd">{{ $detail->upc }}</td>
+                                        <td width="13%" class="specifictd">{{ $detail->wmid }}</td>
                                         @if($detail->quantity>1)
                                         <td width="11%" style="color:red; font-size: 20px!important; " class="specifictd">{{ $detail->quantity }}</td>
                                         @else
@@ -908,6 +946,9 @@ td {
 
                                         <td width="9%" class="specifictd">{{ number_format((float)$detail->unitPrice, 2, '.', '') }}</td>
                                         <td width="9%" class="specifictd">{{ number_format((float)$detail->totalPrice +(float)$detail->shippingPrice , 2, '.', '') }}</td>                                        
+                                        <td width="9%" class="specifictd">
+                                        <a href="https://www.walmart.com/ip/{{ $detail->wmid }}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a>
+                                        </td>
                                         <td width="9%" class="specifictd">
                                         @if($detail->src=='Ebay')
                                         <a href="https://www.ebay.com/itm/{{$detail->SKU}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a>

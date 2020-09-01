@@ -16,6 +16,12 @@ $(document).ready(function(){
         $('#addSuccess').hide();
         });
 
+        $('#btnAddExpensive').on('click',function(event){ 
+        $('#addExpensive').modal('show');          
+        $('#editSuccess').hide();        
+        });
+
+
        
         
         $('#addCat').on('show.bs.modal', function(e) {        
@@ -107,7 +113,37 @@ $(document).ready(function(){
            }        
        });
        })
-    
+       
+       $('#update-expensive').on('click',function(event){ 
+           
+           var obj = $('#expensiveTbx').val();                      
+
+           $.ajax({
+               
+           type: 'post',
+           url: '/editExpensive',
+           data: {
+           'val': obj
+           },
+           headers: {
+               'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+           },
+           success: function (data) {
+           console.log(data);
+           if (data == 'success') {
+               $('#add-modal').modal('hide');
+               $('#error').hide();
+               document.location.reload();
+               $("#editSuccess").show().delay(3000).fadeOut();
+           } else
+               $('#error').show();
+           },
+           
+           error: function(XMLHttpRequest, textStatus, errorThrown) {                
+               $('#error').show();
+           }        
+       });
+       })
     
     
     });
@@ -122,6 +158,7 @@ $(document).ready(function(){
                                 <h3 class="mb-0">{{ __('Flags') }}</h3>
                             </div>
                             <div class="col-4 text-right">
+                                <input type="button" id="btnAddExpensive" class="btn btn-sm btn-primary" value="Update Expensive Value"/>                                    
                                 <input type="button" id="btnAddCat" class="btn btn-sm btn-primary" value="Add Flag"/>                                    
                             </div>    
                         </div>
@@ -254,6 +291,58 @@ $(document).ready(function(){
        <div class="modal-footer">
         <button type="button" class="btn btn-primary" id="modal-que-save">@lang('Add Flag')</button>
         <button type="button" class="btn btn-primary" id="modal-que-edit">@lang('Edit Flag')</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">@lang('Close')</button>                            
+           </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+</div>
+<!-- Add Question Modal End -->
+
+<!-- Add Question Modal -->
+<div class="modal fade" tabindex="-1" role="dialog" id="addExpensive">     
+      
+      <div class="modal-dialog" role="document">
+      <div class="alert alert-danger" id="error" style="display:none">
+      @lang('Some fields are incorrect or missing below:')
+       </div>
+
+       <div class="alert alert-success" id="editSuccess" style="display:none">
+               @lang('Expensive Value Updated Successfully')
+       </div>   
+        <div class="modal-content">
+            <div class="modal-header">
+            <h4 class="modal-title" id="editTitle">@lang('Update Expensive Value')</h4>
+             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              
+         <br/>
+           </div>
+        <div class="modal-body">
+            <input type="hidden" value="" id="catId" />
+   <form class="form-horizontal" method="post" >
+{{csrf_field()}}
+
+
+
+<div class="row clearfix">
+       <div class="col-sm-3 form-control-label">
+           <label for="email_address_2">@lang('Expensive Value:')</label>
+       </div>
+       <div class="col-sm-9">
+           <div class="form-group">
+               <div class="form-line">
+                   <div class="form-line">
+                       <input type="text" class="form-control" id="expensiveTbx" name="category" >                                        
+                   </div>
+                    <div class="errorMsg">{!!$errors->survey_question->first('category');!!}</div>
+               </div>
+           </div>
+       </div>
+</div>
+       
+   </form>
+      </div>
+       <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="update-expensive">@lang('Update Expensive Value')</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">@lang('Close')</button>                            
            </div>
         </div><!-- /.modal-content -->

@@ -22,6 +22,10 @@ table {
   table-layout: fixed;
 }
 
+.btn-sm{
+    font-size:0.65rem;
+}
+
 @media (min-width: 768px)
 {
     .main-content .container-fluid
@@ -278,7 +282,7 @@ catch{
                             <input type="submit" value="Filter" class="btn btn-primary btn-md">
                             <a id="export" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px;">Export</a>   
                             
-                            </div>
+                            </div>                            
 
                                  
                         </div>
@@ -288,13 +292,39 @@ catch{
                     <p style="float:right;padding-left:80%;">Last Run:
                     {{ $provider::getIranTime(date_format(date_create($last_run), 'm/d/Y H:i:s')) }}                                        
                     </p>
-                </form>   
+                </form>  
+
+                
                 <a href="./repricing" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px; margin-bottom:20px; ">Repricing</a>   
-                <a href="./getfile" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px; margin-bottom:20px; ">Download Products</a>   
                 <a href="./template" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px; margin-bottom:20px; ">Template File</a>   
+                  
+                <form method="post" style="float:right;" class="form-inline" action="getfile" autocomplete="off">
+                            @csrf
+                                                        
+                            <div class="form-group">
+                                        <select class="form-control" name="range" style="">                                
+                                                    <option value=0>Select Range</option>
+                                                    @for ($i = 1; $i <= $products->toArray()['total']; $i = $i + 100000)
+                                                        @if($i+100000>$products->toArray()['total'])
+                                                        <option value="{{ $i }}">{{ $i }} - {{$products->toArray()['total']}}</option>
+                                                        @else
+                                                        <option value="{{ $i }}">{{ $i }} - {{$i+99999}}</option>
+                                                        @endif
+                                                    @endfor
+                                                                                                                                                       
+                                        </select>                                    
+                                    
+                                        @error('role')
+                                            <div class="error" style="color:red;">{{ $message }}</div>
+                                         @enderror
+                                </div>
+                               
+                                <div class="form-group text-center" style="float:right; margin-top:-27px; padding-left:5px;">
+                                    <button type="submit" class="btn btn-primary mt-4">{{ __('Download Products') }}</button>
+                                </div>                            
+                </form>
                 
-                
-                <form method="post" style="float:right;" class="form-inline" action="exportAsins" autocomplete="off">
+                <form method="post" style="float:right; padding-right:30px;" class="form-inline" action="exportAsins" autocomplete="off">
                             @csrf
                                                         
                             <div class="form-group">
@@ -331,21 +361,44 @@ catch{
 
             
         </div>
+
+        <div class="row" style="padding-top:2%; padding-bottom:2%;">
+        
+        <div class="col-md-6 offset-md-6">
+                <a href="./wmtemplate" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:10px; margin-bottom:20px; ">WM Template</a> 
+                            <form class="form-inline" action="/uploadwm" method="post" enctype="multipart/form-data" style="float:right;">
+                            {{ csrf_field() }}
+                                <div class="form-group">
+
+                                    <input type="hidden" value="1" name="route" />
+
+                                    <input type="file" class="form-control" name="file" />                
+                            
+                                    <input type="submit" class="btn btn-primary" value="Import WM" style="margin-left:10px;"/>
+                                   
+                                </div>
+                            
+                            </form>
+                </div>
+        </div>
                     <div class="table-responsive">
                         <table class="table align-items-center table-flush">
                             <thead class="thead-light">
                                 <tr>
                                     <th scope="col" width="8%" >{{ __('Image') }}</th>
+                                    <th scope="col" width="8%" >{{ __('WM Image') }}</th>
                                     <th scope="col" width="9%" >{{ __('Created Date') }}</th>
                                     <th scope="col" width="7%">{{ __('Store Name') }}</th>
                                     <th scope="col" width="9%">{{ __('ASIN') }}</th>
                                     
                                     <th scope="col" width="9%">{{ __('UPC') }}</th>
+                                    <th scope="col" width="9%">{{ __('WM ID') }}</th>
                                     
                                     <th scope="col" width="18%">{{ __('Title') }}</th>
                                     <th scope="col" width="8%">{{ __('Total FBA Sellers') }}</th>
                                     <th scope="col" width="8%">{{ __('Lowest FBA Price') }}</th>
                                     <th scope="col" width="8%">{{ __('Price') }}</th>                                    
+                                    <th scope="col" width="8%">{{ __('WM Link') }}</th>    
                                     <th scope="col" width="8%">{{ __('Link') }}</th>                                    
                                     <th scope="col" width="6%">{{ __('Action') }}</th>
                                     <th scope="col" width="3%"></th>
@@ -355,14 +408,23 @@ catch{
                                 @foreach ($products as $product)
                                     <tr>                                                                             
                                         <td width="8%"><img src="{{ $product->image }}" width="75px" height="75px"></td>
+                                        <td width="8%">
+                                        @if(!empty($product->wmimage))
+                                            <img src="{{ $product->wmimage }}" width="75px" height="75px">
+                                        @endif
+                                        </td>
                                         <td width="9%">{{ date_format(date_create($product->created_at), 'm/d/Y') }}</td> 
                                         <td width="8%" class="specifictd">{{ $product->account }}</td>
                                         <td width="9%" class="specifictd">{{ $product->asin }}</td>
                                         <td width="9%" class="specifictd">{{ $product->upc }}</td>
+                                        <td width="9%" class="specifictd">{{ $product->wmid }}</td>
                                         <td width="20%">{{ $product->title }}</td>
                                         <td width="8%"  class="specifictd">{{ $product->totalSellers }}</td>
                                         <td width="8%" class="specifictd">{{ number_format((float)$product->lowestPrice, 2, '.', '') }}</td>
                                         <td width="8%" class="specifictd">{{ number_format((float)$product->price, 2, '.', '') }}</td>                                        
+                                        <td width="9%" class="specifictd">
+                                        <a href="https://www.walmart.com/ip/{{ $product->wmid }}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a>
+                                        </td>
                                         <td width="8%" class="specifictd"><a href="https://amazon.com/dp/{{$product->asin}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a></td>
                                         <td width="6%" class="specifictd">
                                         <a class="btn btn-primary btn-sm" href="deleteProduct/{{$product->id}}" onclick="return confirm('Are you sure you want to delete this product?')">Delete</a>

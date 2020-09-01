@@ -5,6 +5,7 @@ use App\flags;
 use Illuminate\Http\Request;
 use Validator; 
 use Response;
+use Session; 
 
 class flagsController extends Controller
 {
@@ -92,6 +93,46 @@ class flagsController extends Controller
         $obj->save();
             return "success";
             Session::flash('success_msg', __("Success. Flag updated successfully."));
+            return Redirect()->back();
+        }
+        catch(Exception $ex)
+        {
+            return "error";
+        }
+
+    }
+
+    public function editExpensive(Request $request)
+    {
+        $input = [
+        
+            'val' => $request->get('val'),
+        ];  			
+        $rules = [
+            
+                'val' => 'required'                             
+        ];
+        
+
+        $formData= $request->all();
+        $validator = Validator::make($input,$rules);
+        if($validator->fails())
+        {        
+           Session::flash('error_msg', __("Validation Error. Please fix errors and try again."));
+           return Redirect::back()->withInput()->withErrors($validator,'add_carrier');
+        }     
+        	
+        $val = $formData['val'];
+        
+        try{
+        
+            $return = flags::updateOrCreate(
+                ['name'=>'Expensive'],    
+                ['color'=>$val]
+                );
+
+            return "success";
+           
             return Redirect()->back();
         }
         catch(Exception $ex)

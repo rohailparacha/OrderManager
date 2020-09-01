@@ -117,7 +117,8 @@ Route::post('samuel_update', function(Request $request) {
         ->whereNull('poNumber')
         ->update([
         'poTotalAmount'=>floatval($record['poTotalAmount']) * 0.93,
-        'poNumber'=>$record['poNumber'],        
+        'poNumber'=>$record['poNumber'], 
+        'itemId'=>$record['itemId'],      
         'afpoNumber'=>$record['afpoNumber'],
         'account_id'=>'Samuel',        
         'status'=>'processing'

@@ -5,8 +5,8 @@ use App\orders;
 use App\order_details;
 use App\accounts;
 use App\ebay_products;
-use DB;
 use App\flags;
+use DB;
 use App\states;
 use App\products;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -34,6 +34,7 @@ class JonathanExport implements WithColumnFormatting,FromCollection,WithHeadings
 
     public function collection()
     {        
+        $dataArray = array(); 
         $storeFilter = $this->storeFilter;
         $marketFilter = $this->marketFilter;
         $stateFilter = $this->stateFilter;
@@ -43,14 +44,16 @@ class JonathanExport implements WithColumnFormatting,FromCollection,WithHeadings
         $minAmount = trim(explode('-',$amountFilter)[0]);
         $maxAmount = trim(explode('-',$amountFilter)[1]);
             
+
         $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
         ->leftJoin('products','order_details.SKU','=','products.asin')
-        ->leftJoin('ebay_products','order_details.SKU','=','ebay_products.sku')
-        ->select(['orders.*',DB::raw('IFNULL( products.lowestPrice, 0) as lowestPrice'),'products.asin','ebay_products.sku'])
+        ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')          
+        ->groupBy('orders.id')        
         ->where('flag','9');
         
-        $flagName  = flags::where('id','9')->get()->first()->name;
 
+        $flagName  = flags::where('id','9')->get()->first()->name;
+        
         if(!empty($storeFilter)&& $storeFilter !=0)
         {
             $storeName = accounts::select()->where('id',$storeFilter)->get()->first();
@@ -79,12 +82,13 @@ class JonathanExport implements WithColumnFormatting,FromCollection,WithHeadings
 
 
         
-        $orders = $orders->whereBetween(DB::raw('IFNULL( products.lowestPrice, 0)'),[$minAmount,$maxAmount]);
-
         if(!empty($stateFilter)&& $stateFilter !='0')
         {           
             $orders = $orders->where('state',$stateFilter);
         }
+
+        $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',$minAmount);
+        $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$maxAmount);
                 
         if(auth()->user()->role==1|| auth()->user()->role==2)
             $orders = $orders->where('status','unshipped')->orderBy('date', 'ASC')->groupby('orders.id')->get();
@@ -100,8 +104,7 @@ class JonathanExport implements WithColumnFormatting,FromCollection,WithHeadings
         $maxPrice = ceil(orders::where('status','unshipped')->max('totalAmount'));
         foreach($orders as $order)
         {        
-            $order->lowestPrice = $this->getLowestPrice($order->id);
-
+            
             $sources = array();
             
             $order_details = order_details::where('order_id',$order->id)->get(); 
@@ -135,7 +138,8 @@ class JonathanExport implements WithColumnFormatting,FromCollection,WithHeadings
         }
 
         foreach($orders as $order)
-        {
+        {          
+   
             $counter=0; 
             $order_details = order_details::where('order_id',$order->id)->get();
             $temp = array();
@@ -204,11 +208,11 @@ class JonathanExport implements WithColumnFormatting,FromCollection,WithHeadings
                         $total = $total + 0; 
                     }
                     else
-                    $total = $total + $price->ebayPrice;   
+                    $total = $total + ($price->ebayPrice * $detail->quantity);   
                 }
 
             else
-                $total = $total + $price->lowestPrice;
+                $total = $total + ($price->lowestPrice * $detail->quantity);
         }
 
         return $total;

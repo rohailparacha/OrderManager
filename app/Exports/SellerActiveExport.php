@@ -17,10 +17,12 @@ class SellerActiveExport implements FromCollection,WithHeadings,ShouldAutoSize,W
     /**
     * @return \Illuminate\Support\Collection
     */
+    protected $offset; 
     protected $flag; 
 
-    public function __construct($flag)
+    public function __construct($offset, $flag)
     {
+        $this->offset = $offset;
         $this->flag = $flag;
     }
 
@@ -28,7 +30,7 @@ class SellerActiveExport implements FromCollection,WithHeadings,ShouldAutoSize,W
     {
         //
         $flag = $this->flag;
-        
+        $offset =  $this->offset;
         
         $setting = amazon_settings::get()->first();
         if($flag==1)
@@ -59,7 +61,8 @@ class SellerActiveExport implements FromCollection,WithHeadings,ShouldAutoSize,W
 
         $products = $prd->leftJoin('accounts','products.account','accounts.store')
         ->leftJoin('blacklist','products.asin','blacklist.sku')
-        ->select(['products.*','accounts.lagTime','accounts.quantity','accounts.maxListingBuffer','blacklist.allowance'])    
+        ->select(['products.*','accounts.lagTime','accounts.quantity','accounts.maxListingBuffer','blacklist.allowance'])
+        ->offset($offset)->limit(100000)    
         ->orderBy('account')->get(); 
         
         $dataArray = array();

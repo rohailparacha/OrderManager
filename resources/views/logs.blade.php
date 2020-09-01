@@ -52,15 +52,15 @@ $(document).ready(function(){
                 html = '<table class="table table-flush">';
                 for (a=0; a<jsondata.length;a++)
                 {
-                    html+= '<tr><td width="5%"></td><td style="width:11%">'+jsondata[a].name+'</td>';
-                    html+='<td style="width:11%">'+jsondata[a].date_started+'</td>';
-                    html+='<td style="width:11%">'+jsondata[a].date_completed+'</td>';
-                    html+='<td style="width:9%">'+jsondata[a].totalItems+'</td>';
+                    html+= '<tr><td width="3%"></td><td style="width:8%">'+jsondata[a].name+'</td>';
+                    html+='<td style="width:10%">'+jsondata[a].date_started+'</td>';
+                    html+='<td style="width:10%">'+jsondata[a].date_completed+'</td>';
+                    html+='<td style="width:10%">'+jsondata[a].totalItems+'</td>';
                     html+='<td style="width:9%">'+jsondata[a].errorItems+'</td>';
-                    html+='<td style="width:9%">'+jsondata[a].successItems+'</td>';
+                    html+='<td style="width:10%">'+jsondata[a].successItems+'</td>';
                     html+='<td style="width:9%">'+jsondata[a].stage+'</td>';
-                    html+='<td style="width:9%">'+jsondata[a].status+'</td>';
-                    html+='<td style="width:24%">'+jsondata[a].error+'</td>';
+                    html+='<td style="width:9%">'+jsondata[a].status+'</td><td style="width:12%"></td>';
+                    html+='<td style="width:15%">'+jsondata[a].error+'</td><td style="width:10%"></td>';
                     html+='</tr>';
                 }
                 
