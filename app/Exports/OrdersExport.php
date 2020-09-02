@@ -63,9 +63,9 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
         if($route == 'new')
             $orders = $orders->where('flag','0')->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<',floatval($val->color));
         elseif($route=='flagged')
-            $orders = $orders->where('flag','!=','0')->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<',floatval($val->color));
+            $orders = $orders->where('flag','!=','0');
         else
-            $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',floatval($val->color));
+            $orders = $orders->where('flag','0')->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',floatval($val->color));
         
         if(!empty($storeFilter)&& $storeFilter !=0)
         {

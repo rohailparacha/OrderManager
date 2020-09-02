@@ -68,6 +68,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('account/{id}/edit','accountsController@edit')->name('editaccount')->middleware('admin');
 	Route::post('updateaccount','accountsController@update')->name('updateaccount')->middleware('admin');
 	Route::post('checkPass','orderController@checkPass')->name('checkPass');
+	Route::post('checkResetPass','orderController@checkResetPass')->name('checkResetPass');
 	Route::get('report','reportsController@index')->name('report')->middleware('admin');
 	Route::get('dailyReport','reportsController@dailyReport')->name('dailyReport')->middleware('admin');
 	Route::any('filter','reportsController@filter')->name('filter')->middleware('admin');

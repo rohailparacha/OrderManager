@@ -4,6 +4,11 @@
 @include('layouts.headers.cards')
 @inject('provider', 'App\Http\Controllers\orderController')
 <style>
+.container
+{
+    width: 100%;
+    max-width: 1720px;
+}
 .col-md-3{
     max-width: 30%;
     flex: 0 0 30%;
@@ -57,7 +62,6 @@ table {
 
     .container{
         margin:0px; 
-        max-width:1250px;
     }
 }
 </style>
@@ -71,6 +75,12 @@ $(document).ready(function(){
     $('#error').hide(); 
     $('#checkPass').modal('show');  
     $('#passTbx').val("");
+ });
+
+ $('#btnReset').on('click',function(event){
+    $('#errorReset').hide(); 
+    $('#checkResetPass').modal('show');  
+    $('#passResetTbx').val("");
  });
 
 $('#btnBce').on('click',function(event){
@@ -661,6 +671,42 @@ function onlyUnique(value, index, self) {
            }        
        });
        })
+
+       $('#modal-confirm-reset-password').on('click',function(event){            
+           var pass = $('#passResetTbx').val();           
+           var id = $('#idTbx').val();           
+            
+           $.ajax({
+               
+           type: 'post',
+           url: '/checkResetPass',
+           data: {
+           'password': pass,
+           'id' : id
+           },
+           headers: {
+               'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+           },
+           success: function (data) {
+           console.log(data);
+           if (data == 'success') {
+               $('#checkResetPass').modal('hide');
+               $('#errorReset').hide();  
+               document.location.reload();                       
+           } 
+           else if(data== 'failure')
+           {
+            $('#errorReset').text('Reset password is incorrect');                
+            $('#errorReset').show();
+           }
+                         
+           },
+           
+           error: function(XMLHttpRequest, textStatus, errorThrown) {                
+               $('#error').show();
+           }        
+       });
+       })
 });
 </script>
 
@@ -899,7 +945,7 @@ td {
                             <button id="btnBce" class="btn btn-primary btn-md" style="float:right;margin-right:5px;"><i class="fa fa-retweet"></i>  BCE Conversion</button>                    
                         @endif
 
-                        <a href="../reset/{{$order->id}}" class="btn btn-warning btn-md" style="color: black;background: yellow;border-color: yellow;float:right;margin-right:5px;">RESET</a>                                        
+                        <a id="btnReset" class="btn btn-warning btn-md" style="color: black;background: yellow;border-color: yellow;float:right;margin-right:5px;">RESET</a>                                        
                     </div>
                     </div>
                     
@@ -1025,6 +1071,60 @@ td {
       </div><!-- /.modal-dialog -->
 </div>
 <!-- Confirm Admin Password -->
+
+<!-- Confirm Reset Password -->
+<div class="modal fade" tabindex="-1" role="dialog" id="checkResetPass">     
+      
+      <div class="modal-dialog" role="document">
+      <div class="alert alert-danger" id="errorReset" style="display:none">
+        Reset Password Is Incorrect
+       </div>
+       
+     
+        <div class="modal-content">
+            <div class="modal-header">
+            <h4 class="modal-title" id="addTitle">@lang('Confirm password to continue with order reset:')</h4>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              
+         <br/>
+           </div>
+        <div class="modal-body">
+            <input type="hidden" value="" id="catId" />
+   <form class="form-horizontal" method="post" >
+{{csrf_field()}}
+
+
+
+<div class="row clearfix">
+       <div class="col-sm-3 form-control-label">
+           <label for="email_address_2">@lang('Password:')</label>
+       </div>
+       <div class="col-sm-9">
+           <div class="form-group">
+               <div class="form-line">
+                   <div class="form-line">
+                       <input type="text" class="form-control" id="passResetTbx" name="category" >                                        
+                   </div>
+                    <div class="errorMsg">{!!$errors->survey_question->first('category');!!}</div>
+               </div>
+           </div>
+       </div>
+</div>
+
+
+
+
+       
+   </form>
+      </div>
+       <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="modal-confirm-reset-password">@lang('Confirm Password')</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">@lang('Close')</button>                            
+           </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+</div>
+<!-- Confirm Reset Password -->
 
 
 <!-- Process Modal -->

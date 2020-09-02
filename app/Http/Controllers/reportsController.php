@@ -7,11 +7,13 @@ use App\orders;
 use App\accounts;
 use App\carriers; 
 use App\order_details;
+use DB;
 use App\gmail_accounts;
 use App\informed_settings;
 use App\User;
 use App\Exports\ReportExport;
 use Excel; 
+use Carbon\Carbon;
 
 
 class reportsController extends Controller
@@ -22,9 +24,10 @@ class reportsController extends Controller
         $this->middleware('auth');
     }
 
-    public function dailyReport()
-    {
+    public function dailyReport(Request $request)
+    {        
         $settings = informed_settings::all();
+        $accounts = accounts::all(); 
         $labels= array(); 
         $datasets = array(); 
         foreach($settings as $setting)
@@ -32,8 +35,45 @@ class reportsController extends Controller
             $labels[]= $setting->minAmount."-".$setting->maxAmount;
         }
 
-        return view('report.dailyReport','settings');
+        $colors = ['red','orange','blue'];
+        $cnt =0; 
+        foreach($accounts as $account)
+        {
+            
+            $label = $account->store;
+            $data = array();
+            
+            foreach($settings as $setting)
+            {
+                 $col = order_details::join('orders','order_details.order_id','orders.id')
+                ->join ('products','order_details.SKU','products.asin')
+                ->select(DB::raw('IFNULL(SUM(orders.quantity),0) As qty'))
+                ->whereBetween('products.lowestPrice',[$setting->minAmount,$setting->maxAmount])
+                ->where('storeName',$account->store);
+
+                if(empty($date))
+                {
+                    $col = $col->whereDate('orders.date', Carbon::today())->get()->first();
+                }
+                else
+                {
+                    $col = $col->whereDate('orders.date', Carbon::parse($date))->get()->first();
+                }
+                
+                $data[]= $col->qty;                
+            }
+
+            $backgroundColor = $colors[$cnt];
+            $cnt++;                    
+
+            $datasets[]= ['label'=>$label, 'data'=>$data, 'backgroundColor'=>$backgroundColor, 'pointStyle' => 'rect','borderWidth'=>'0'];
+            
+        }
+        
+        
+        return view('report.dailyReport',compact('settings','labels','datasets','date'));
     }
+
     public function index()
     {
         $startDate = orders::min('date');

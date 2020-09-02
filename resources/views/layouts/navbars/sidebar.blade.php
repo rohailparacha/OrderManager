@@ -101,6 +101,13 @@
                                 </a>
                             </li>
                             @endif
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('lookup') }}">
+                                    {{ __('Zip Code Lookup') }}
+                                </a>
+                            </li>
+
                             @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(4,json_decode(auth()->user()->assigned_pages))))                       
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('cancelledOrders') }}">

@@ -294,11 +294,35 @@ catch{
                 </form>   
 
                 <a href="./secondaryrepricing" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px; margin-bottom:20px; ">Repricing</a>   
-                <a href="./getsecondaryfile" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px; margin-bottom:20px; ">Download Products</a>   
-                <a href="./template" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px; margin-bottom:20px; ">Template File</a>   
+                 <a href="./template" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px; margin-bottom:20px; ">Template File</a>   
                 
+                <form method="post" style="float:right;" class="form-inline" action="getsecondaryfile" autocomplete="off">
+                            @csrf
+                                                        
+                            <div class="form-group">
+                                        <select class="form-control" name="range" style="">                                
+                                                    <option value=0>Select Range</option>
+                                                    @for ($i = 1; $i <= $products->toArray()['total']; $i = $i + 100000)
+                                                        @if($i+100000>$products->toArray()['total'])
+                                                        <option value="{{ $i }}">{{ $i }} - {{$products->toArray()['total']}}</option>
+                                                        @else
+                                                        <option value="{{ $i }}">{{ $i }} - {{$i+99999}}</option>
+                                                        @endif
+                                                    @endfor
+                                                                                                                                                       
+                                        </select>                                    
+                                    
+                                        @error('role')
+                                            <div class="error" style="color:red;">{{ $message }}</div>
+                                         @enderror
+                                </div>
+                               
+                                <div class="form-group text-center" style="float:right; margin-top:-27px; padding-left:5px;">
+                                    <button type="submit" class="btn btn-primary mt-4">{{ __('Download Products') }}</button>
+                                </div>                            
+                </form>
                 
-                <form method="post" style="float:right;" class="form-inline" action="secondaryExportAsins" autocomplete="off">
+                <form method="post" style="float:right;margin-right:30px;" class="form-inline" action="secondaryExportAsins" autocomplete="off">
                             @csrf
                                                         
                             <div class="form-group">

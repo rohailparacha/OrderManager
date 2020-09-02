@@ -116,7 +116,7 @@ Route::post('samuel_update', function(Request $request) {
         $insert = orders::where('sellOrderId',$record['sellOrderId'])
         ->whereNull('poNumber')
         ->update([
-        'poTotalAmount'=>floatval($record['poTotalAmount']) * 0.93,
+        'poTotalAmount'=>floatval($record['poTotalAmount']),
         'poNumber'=>$record['poNumber'], 
         'itemId'=>$record['itemId'],      
         'afpoNumber'=>$record['afpoNumber'],

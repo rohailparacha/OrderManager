@@ -666,6 +666,8 @@ class orderFulfillmentController extends Controller
         $priority = 0;
         $maxDailyOrder = 0; 
         $maxDailyAmount =0;
+        $discount = 0; 
+        $maxPrice =0;
         
         $stores=array();
         
