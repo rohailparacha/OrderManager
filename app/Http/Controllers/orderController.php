@@ -2867,7 +2867,8 @@ class orderController extends Controller
                     $tempOrder["date"] =   $temp['date'];
                     $tempOrder["dueShip"] =   $temp['dueShip'];
                     $tempOrder["country"] =   $temp['country'];
-                    $tempOrder["uploadDate"] = Carbon::today();
+                    $dt = Carbon::now();
+                    $tempOrder['uploadDate'] = $dt->toDateTimeString()->format('m/d/Y');                    
                     
             
                     $product = products::where('asin',$temp2['SKU'])->get()->first();

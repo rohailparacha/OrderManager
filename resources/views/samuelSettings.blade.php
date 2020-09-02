@@ -198,7 +198,7 @@ $( function() {
                                 <div class="col-sm-6 form-group">
                                     <div class="i-checks">
                                         <label class="control-label"> 
-                                        <input type="text" name="maxDailyOrder" id="input-name" class="form-control form-inline" placeholder="{{ __('Max Daily Order') }}" value="{{ empty($settings->maxDailyOrder)?'':$settings->maxDailyOrder  }}" autofocus>
+                                        <input type="text" name="maxDailyOrder" id="input-name" class="form-control form-inline" placeholder="{{ __('Max Daily Order') }}" value="{{ empty($settings->maxDailyOrder)?'0':$settings->maxDailyOrder  }}" autofocus>
                                     </div>
                                 </div>
                                 </div>
@@ -216,7 +216,7 @@ $( function() {
                                 <div class="col-sm-6 form-group">
                                     <div class="i-checks">
                                         <label class="control-label"> 
-                                        <input type="text" name="maxDailyAmount" id="input-name" class="form-control form-inline" placeholder="{{ __('Max Daily Amount') }}" value="{{ empty($settings->maxDailyAmount)?'':$settings->maxDailyAmount  }}" autofocus>
+                                        <input type="text" name="maxDailyAmount" id="input-name" class="form-control form-inline" placeholder="{{ __('Max Daily Amount') }}" value="{{ empty($settings->maxDailyAmount)?'0':$settings->maxDailyAmount  }}" autofocus>
                                     </div>
                                 </div>
                                 </div>
@@ -233,7 +233,7 @@ $( function() {
                                 <div class="col-sm-6 form-group">
                                     <div class="i-checks">
                                         <label class="control-label"> 
-                                        <input type="text" name="discount" id="input-name" class="form-control form-inline" placeholder="{{ __('Discount %') }}" value="{{ empty($settings->discount)?'':$settings->discount  }}" autofocus>
+                                        <input type="text" name="discount" id="input-name" class="form-control form-inline" placeholder="{{ __('Discount %') }}" value="{{ empty($settings->discount)?'0':$settings->discount  }}" autofocus>
                                     </div>
                                 </div>
                                 
@@ -249,7 +249,7 @@ $( function() {
                                 <div class="col-sm-6 form-group">
                                     <div class="i-checks">
                                         <label class="control-label"> 
-                                        <input type="text" name="maxPrice" id="input-name" class="form-control form-inline" placeholder="{{ __('Max Price Factor') }}" value="{{ empty($settings->maxPrice)?'':$settings->maxPrice  }}" autofocus>
+                                        <input type="text" name="maxPrice" id="input-name" class="form-control form-inline" placeholder="{{ __('Max Price Factor') }}" value="{{ empty($settings->maxPrice)?'0':$settings->maxPrice  }}" autofocus>
                                     </div>
                                 </div>
                                 </div>
@@ -266,7 +266,7 @@ $( function() {
                                 <div class="col-sm-6 form-group">
                                     <div class="i-checks">
                                         <label class="control-label"> 
-                                        <input type="text" name="priority" id="input-name" class="form-control form-inline" placeholder="{{ __('Priority') }}" value="{{ empty($settings->priority)?'':$settings->priority  }}" autofocus>
+                                        <input type="text" name="priority" id="input-name" class="form-control form-inline" placeholder="{{ __('Priority') }}" value="{{ empty($settings->priority)?'0':$settings->priority  }}" autofocus>
                                     </div>
                                 </div>
                                 </div>
