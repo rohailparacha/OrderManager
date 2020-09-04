@@ -98,7 +98,7 @@ $(function() {
 
 
                             <div style="padding-right: 1%; float:right; width=170px; ">                                
-                                <input class="form-control" type="text" name="cityFilter" value="{{$cityFilter ?? ''}}" />
+                                <input class="form-control" type="text" name="cityFilter" placeholder="Type City" value="{{$cityFilter ?? ''}}" />
                             </div>
 
                             <div style="padding-right:1%;">
@@ -111,7 +111,7 @@ $(function() {
                             </div>
 
                             <div style="padding-right: 1%; float:right; width=170px; ">                                
-                                <input class="form-control" type="text" name="zipFilter" value="{{$zipFilter ?? ''}}" />
+                                <input class="form-control" type="text" name="zipFilter" placeholder="Type Zip Code" value="{{$zipFilter ?? ''}}" />
                             </div>
 
                             <div style="padding-right: 1%; float:right; width=170px; ">                                

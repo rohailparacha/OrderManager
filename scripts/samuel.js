@@ -86,7 +86,7 @@ function updateOrders()
  
   var result = JSON.stringify(orders);  
   
-  var url = "http://ordermanager.supplydistributor.com/api/samuel_update";
+  var url = "http://ordermanager.supplydistributor.com/api/vaughn_update";
   var options = {
     "method": "post",
     "headers": {

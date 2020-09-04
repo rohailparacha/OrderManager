@@ -14,9 +14,9 @@ use App\returns;
 use App\gmail_accounts;
 use App\ebay_products; 
 use App\order_details;
-use App\Exports\SamuelBceExport;
-use App\Exports\SamuelExport;
-use App\Exports\SamuelCancelExport;
+use App\Exports\VaughnBceExport;
+use App\Exports\VaughnExport;
+use App\Exports\VaughnCancelExport;
 use Session;
 use Redirect;
 use Validator;
@@ -27,7 +27,7 @@ use Response;
 
 use Illuminate\Http\Request;
 
-class samuelController extends Controller
+class vaughnController extends Controller
 {
     //
 
@@ -39,8 +39,8 @@ class samuelController extends Controller
     public function index()
     {
         $stores = accounts::all();
-        $settings = settings::where('name','samuel')->get()->first();
-        return view('samuelSettings',compact('stores','settings'));
+        $settings = settings::where('name','vaughn')->get()->first();
+        return view('vaughnSettings',compact('stores','settings'));
     }
 
     public function getLowestPrice($id)
@@ -106,7 +106,7 @@ class samuelController extends Controller
         
     }
 
-    public function samuelexport(Request $request)
+    public function vaughnexport(Request $request)
     {
         $storeFilter = $request->storeFilter;
         $marketFilter = $request->marketFilter;
@@ -115,7 +115,7 @@ class samuelController extends Controller
         $sourceFilter = $request->sourceFilter; 
 
         $filename = date("d-m-Y")."-".time()."-autofulfill-orders.xlsx";
-        return Excel::download(new SamuelExport($storeFilter,$marketFilter,$stateFilter,$amountFilter,$sourceFilter), $filename);
+        return Excel::download(new VaughnExport($storeFilter,$marketFilter,$stateFilter,$amountFilter,$sourceFilter), $filename);
     }
 
 
@@ -123,20 +123,20 @@ class samuelController extends Controller
 
     public function export(Request $request)
     {
-        $fileName = date("d-m-Y")."-".time()."-samuel-auto-fulfillment-orders.csv";  
-        return Excel::download(new SamuelBceExport(), $fileName);    
+        $fileName = date("d-m-Y")."-".time()."-vaughn-auto-fulfillment-orders.csv";  
+        return Excel::download(new VaughnBceExport(), $fileName);    
     }
 
     public function orderCancelledExport(Request $request)
    {
-    $fileName = date("d-m-Y")."-".time()."-samuel-cancelled-orders.csv";
-    return Excel::download(new SamuelCancelExport(), $fileName);           
+    $fileName = date("d-m-Y")."-".time()."-vaughn-cancelled-orders.csv";
+    return Excel::download(new VaughnCancelExport(), $fileName);           
    }
 
     public function autofulfillProcessed()
     {    
         if(auth()->user()->role==1)
-            $orders = orders::select()->where('status','processing')->where('account_id','Samuel')->orderBy('date', 'ASC')->paginate(100);
+            $orders = orders::select()->where('status','processing')->where('account_id','Vaughn')->orderBy('date', 'ASC')->paginate(100);
 
         elseif(auth()->user()->role==2)
             {
@@ -148,12 +148,12 @@ class samuelController extends Controller
                     $strArray[]= $str->store;
                 }
                 
-                $orders = orders::select()->where('status','processing')->where('account_id','Samuel')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
+                $orders = orders::select()->where('status','processing')->where('account_id','Vaughn')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
             }
         
         else
             
-            $orders = orders::select()->where('status','processing')->where('account_id','Samuel')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->paginate(100);
+            $orders = orders::select()->where('status','processing')->where('account_id','Vaughn')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->paginate(100);
         
             foreach($orders as $order)
             {
@@ -163,7 +163,7 @@ class samuelController extends Controller
         $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         foreach ($orders as $order)
         {
-            $bcecheck = orders::select()->where('converted',false)->where('account_id','Samuel')
+            $bcecheck = orders::select()->where('converted',false)->where('account_id','Vaughn')
             ->where('marketPlace','Walmart')
             ->where('id',$order->id)
             ->where('carrierName',$amzCarrier->id)
@@ -175,7 +175,7 @@ class samuelController extends Controller
                 $order->bce = 'BCE';
 
             $cancelcheck = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('account_id','Samuel')
+            ->where('account_id','Vaughn')
             ->where('cancelled_orders.order_id',$order->id)
             ->where(function($test){
                 $test->where('orders.status','processing');
@@ -191,7 +191,7 @@ class samuelController extends Controller
         }
             
         
-        return view('samuel.processed',compact('orders'));
+        return view('vaughn.processed',compact('orders'));
         
     }
 
@@ -320,7 +320,7 @@ class samuelController extends Controller
         }     
         
         $flags= flags::all();
-        return view('samuel.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
+        return view('vaughn.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
     }
 
     public function getTotalShipping($id)
@@ -419,7 +419,7 @@ class samuelController extends Controller
                 }
         }
         $flags= flags::all();
-        return view('samuel.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice'));
+        return view('vaughn.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice'));
     }
 
 
@@ -429,7 +429,7 @@ class samuelController extends Controller
         $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',false)->where('account_id','Samuel')
+            $orders = orders::select()->where('converted',false)->where('account_id','Vaughn')
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
@@ -450,7 +450,7 @@ class samuelController extends Controller
             $orders = orders::select()->where('converted',false)
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
-            ->where('account_id','Samuel')->whereIn('storeName',$strArray)
+            ->where('account_id','Vaughn')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
             ->orderBy('status', 'DESC')->paginate(100);
@@ -461,7 +461,7 @@ class samuelController extends Controller
             $orders = array();
         
 
-        return view('samuel.bce',compact('orders'));
+        return view('vaughn.bce',compact('orders'));
     }
 
     
@@ -553,7 +553,7 @@ class samuelController extends Controller
             $responseBodyAsString = $response->getBody()->getContents();
             
             Session::flash('error_msg', $responseBodyAsString);
-            return redirect()->route('samuelnew');
+            return redirect()->route('vaughnnew');
         }
         
         $statusCode = $response->getStatusCode();
@@ -562,13 +562,13 @@ class samuelController extends Controller
         if($statusCode!=200)
         {
             Session::flash('error_msg', __('Orders Processing Failed'));
-            return redirect()->route('samuelnew');
+            return redirect()->route('vaughnnew');
         }
                     
         $body = json_decode($response->getBody()->getContents());
         
         Session::flash('success_msg', $body->count. __(' Orders Processed'));
-        return redirect()->route('samuelnew');
+        return redirect()->route('vaughnnew');
     }
 
     public function autofulfillCancel()
@@ -577,7 +577,7 @@ class samuelController extends Controller
         if(auth()->user()->role==1)            
         {
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('account_id','Samuel')
+            ->where('account_id','Vaughn')
             ->where(function($test){
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.status','shipped');
@@ -598,7 +598,7 @@ class samuelController extends Controller
             }
             
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('account_id','Samuel')
+            ->where('account_id','Vaughn')
             ->whereIn('storeName',$strArray)
             ->where(function($test){
                 $test->where('orders.status','processing');
@@ -612,7 +612,7 @@ class samuelController extends Controller
         else
             $orders = array();
         
-        return view('samuel.cancel',compact('orders'));
+        return view('vaughn.cancel',compact('orders'));
     }
 
 
@@ -625,11 +625,11 @@ class samuelController extends Controller
         if($order->poNumber != $order->afpoNumber)
         {
             cancelled_orders::where('id','=',$id)->delete();    
-            return redirect()->route('samuelcancel')->withStatus(__('Order successfully deleted.'));
+            return redirect()->route('vaughncancel')->withStatus(__('Order successfully deleted.'));
         }
         else
         {
-            return redirect()->route('samuelcancel')->withStatus(__('Order could not be deleted.'));
+            return redirect()->route('vaughncancel')->withStatus(__('Order could not be deleted.'));
         }
 
         
@@ -643,11 +643,11 @@ class samuelController extends Controller
 
         if($order)
         {             
-            return redirect()->route('samuelbce')->withStatus(__('Order successfully deleted.'));
+            return redirect()->route('vaughnbce')->withStatus(__('Order successfully deleted.'));
         }
         else
         {
-            return redirect()->route('samuelbce')->withStatus(__('Order could not be deleted.'));
+            return redirect()->route('vaughnbce')->withStatus(__('Order could not be deleted.'));
         }
 
         
@@ -740,18 +740,18 @@ class samuelController extends Controller
         $maxQty = trim(explode('-',$qtyRangeFilter)[1]);
 
         
-        $settings = settings::where('name','samuel')->get()->first();
+        $settings = settings::where('name','vaughn')->get()->first();
 
         if(empty($settings))
             settings::insert(['minAmount'=>$minAmount,'maxAmount'=>$maxAmount,
             'quantityRangeCheck'=>$qtyrangecheck,'minQty'=>$minQty,'maxQty'=>$maxQty,
-            'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice ,'maxDailyOrder'=>$maxDailyOrder, 'maxDailyAmount'=>$maxDailyAmount,'dailyAmountCheck'=>$dailyamtcheck, 'dailyOrderCheck'=>$dailyordercheck,'name'=>'samuel','priority'=>$priority,'enabled'=>$enabled]);
+            'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice ,'maxDailyOrder'=>$maxDailyOrder, 'maxDailyAmount'=>$maxDailyAmount,'dailyAmountCheck'=>$dailyamtcheck, 'dailyOrderCheck'=>$dailyordercheck,'name'=>'vaughn','priority'=>$priority,'enabled'=>$enabled]);
         else
-            settings::where('name','samuel')->where('id',$settings->id)->update(['minAmount'=>$minAmount,'maxAmount'=>$maxAmount,
-            'quantityRangeCheck'=>$qtyrangecheck,'minQty'=>$minQty,'maxQty'=>$maxQty,'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice,'maxDailyOrder'=>$maxDailyOrder, 'maxDailyAmount'=>$maxDailyAmount,'dailyAmountCheck'=>$dailyamtcheck, 'dailyOrderCheck'=>$dailyordercheck,'name'=>'samuel','priority'=>$priority,'enabled'=>$enabled]);
+            settings::where('name','vaughn')->where('id',$settings->id)->update(['minAmount'=>$minAmount,'maxAmount'=>$maxAmount,
+            'quantityRangeCheck'=>$qtyrangecheck,'minQty'=>$minQty,'maxQty'=>$maxQty,'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice,'maxDailyOrder'=>$maxDailyOrder, 'maxDailyAmount'=>$maxDailyAmount,'dailyAmountCheck'=>$dailyamtcheck, 'dailyOrderCheck'=>$dailyordercheck,'name'=>'vaughn','priority'=>$priority,'enabled'=>$enabled]);
 
         Session::flash('success_msg', __('Settings successfully updated'));
-        return redirect()->route('samuelSetting');
+        return redirect()->route('vaughnSetting');
 
     }
 
@@ -762,7 +762,7 @@ class samuelController extends Controller
         
         $search = 1;
 
-        if($route == 'samuelnew')
+        if($route == 'vaughnnew')
         {            
              
             if(auth()->user()->role==1)
@@ -853,16 +853,16 @@ class samuelController extends Controller
                 }
                 $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
                 $flags= flags::all();
-                return view('samuel.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','search','route'));
+                return view('vaughn.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','search','route'));
             
         }
 
-        else if ($route=='samuelcancel')
+        else if ($route=='vaughncancel')
         {
             if(auth()->user()->role==1)            
         {
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('account_id','Samuel')
+            ->where('account_id','Vaughn')
             ->where(function($test){
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.status','shipped');
@@ -884,7 +884,7 @@ class samuelController extends Controller
             }
             
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('account_id','Samuel')
+            ->where('account_id','Vaughn')
             ->whereIn('storeName',$strArray)
             ->where(function($test){
                 $test->where('orders.status','processing');
@@ -900,16 +900,16 @@ class samuelController extends Controller
                 $orders = array();
             
             $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-            return view('samuel.cancel',compact('orders','search','route'));
+            return view('vaughn.cancel',compact('orders','search','route'));
         }        
 
-        else if ($route=='samuelbce')
+        else if ($route=='vaughnbce')
         {
 
             $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',false)->where('account_id','Samuel')
+            $orders = orders::select()->where('converted',false)->where('account_id','Vaughn')
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
@@ -934,7 +934,7 @@ class samuelController extends Controller
             $orders = orders::select()->where('converted',false)
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
-            ->where('account_id','Samuel')->whereIn('storeName',$strArray)
+            ->where('account_id','Vaughn')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
             ->where(function($test) use ($query){
@@ -951,14 +951,14 @@ class samuelController extends Controller
             $orders = array();
 
             $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-            return view('samuel.bce',compact('orders','search','route'));
+            return view('vaughn.bce',compact('orders','search','route'));
         }  
 
-        else if ($route=='samuelprocessed')
+        else if ($route=='vaughnprocessed')
         {
             if(auth()->user()->role==1)
                 $orders = orders::select()->where('status','processing')
-                ->where('account_id','Samuel')
+                ->where('account_id','Vaughn')
                 ->where(function($test) use ($query){
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
@@ -982,7 +982,7 @@ class samuelController extends Controller
                         $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
                         $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
                     })  
-                    ->where('account_id','Samuel')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
+                    ->where('account_id','Vaughn')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
                 }
             
             else
@@ -993,7 +993,7 @@ class samuelController extends Controller
                     $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
                     $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
                 })  
-                ->where('account_id','Samuel')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->paginate(100);
+                ->where('account_id','Vaughn')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->paginate(100);
             
                 foreach($orders as $order)
                 {
@@ -1003,7 +1003,7 @@ class samuelController extends Controller
                 $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
                 foreach ($orders as $order)
                 {
-                    $bcecheck = orders::select()->where('converted',false)->where('account_id','Samuel')
+                    $bcecheck = orders::select()->where('converted',false)->where('account_id','Vaughn')
                     ->where('marketPlace','Walmart')
                     ->where('id',$order->id)
                     ->where('carrierName',$amzCarrier->id)
@@ -1015,7 +1015,7 @@ class samuelController extends Controller
                         $order->bce = 'BCE';
 
                     $cancelcheck = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-                    ->where('account_id','Samuel')
+                    ->where('account_id','Vaughn')
                     ->where('cancelled_orders.order_id',$order->id)
                     ->where(function($test){
                         $test->where('orders.status','processing');
@@ -1032,15 +1032,15 @@ class samuelController extends Controller
                     
             
             $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-            return view('samuel.processed',compact('orders','search','route'));
+            return view('vaughn.processed',compact('orders','search','route'));
         }  
-        elseif($route=='samuelreturn')
+        elseif($route=='vaughnreturn')
         {
             
             if(auth()->user()->role==1)
             {
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
-                ->where('account_id','Samuel')
+                ->where('account_id','Vaughn')
                 ->where(function($test) use ($query){
                     $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
@@ -1074,7 +1074,7 @@ class samuelController extends Controller
                     })           
                 ->whereIn('orders.storeName',$strArray)      
                 ->whereNull('returns.status')     
-                ->where('account_id','Samuel')
+                ->where('account_id','Vaughn')
                 ->orderBy('created_at','desc')
                 ->paginate(100);
             }
@@ -1090,7 +1090,7 @@ class samuelController extends Controller
                     $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
                     }) 
-                ->where('account_id','Samuel')           
+                ->where('account_id','Vaughn')           
                 ->whereNull('returns.status')
                 ->orderBy('created_at','desc')
                 ->paginate(100);
@@ -1139,11 +1139,11 @@ class samuelController extends Controller
             $to = date("m/d/Y", strtotime($endDate));  
             $dateRange = $from .' - ' .$to;
             $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
-            return view('samuel.return',compact('returns','accounts','stores','dateRange','search','route'));
+            return view('vaughn.return',compact('returns','accounts','stores','dateRange','search','route'));
             
             
         }
-        elseif($route=='samuelrefund')
+        elseif($route=='vaughnrefund')
         {
             if(auth()->user()->role==1)
             {
@@ -1156,7 +1156,7 @@ class samuelController extends Controller
                     $test->orWhere('returns.trackingNumber', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.buyerName', 'LIKE', '%'.$query.'%');
                     })    
-                    ->where('account_id','Samuel') 
+                    ->where('account_id','Vaughn') 
                 ->orderBy('returnDate','desc')
                 ->paginate(100);
             }
@@ -1175,7 +1175,7 @@ class samuelController extends Controller
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])                
                 ->whereIn('orders.storeName',$strArray)
-                ->where('account_id','Samuel')    
+                ->where('account_id','Vaughn')    
                 ->where('returns.status','returned') 
                 ->where(function($test) use ($query){
                     $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
@@ -1193,7 +1193,7 @@ class samuelController extends Controller
                 ->select(['orders.*','returns.*'])
                 ->where('orders.uid',auth()->user()->id)  
                 ->where('returns.status','returned')  
-                ->where('account_id','Samuel')
+                ->where('account_id','Vaughn')
                 ->where(function($test) use ($query){
                     $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
@@ -1247,16 +1247,16 @@ class samuelController extends Controller
             $to = date("m/d/Y", strtotime($endDate));  
             $dateRange = $from .' - ' .$to;
             $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
-            return view('samuel.refund',compact('returns','accounts','stores','dateRange','search','route'));
+            return view('vaughn.refund',compact('returns','accounts','stores','dateRange','search','route'));
         }
-        elseif($route=='samuelcompleted')
+        elseif($route=='vaughncompleted')
         {
             if(auth()->user()->role==1)
             {
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])
                 ->where('returns.status','refunded') 
-                ->where('account_id','Samuel')      
+                ->where('account_id','Vaughn')      
                 ->where(function($test) use ($query){
                     $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
@@ -1281,7 +1281,7 @@ class samuelController extends Controller
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])         
                 ->where('returns.status','refunded')  
-                ->where('account_id','Samuel')             
+                ->where('account_id','Vaughn')             
                 ->where(function($test) use ($query){
                     $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
@@ -1298,7 +1298,7 @@ class samuelController extends Controller
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])
                 ->where('returns.status','refunded')    
-                ->where('account_id','Samuel')  
+                ->where('account_id','Vaughn')  
                 ->where(function($test) use ($query){
                     $test->where('returns.sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('orders.poNumber', 'LIKE', '%'.$query.'%');
@@ -1353,7 +1353,7 @@ class samuelController extends Controller
             $to = date("m/d/Y", strtotime($endDate));  
             $dateRange = $from .' - ' .$to;
             $returns = $returns->appends('searchQuery',$query)->appends('route', $route);
-            return view('samuel.complete',compact('returns','accounts','stores','dateRange','search','route'));
+            return view('vaughn.complete',compact('returns','accounts','stores','dateRange','search','route'));
         }
 
         else

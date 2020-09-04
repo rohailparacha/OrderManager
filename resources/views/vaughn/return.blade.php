@@ -4,20 +4,12 @@
 @include('layouts.headers.cards')
 @inject('provider', 'App\Http\Controllers\orderController')
 
-<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+<script src="{{ asset('argon') }}/js/jquery.printPage.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
-<script>
-$(function() {
-  $('input[name="daterange"]').daterangepicker({
-    opens: 'left'
-  }, function(start, end, label) {
-    console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
-  });
-});
-</script>
+
 
 <style>
 td.prodtd,th.prodth {
@@ -55,8 +47,24 @@ th.prodth
 
 <script>
 $(document).ready(function(){
+    $(function() {
+  $('input[name="daterange"]').daterangepicker({
+    opens: 'left'
+  }, function(start, end, label) {
+    console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
+  });
+});
  
-        $('.labelPrint').printPage();
+        $('#addLabel').on('show.bs.modal', function(e) {                
+            
+            var link     = $(e.relatedTarget),
+            id = link.data("id");
+    
+            console.log(link);
+            $('#labelId').val(id);
+        });
+
+        
   
         $('#btnAddCat').on('click',function(event){ 
             $('#addCat').modal('show');  
@@ -109,15 +117,7 @@ $(document).ready(function(){
     
     });
 
-    $('#addLabel').on('show.bs.modal', function(e) {    
-            
-            
-        var link     = $(e.relatedTarget),
-        id = link.data("id");
-
-        console.log(link);
-        $('#labelId').val(id);
-    });
+  
 
     
         $('#modal-que-save').on('click',function(event){                       
@@ -228,15 +228,24 @@ $(document).ready(function(){
             <div class="col">
                 <div class="card shadow">
                     <div class="card-header border-0">
-                        <div class="row align-items-center">
+                        <div class="row align-items-center" style="padding-bottom:10px!important;">
                             <div class="col-4">
-                                <h3 class="mb-0">{{ __('Samuel - Waiting For Refund') }}</h3>
+                                <h3 class="mb-0">{{ __('Vaughn - Waiting For Return') }}</h3>
                             </div>
-                            <div class="col-8" style="float:right; ">                                
-                                @if(!empty($search) && $search==1)
-                                        <a href="{{ route($route) }}"class="btn btn-primary btn-md" style="float:right;">Go Back</a>
-                                @endif                               
+                            <div class="col-8" style="float:right; ">
+                            <form class="form-inline" action="/returnsupload" method="post" enctype="multipart/form-data" style="float:right;">
+                            {{ csrf_field() }}
+                                <div class="form-group">
+                                    <input type="file" class="form-control" name="file" />                
                             
+                                    <input type="submit" class="btn btn-primary" value="Import" style="margin-left:10px;"/>
+                                    <input type="button" id="btnAddCat" class="btn btn-primary" value="Add Return"/>      
+                                    @if(!empty($search) && $search==1)
+                                        <a href="{{ route($route) }}"class="btn btn-primary btn-md"  style="float:right;">Go Back</a>
+                                    @endif                               
+                                </div>
+                            
+                            </form>
                             
                             </div> 
                               
@@ -247,7 +256,7 @@ $(document).ready(function(){
 
                     <div class="row" style="margin-left:0px!important;">
                         <div class="col-12 text-center" id="filters">
-                        <form action="autofulfillRefundFilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
+                        <form action="autofulfillReturnFilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
                             @csrf
                             <div style="width:100%; padding-bottom:2%;">
                                 <div class="form-group">
@@ -341,19 +350,17 @@ $(document).ready(function(){
                                     <th scope="col" class="prodth">{{ __('Return Reason') }}</th>                                        
                                     <th scope="col" class="prodth">{{ __('Carrier') }}</th>   
                                     <th scope="col" class="prodth">{{ __('Tracking Number') }}</th>  
-                                    <th scope="col" class="prodth">{{ __('Label') }}</th>                                                                                                        
-                                    <th scope="col" class="prodth">{{ __('Refund') }}</th>                                                                         
+                                    <th scope="col" class="prodth">{{ __('Label') }}</th>
+                                    
+                                    <th scope="col" class="prodth">{{ __('Return') }}</th>                                                                         
+                                                                                                    
                                     <th scope="col" class="prodth"></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($returns as $return)
                                     <tr>
-                                        @if(!empty($return->returnDate))
-                                        <td width="10%">{{ $provider::getIranTime(date_format(date_create($return->returnDate), 'm/d/Y H:i:s')) }}</td>
-                                        @else
-                                        <td width="10%"></td>
-                                        @endif
+                                        <td width="10%">{{ $provider::getIranTime(date_format(date_create($return->created_at), 'm/d/Y H:i:s')) }}</td>                                        
                                         <td class="prodtd">{{ $return->buyerName }}</td>                                        
                                         <td class="prodtd"><a href="orderDetails/{{$return->order_id}}" target='_blank'>{{ $return->sellOrderId }}</a></td>
                                         <td class="prodtd">{{number_format((float)$return->totalAmount , 2, '.', '')}}</td>
@@ -406,15 +413,13 @@ $(document).ready(function(){
                                             <button class="btn btn-primary btn-sm" disabled>{{ __('Label') }}</button>
                                             @endif
                                         </td>                                        
-                                                                                
                                         
-                                        @if($return->status=='returned')
-                                        <td class="prodtd"><a href="autofulfillUpdateStatus?status=2&id={{$return->id}}" class="btn btn-primary btn-sm">Refund</a></td>    
-                                        @elseif($return->status=='refunded')         
-                                            <td class="prodtd">Refunded</td>    
-                                        @else
-                                            <td class="prodtd"></td>    
+                                        @if($return->status!='refunded' && $return->status!='returned')
+                                        <td class="prodtd"><a  href="./autofulfillUpdateStatus?status=1&id={{$return->id}}"  class="btn btn-primary btn-sm">Return</a></td>
+                                        @else                                    
+                                            <td class="prodtd">Returned</td>    
                                         @endif
+                                                                                
                                   
                                         <td class="text-right prodtd">
                                             <div class="dropdown">
@@ -423,9 +428,9 @@ $(document).ready(function(){
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">                                    
                                                         @if(empty($route))                               
-                                                        <form action="{{ route('samuelDeleteReturn', $return->id) }}" method="post">
+                                                        <form action="{{ route('vaughnDeleteReturn', $return->id) }}" method="post">
                                                         @else
-                                                        <form action="/samuelDeleteReturn/{{$route}}/{{$return->id}}" method="post">
+                                                        <form action="/vaughnDeleteReturn/{{$route}}/{{$return->id}}" method="post">
                                                         @endif
                                                             @csrf
                                                             @method('delete')                                                                                                                                                         
@@ -438,9 +443,9 @@ $(document).ready(function(){
                                                             <a class="dropdown-item labelPrint" href="/autofulfillLabelPrint/{{$return->id}}">{{ __('Print Label') }}</a>
 
                                                             @if(empty($route))
-                                                            <a class="dropdown-item" href="/samuelLabelDelete/{{$return->id}}">{{ __('Delete Label') }}</a>
+                                                            <a class="dropdown-item" href="/vaughnLabelDelete/{{$return->id}}">{{ __('Delete Label') }}</a>
                                                             @else
-                                                            <a class="dropdown-item" href="/samuelLabelDelete/{{$route}}/{{$return->id}}">{{ __('Delete Label') }}</a>
+                                                            <a class="dropdown-item" href="/vaughnLabelDelete/{{$route}}/{{$return->id}}">{{ __('Delete Label') }}</a>
                                                             @endif
 
                                                             @endif

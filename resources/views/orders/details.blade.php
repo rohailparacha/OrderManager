@@ -1205,7 +1205,7 @@ td {
                         <option value="Target">Target</option>
                         <option value="Cindy">Cindy</option>                        
                         <option value="Jonathan">Jonathan</option>                        
-                        <option value="Samuel">Samuel</option>                        
+                        <option value="Vaughn">Vaughn</option>                        
                         <option value="Other">Other</option>                        
                     </select>
                    </div>

@@ -8,7 +8,7 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class SamuelBceExport implements  FromCollection,WithHeadings,ShouldAutoSize
+class VaughnBceExport implements  FromCollection,WithHeadings,ShouldAutoSize
 {
     /**
     * @return \Illuminate\Support\Collection
@@ -19,7 +19,7 @@ class SamuelBceExport implements  FromCollection,WithHeadings,ShouldAutoSize
         $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
         if(auth()->user()->role==1)            
         {
-            $orders = orders::select()->where('converted',false)->where('account_id','Samuel')
+            $orders = orders::select()->where('converted',false)->where('account_id','Vaughn')
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
             ->where('status','processing')
@@ -40,7 +40,7 @@ class SamuelBceExport implements  FromCollection,WithHeadings,ShouldAutoSize
             $orders = orders::select()->where('converted',false)
             ->where('marketPlace','Walmart')
             ->where('carrierName',$amzCarrier->id)
-            ->where('account_id','Samuel')->whereIn('storeName',$strArray)
+            ->where('account_id','Vaughn')->whereIn('storeName',$strArray)
             ->where('status','processing')
             ->where('trackingNumber','like','TBA%')
             ->orderBy('of_bce_created_at', 'ASC')->paginate(100);

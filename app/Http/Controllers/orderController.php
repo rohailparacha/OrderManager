@@ -116,7 +116,7 @@ class orderController extends Controller
             $trackingId = '';
             $carrier = '';
             
-            // if($order->account_id=='Samuel')
+            // if($order->account_id=='Vaughn')
             // {               
             //     try{        
             //         $client = new client(); 
@@ -247,7 +247,7 @@ class orderController extends Controller
                             
                             if(count($order_details)>1)
                             {
-                                if($order->account_id=="Cindy"|| $order->account_id=='Jonathan' || $order->account_id=='Samuel')
+                                if($order->account_id=="Cindy"|| $order->account_id=='Jonathan' || $order->account_id=='Vaughn')
                                 {
                                    
                                  
@@ -298,7 +298,7 @@ class orderController extends Controller
                             try{
                                 $elem = $doc->getElementById('primaryStatus');
                                 $stat =  $elem->nodeValue;                             
-                                if(trim($stat)=='Delayed, not yet shipped' && ($order->account_id=='Cindy'|| $order->account_id=='Jonathan' || $order->account_id=='Samuel'))
+                                if(trim($stat)=='Delayed, not yet shipped' && ($order->account_id=='Cindy'|| $order->account_id=='Jonathan' || $order->account_id=='Vaughn'))
                                 {
                                     $insert = cancelled_orders::updateOrCreate(
                                         ['order_id'=>$order->id,],    
@@ -307,7 +307,7 @@ class orderController extends Controller
                                     
                                 }
                                                                     
-                                if(trim($stat)=='Order cancelled' && ($order->account_id=='Cindy'|| $order->account_id=='Jonathan' || $order->account_id=='Samuel'))
+                                if(trim($stat)=='Order cancelled' && ($order->account_id=='Cindy'|| $order->account_id=='Jonathan' || $order->account_id=='Vaughn'))
                                 {
                                     $insert = cancelled_orders::updateOrCreate(
                                         ['order_id'=>$order->id,],    
@@ -378,7 +378,7 @@ class orderController extends Controller
                             {       
                                
                                $resp='';
-                               if($order->account_id=="Cindy" || $order->account_id=='Jonathan' ||  $order->account_id=='Samuel')
+                               if($order->account_id=="Cindy" || $order->account_id=='Jonathan' ||  $order->account_id=='Vaughn')
                                {    
                                     if(empty($order->of_bce_created_at))
                                         orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at' =>Carbon::now(),'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);
@@ -852,6 +852,7 @@ class orderController extends Controller
         if($request->has('cityFilter'))
             $cityFilter = $request->get('cityFilter');  
 
+        
         if($request->has('stateFilter'))
             $stateFilter = $request->get('stateFilter');  
             
@@ -897,17 +898,17 @@ class orderController extends Controller
         }
 
    
-        if(!empty($cityFilter)&& $cityFilter !=0)
+        if(!empty($cityFilter))
         {                            
             
             $orders = $orders->where('city',$cityFilter);
         }
 
 
-        if(!empty($zipFilter)&& $zipFilter !=0)
+        if(!empty($zipFilter))
         {                            
             
-            $orders = $orders->where('city',$zipFilter);
+            $orders = $orders->where('postalCode',$zipFilter);
         }
 
         if(!empty($stateFilter)&& $stateFilter !='0')
@@ -920,7 +921,9 @@ class orderController extends Controller
             $order->shippingPrice = $this->getTotalShipping($order->id);
         }
 
-        $orders  = $orders->orderBy('date', 'DESC')->paginate(100)->appends('daterange',$dateRange)->appends('zipFilter',$zipFilter)->appends('cityFilter',$cityFilter)->appends('stateFilter',$stateFilter);
+        $carriers = carriers::where('name','Fedex')->orWhere('name','USPS')->get()->toArray();
+                
+        $orders  = $orders->whereIn('carrierName',$carriers)->orderBy('date', 'DESC')->paginate(100)->appends('daterange',$dateRange)->appends('zipFilter',$zipFilter)->appends('cityFilter',$cityFilter)->appends('stateFilter',$stateFilter);
         $states = states::select()->distinct()->get();
         
         return view('orders.lookup',compact('orders','states','stateFilter','dateRange','zipFilter','cityFilter'));
@@ -2233,6 +2236,11 @@ class orderController extends Controller
             })
             ->paginate(100); 
 
+            foreach($products as $prod)
+            {
+                $prod->isPrimary = $this->checkPrimary($prod);
+            }
+
             $strategies = strategies::select()->get(); 
             $accounts = accounts::select()->get(); 
             $strategyCodes = array(); 
@@ -2493,6 +2501,33 @@ class orderController extends Controller
         redirect()->back();
     }
 
+    public function checkPrimary($prod)
+    {        
+        $setting = amazon_settings::get()->first();
+
+
+        $counter = products::where(function($test) use($setting){
+                $test->whereIn('asin', function($query) use($setting){
+                $query->select('SKU')
+                
+                ->from(with(new order_details)->getTable())
+                ->join('orders','order_details.order_id','orders.id')
+                ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
+                ->groupBy('SKU')
+                ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                });
+                $test->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+            })
+            ->where('asin',$prod->asin)->get();
+        
+        if(count($counter)>0)
+            return 'Primary';
+        else
+            return 'Secondary';
+
+            
+    }
+
     public function syncOrders()
     {
         
@@ -2504,7 +2539,7 @@ class orderController extends Controller
         $oldCount = orders::select()->where('status','unshipped')->count();
         $oldCindy = orders::select()->where('flag','8')->count();
         $oldJonathan = orders::select()->where('flag','9')->count();
-        $oldSamuel = orders::select()->where('flag','10')->count();
+        $oldVaughn = orders::select()->where('flag','10')->count();
 
 
         foreach($accounts as $account)
@@ -2516,16 +2551,16 @@ class orderController extends Controller
         $newCount = orders::select()->where('status','unshipped')->count(); 
         $newCindy = orders::select()->where('flag','8')->count();
         $newJonathan = orders::select()->where('flag','9')->count();
-        $newSamuel = orders::select()->where('flag','10')->count();
+        $newVaughn = orders::select()->where('flag','10')->count();
         
         $orderCounter = $newCount - $oldCount;
         $cindyCnt = $newCindy - $oldCindy;
-        $samuelCnt = $newSamuel - $oldSamuel;
+        $vaughnCnt = $newVaughn - $oldVaughn;
         $jonathanCnt = $newJonathan - $oldJonathan;
 
         Session::flash('success_msg', __('Orders Sync Completed'));
         Session::flash('count_msg', $orderCounter." New Orders are Imported Successfully");
-        Session::flash('inner_msg',"Cindy: " . $cindyCnt ." , Samuel: " . $samuelCnt ." , Jonathan: ". $jonathanCnt);
+        Session::flash('inner_msg',"Cindy: " . $cindyCnt ." , Vaughn: " . $vaughnCnt ." , Jonathan: ". $jonathanCnt);
 
         return redirect()->route('newOrders');
     }
@@ -2693,7 +2728,7 @@ class orderController extends Controller
            
         $fulfillmentOrders = array(); 
         $jonathanOrders = array();
-        $samuelOrders = array();
+        $vaughnOrders = array();
         $endDate = orders::where('status','unshipped')->max('date');
         
         $date = date_format(date_create($endDate), 'Y-m-d');
@@ -2701,7 +2736,7 @@ class orderController extends Controller
         $date = date('Y-m-d', strtotime($date . "-5 days"));
 
         $setting = settings::where('name','cindy')->get()->first(); 
-        $samuelSetting = settings::where('name','samuel')->get()->first(); 
+        $vaughnSetting = settings::where('name','vaughn')->get()->first(); 
         $jonathanSetting = settings::where('name','jonathan')->get()->first(); 
         
 
@@ -2856,7 +2891,7 @@ class orderController extends Controller
 
                     $details[]= $temp2; 
                     $tempOrder = array();
-                    $samuelOrder = array();
+                    $vaughnOrder = array();
                     $jonathanOrder = array();
         
                     $tempOrder["itemLink"] = "https://www.amazon.com/gp/offer-listing/".$temp2['SKU'];
@@ -2868,7 +2903,7 @@ class orderController extends Controller
                     $tempOrder["dueShip"] =   $temp['dueShip'];
                     $tempOrder["country"] =   $temp['country'];
                     $dt = Carbon::now();
-                    $tempOrder['uploadDate'] = $dt->toDateTimeString()->format('m/d/Y');                    
+                    $tempOrder['uploadDate'] = $dt->format('m/d/Y');                    
                     
             
                     $product = products::where('asin',$temp2['SKU'])->get()->first();
@@ -2912,19 +2947,19 @@ class orderController extends Controller
             
                     $tempOrder["referenceNumber"] = $temp['sellOrderId'];
                     
-                    if(!empty($samuelSetting))
+                    if(!empty($vaughnSetting))
                     {
-                        $samuelOrder = $tempOrder;
+                        $vaughnOrder = $tempOrder;
                         
-                        $samuelOrder["maxPrice"] =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$samuelSetting->maxPrice/100) * $temp['quantity']; 
+                        $vaughnOrder["maxPrice"] =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$vaughnSetting->maxPrice/100) * $temp['quantity']; 
                         
-                        $samuelOrder["discountPayment"] = empty($product->lowestPrice)?0:$product->lowestPrice * $temp['quantity'] * (1- $samuelSetting->discount/100);
+                        $vaughnOrder["discountPayment"] = empty($product->lowestPrice)?0:$product->lowestPrice * $temp['quantity'] * (1- $vaughnSetting->discount/100);
                         
-                        $samuelOrder["discountFactor"] = $samuelSetting->discount;
+                        $vaughnOrder["discountFactor"] = $vaughnSetting->discount;
                         
-                        $samuelOrder["maxFactor"] = $samuelSetting->maxPrice;
+                        $vaughnOrder["maxFactor"] = $vaughnSetting->maxPrice;
                         
-                        $samuelOrders[]=$samuelOrder; 
+                        $vaughnOrders[]=$vaughnOrder; 
                     }
 
                     if(!empty($jonathanSetting))
@@ -2969,22 +3004,22 @@ class orderController extends Controller
         $priorities = settings::select()->orderBy('priority','ASC')->get();
         
         $sendCindyOrders  = array();
-        $sendSamuelOrders  = array();
+        $sendVaughnOrders  = array();
         $sendJonathanOrders  = array();
 
         foreach($priorities as $priority)
         {            
             if($priority->name=='cindy')
             {
-                $sendCindyOrders['data'] = $this->parseFulfillment($fulfillmentOrders,'cindy',$sendSamuelOrders,$sendJonathanOrders);
+                $sendCindyOrders['data'] = $this->parseFulfillment($fulfillmentOrders,'cindy',$sendVaughnOrders,$sendJonathanOrders);
             }
-            elseif($priority->name=='samuel')
+            elseif($priority->name=='vaughn')
             {
-                $sendSamuelOrders['data'] = $this->parseFulfillment($samuelOrders,'samuel',$sendCindyOrders,$sendJonathanOrders);
+                $sendVaughnOrders['data'] = $this->parseFulfillment($vaughnOrders,'vaughn',$sendCindyOrders,$sendJonathanOrders);
             }
             elseif($priority->name=='jonathan')
             {
-                $sendJonathanOrders['data'] = $this->parseFulfillment($jonathanOrders,'jonathan',$sendSamuelOrders,$sendCindyOrders);
+                $sendJonathanOrders['data'] = $this->parseFulfillment($jonathanOrders,'jonathan',$sendVaughnOrders,$sendCindyOrders);
             }
         }       
  
@@ -2994,7 +3029,7 @@ class orderController extends Controller
 
         $endPoint = env('SAMUEL_TOKEN', '');
         if(!empty($endPoint))
-            $this->sendToGoogle($endPoint, $sendSamuelOrders);
+            $this->sendToGoogle($endPoint, $sendVaughnOrders);
 
         $endPoint = env('JONATHAN_TOKEN', '');
         if(!empty($endPoint))
@@ -3149,7 +3184,7 @@ class orderController extends Controller
         elseif($acc=='jonathan')
             $flagnum = 9; 
 
-        elseif($acc=='samuel')
+        elseif($acc=='vaughn')
             $flagnum = 10;
         
         $googleOrders = array();
@@ -3632,6 +3667,8 @@ class orderController extends Controller
 
     public function lookup()
     {  
+        $carriers = carriers::where('name','Fedex')->orWhere('name','USPS')->get()->pluck('id')->toArray();
+
         $startDate = orders::min('date');
         $endDate = orders::max('date');
 
@@ -3645,6 +3682,7 @@ class orderController extends Controller
             $orders = orders::select()->where('status','shipped')
             ->whereNotNull('poNumber')
             ->whereNotNull('trackingNumber')
+            ->whereIn('carrierName',$carriers)
             ->orderBy('date', 'ASC')->paginate(100);
         }
 
@@ -3662,6 +3700,7 @@ class orderController extends Controller
             ->whereIn('storeName',$strArray)
             ->whereNotNull('poNumber')
             ->whereNotNull('trackingNumber')
+            ->whereIn('carrierName',$carriers)
             ->orderBy('date', 'ASC')->paginate(100);
             
         }
@@ -3672,6 +3711,7 @@ class orderController extends Controller
             ->where('uid',auth()->user()->id)
             ->whereNotNull('poNumber')
             ->whereNotNull('trackingNumber')
+            ->whereIn('carrierName',$carriers)
             ->orderBy('date', 'ASC')->paginate(100);            
         }
      
@@ -3682,6 +3722,7 @@ class orderController extends Controller
             $order->shippingPrice = $this->getTotalShipping($order->id);
         }
         $states = states::select()->distinct()->get();
+        
         return view('orders.lookup',compact('orders','states','dateRange'));
     }
 

@@ -6452,7 +6452,7 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": [],
+    "stability-[],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

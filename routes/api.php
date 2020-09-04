@@ -103,7 +103,7 @@ Route::post('autofulfill_update', function(Request $request) {
     ],201);
 });
 
-Route::post('samuel_update', function(Request $request) {
+Route::post('vaughn_update', function(Request $request) {
     
     $success=0;
     $records = $request->data;
@@ -120,7 +120,7 @@ Route::post('samuel_update', function(Request $request) {
         'poNumber'=>$record['poNumber'], 
         'itemId'=>$record['itemId'],      
         'afpoNumber'=>$record['afpoNumber'],
-        'account_id'=>'Samuel',        
+        'account_id'=>'Vaughn',        
         'status'=>'processing'
         ]);
 

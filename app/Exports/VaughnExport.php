@@ -14,7 +14,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 
-class SamuelExport implements WithColumnFormatting,FromCollection,WithHeadings,ShouldAutoSize
+class VaughnExport implements WithColumnFormatting,FromCollection,WithHeadings,ShouldAutoSize
 {
     protected $storeFilter; 
     protected $marketFilter; 

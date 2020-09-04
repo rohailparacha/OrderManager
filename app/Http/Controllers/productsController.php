@@ -10,6 +10,7 @@ use App\amazon_settings;
 use Carbon\Carbon;
 use App\products;
 use App\order_details;
+use DB;
 use App\accounts;
 use App\Jobs\Repricing;
 use Illuminate\Support\Facades\Input;
@@ -115,11 +116,11 @@ class productsController extends Controller
             ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
             ->groupBy('SKU')
             ->havingRaw('count(*) > ?', [$setting->soldQty]);
-            })
+            })            
             ->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
             
         $last_run = $prd->max('modified_at');      
-        $products = $prd->paginate(100);
+        $products = $prd->select(['products.*', DB::raw("'Primary' As isPrimary")])->paginate(100);
 
         $strategies = strategies::select()->get(); 
         $accounts = accounts::select()->get(); 
@@ -157,7 +158,7 @@ class productsController extends Controller
             })
             ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
             $last_run = $prd->max('modified_at');     
-            $products = $prd->paginate(100);
+            $products = $prd->select(['products.*', DB::raw("'Secondary' As isPrimary")])->paginate(100);
 
 
         $strategies = strategies::select()->get(); 
@@ -225,7 +226,9 @@ class productsController extends Controller
             ->groupBy('SKU')
             ->havingRaw('count(*) > ?', [$setting->soldQty]);
             })
-            ->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+            ->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString())
+            ->select(['products.*', DB::raw("'Primary' As isPrimary")])
+            ;
 
         $last_run = $prd->max('modified_at');      
         if($request->has('accountFilter'))
@@ -290,7 +293,9 @@ class productsController extends Controller
             ->groupBy('SKU')
             ->havingRaw('count(*) > ?', [$setting->soldQty]);
             })
-            ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
+            ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString())
+            ->select(['products.*', DB::raw("'Secondary' As isPrimary")])
+            ;
 
         $last_run = $prd->max('modified_at'); 
 

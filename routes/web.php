@@ -288,44 +288,44 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('autofulfillLabelDelete/{route}/{id}','cindyReturnsController@labelDeleteRoute');
 	Route::delete('/autofulfillDeleteReturn/{route}/{id}','cindyReturnsController@deleteReturnRoute')->middleware('admin');
 
-	//samuel auto fulfillment settings
-	Route::get('/samuelSetting', 'samuelController@index')->name('samuelSetting');
-	Route::post('/samuelStoreSettings', 'samuelController@storeSettings')->name('samuelStoreSettings');
-	Route::any('/samuelOrderFulfillmentExport', 'samuelController@export')->name('samuelOrderFulfillmentExport');
-	Route::delete('samuelDeleteCancelled/{id}','samuelController@deleteCancelled')->name('samuelDeleteCancelled')->middleware('admin');	
-	Route::delete('samuelDeleteConversion/{id}','samuelController@deleteConversion')->name('samuelDeleteConversion')->middleware('admin');	
-	Route::any('/samuelOrderCancelledExport', 'samuelController@orderCancelledExport')->name('samuelOrderCancelledExport');
-	Route::post('samuelUpdateBCE','samuelController@updateBCE')->name('samuelUpdateBCE');
+	//vaughn auto fulfillment settings
+	Route::get('/vaughnSetting', 'vaughnController@index')->name('vaughnSetting');
+	Route::post('/vaughnStoreSettings', 'vaughnController@storeSettings')->name('vaughnStoreSettings');
+	Route::any('/vaughnOrderFulfillmentExport', 'vaughnController@export')->name('vaughnOrderFulfillmentExport');
+	Route::delete('vaughnDeleteCancelled/{id}','vaughnController@deleteCancelled')->name('vaughnDeleteCancelled')->middleware('admin');	
+	Route::delete('vaughnDeleteConversion/{id}','vaughnController@deleteConversion')->name('vaughnDeleteConversion')->middleware('admin');	
+	Route::any('/vaughnOrderCancelledExport', 'vaughnController@orderCancelledExport')->name('vaughnOrderCancelledExport');
+	Route::post('vaughnUpdateBCE','vaughnController@updateBCE')->name('vaughnUpdateBCE');
 
-	//samuel orders
-	Route::get('samuelProcess','samuelController@autoFulfillProcess')->name('samuelProcess')->middleware('admin');	
-	Route::get('samuelconversions','samuelController@autofulfillconversions')->name('samuelbce')->middleware('admin');	
-	Route::get('samuelProcessed','samuelController@autofulfillProcessed')->name('samuelprocessed')->middleware('admin');	
-	Route::get('samuelCancel','samuelController@autofulfillCancel')->name('samuelcancel')->middleware('admin');		
-	Route::get('samuel','samuelController@autoFulfill')->name('samuelnew')->middleware('admin');	
-	Route::any('samuelexport','samuelController@samuelexport')->name('samuelexport')->middleware('admin');	
-	Route::any('samuelFilter','samuelController@autoFulfillFilter')->middleware('admin');
-	Route::any('samuelsearch','samuelController@search')->name('samuelsearch');
+	//vaughn orders
+	Route::get('vaughnProcess','vaughnController@autoFulfillProcess')->name('vaughnProcess')->middleware('admin');	
+	Route::get('vaughnconversions','vaughnController@autofulfillconversions')->name('vaughnbce')->middleware('admin');	
+	Route::get('vaughnProcessed','vaughnController@autofulfillProcessed')->name('vaughnprocessed')->middleware('admin');	
+	Route::get('vaughnCancel','vaughnController@autofulfillCancel')->name('vaughncancel')->middleware('admin');		
+	Route::get('vaughn','vaughnController@autoFulfill')->name('vaughnnew')->middleware('admin');	
+	Route::any('vaughnexport','vaughnController@vaughnexport')->name('vaughnexport')->middleware('admin');	
+	Route::any('vaughnFilter','vaughnController@autoFulfillFilter')->middleware('admin');
+	Route::any('vaughnsearch','vaughnController@search')->name('vaughnsearch');
 
 
-	//samuel Returns
+	//vaughn Returns
 	
-	Route::get('/samuelReturnPending', 'samuelReturnsController@index')->name('samuelreturn')->middleware('admin');
-	Route::get('/samuelRefundPending', 'samuelReturnsController@refunds')->name('samuelrefund')->middleware('admin');
-	Route::get('/samuelCompletedReturns', 'samuelReturnsController@completed')->name('samuelcompleted')->middleware('admin');
-	Route::post('/samuelAddreturn', 'samuelReturnsController@addReturn')->middleware('admin');
-	Route::post('/samuelEditreturn', 'samuelReturnsController@editReturn')->middleware('admin');
-	Route::delete('/samuelDeleteReturn/{id}','samuelReturnsController@deleteReturn')->name('samuelDeleteReturn')->middleware('admin');
-	Route::post('samuelReturnsupload','samuelReturnsController@uploadSubmit');
-	Route::post('samuelUploadLabel','samuelReturnsController@uploadLabel');
-	Route::get('samuelUpdateStatus','samuelReturnsController@updateStatus');
-	Route::get('samuelLabelPrint/{id}','samuelReturnsController@labelPrint');
-	Route::get('samuelLabelDelete/{id}','samuelReturnsController@labelDelete');
-	Route::any('samuelReturnFilter','samuelReturnsController@returnFilter')->middleware('admin');
-	Route::any('samuelRefundFilter','samuelReturnsController@refundFilter')->middleware('admin');
-	Route::any('samuelCompletedFilter','samuelReturnsController@completedFilter')->middleware('admin');
-	Route::get('samuelLabelDelete/{route}/{id}','samuelReturnsController@labelDeleteRoute');
-	Route::delete('/samuelDeleteReturn/{route}/{id}','samuelReturnsController@deleteReturnRoute')->middleware('admin');
+	Route::get('/vaughnReturnPending', 'vaughnReturnsController@index')->name('vaughnreturn')->middleware('admin');
+	Route::get('/vaughnRefundPending', 'vaughnReturnsController@refunds')->name('vaughnrefund')->middleware('admin');
+	Route::get('/vaughnCompletedReturns', 'vaughnReturnsController@completed')->name('vaughncompleted')->middleware('admin');
+	Route::post('/vaughnAddreturn', 'vaughnReturnsController@addReturn')->middleware('admin');
+	Route::post('/vaughnEditreturn', 'vaughnReturnsController@editReturn')->middleware('admin');
+	Route::delete('/vaughnDeleteReturn/{id}','vaughnReturnsController@deleteReturn')->name('vaughnDeleteReturn')->middleware('admin');
+	Route::post('vaughnReturnsupload','vaughnReturnsController@uploadSubmit');
+	Route::post('vaughnUploadLabel','vaughnReturnsController@uploadLabel');
+	Route::get('vaughnUpdateStatus','vaughnReturnsController@updateStatus');
+	Route::get('vaughnLabelPrint/{id}','vaughnReturnsController@labelPrint');
+	Route::get('vaughnLabelDelete/{id}','vaughnReturnsController@labelDelete');
+	Route::any('vaughnReturnFilter','vaughnReturnsController@returnFilter')->middleware('admin');
+	Route::any('vaughnRefundFilter','vaughnReturnsController@refundFilter')->middleware('admin');
+	Route::any('vaughnCompletedFilter','vaughnReturnsController@completedFilter')->middleware('admin');
+	Route::get('vaughnLabelDelete/{route}/{id}','vaughnReturnsController@labelDeleteRoute');
+	Route::delete('/vaughnDeleteReturn/{route}/{id}','vaughnReturnsController@deleteReturnRoute')->middleware('admin');
 
 	//jonathan auto fulfillment settings
 	Route::get('/jonathanSetting', 'jonathanController@index')->name('jonathanSetting');

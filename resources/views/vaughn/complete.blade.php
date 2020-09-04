@@ -230,7 +230,7 @@ $(document).ready(function(){
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-4">
-                                <h3 class="mb-0">{{ __('Samuel - Completed') }}</h3>
+                                <h3 class="mb-0">{{ __('Vaughn - Completed') }}</h3>
                             </div>
                             
                             
@@ -414,10 +414,10 @@ $(document).ready(function(){
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">                                    
-                                                            if(empty($route))                               
-                                                        <form action="{{ route('samuelDeleteReturn', $return->id) }}" method="post">
+                                                        @if(empty($route))                               
+                                                        <form action="{{ route('vaughnDeleteReturn', $return->id) }}" method="post">
                                                         @else
-                                                        <form action="/samuelDeleteReturn/{{$route}}/{{$return->id}}" method="post">
+                                                        <form action="/vaughnDeleteReturn/{{$route}}/{{$return->id}}" method="post">
                                                         @endif
                                                             @csrf
                                                             @method('delete')                                                                                                                                                         
@@ -430,9 +430,9 @@ $(document).ready(function(){
                                                             <a class="dropdown-item labelPrint" href="/autofulfillLabelPrint/{{$return->id}}">{{ __('Print Label') }}</a>
 
                                                             @if(empty($route))
-                                                            <a class="dropdown-item" href="/samuelLabelDelete/{{$return->id}}">{{ __('Delete Label') }}</a>
+                                                            <a class="dropdown-item" href="/vaughnLabelDelete/{{$return->id}}">{{ __('Delete Label') }}</a>
                                                             @else
-                                                            <a class="dropdown-item" href="/samuelLabelDelete/{{$route}}/{{$return->id}}">{{ __('Delete Label') }}</a>
+                                                            <a class="dropdown-item" href="/vaughnLabelDelete/{{$route}}/{{$return->id}}">{{ __('Delete Label') }}</a>
                                                             @endif
 
                                                             @endif

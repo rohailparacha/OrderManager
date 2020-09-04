@@ -34,8 +34,8 @@
             </div>
         </form>
 
-        @elseif(request()->route()->getName() =='samuelprocessed'||request()->route()->getName()=='samuelnew'||request()->route()->getName()=='samuelbce'||request()->route()->getName()=='samuelreturn'||request()->route()->getName()=='samuelcancel'||request()->route()->getName()=='samuelrefund'||request()->route()->getName()=='samuelcompleted')
-        <form method="post" action="samuelsearch" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
+        @elseif(request()->route()->getName() =='vaughnprocessed'||request()->route()->getName()=='vaughnnew'||request()->route()->getName()=='vaughnbce'||request()->route()->getName()=='vaughnreturn'||request()->route()->getName()=='vaughncancel'||request()->route()->getName()=='vaughnrefund'||request()->route()->getName()=='vaughncompleted')
+        <form method="post" action="vaughnsearch" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
 
         @csrf
             <div class="form-group mb-0">

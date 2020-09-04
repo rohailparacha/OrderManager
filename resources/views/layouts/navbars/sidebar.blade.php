@@ -237,46 +237,46 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link active" href="#samuel" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                    <a class="nav-link active" href="#vaughn" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
                         <i class="fa fa-sort text-primary" ></i>
                         <span class="nav-link-text text-primary" >{{ __('Voughn') }}</span>
                     </a>
 
-                    <div class="collapse show" id="samuel">
+                    <div class="collapse show" id="vaughn">
                         <ul class="nav nav-sm flex-column">                            
                             
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('samuelnew') }}">
+                                <a class="nav-link" href="{{ route('vaughnnew') }}">
                                     {{ __('New Orders') }}
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link"  href="{{ route('samuelprocessed') }}">
+                                <a class="nav-link"  href="{{ route('vaughnprocessed') }}">
                                     {{ __('Processed Orders') }}
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link"  href="{{ route('samuelcancel') }}">
+                                <a class="nav-link"  href="{{ route('vaughncancel') }}">
                                     {{ __('Cancel Pending') }}
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link"  href="{{ route('samuelreturn') }}">
+                                <a class="nav-link"  href="{{ route('vaughnreturn') }}">
                                     {{ __('Return Pending') }}
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link"  href="{{ route('samuelrefund') }}">
+                                <a class="nav-link"  href="{{ route('vaughnrefund') }}">
                                     {{ __('Refund Pending') }}
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link"  href="{{ route('samuelcompleted') }}">
+                                <a class="nav-link"  href="{{ route('vaughncompleted') }}">
                                     {{ __('Completed Returns') }}
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('samuelSetting') }}">
+                                <a class="nav-link" href="{{ route('vaughnSetting') }}">
                                     {{ __('Voughn - Order Fulfillment Setting') }}
                                 </a>
                             </li>

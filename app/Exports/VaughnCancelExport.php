@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class SamuelCancelExport implements FromCollection,WithHeadings,ShouldAutoSize
+class VaughnCancelExport implements FromCollection,WithHeadings,ShouldAutoSize
 {
     /**
     * @return \Illuminate\Support\Collection
@@ -19,7 +19,7 @@ class SamuelCancelExport implements FromCollection,WithHeadings,ShouldAutoSize
        if(auth()->user()->role==1)            
         {
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('account_id','Samuel')
+            ->where('account_id','Vaughn')
             ->where(function($test){
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.status','shipped');
@@ -40,7 +40,7 @@ class SamuelCancelExport implements FromCollection,WithHeadings,ShouldAutoSize
             }
             
             $orders = cancelled_orders::leftJoin('orders','cancelled_orders.order_id','=','orders.id')
-            ->where('account_id','Samuel')
+            ->where('account_id','Vaughn')
             ->whereIn('storeName',$strArray)
             ->where(function($test){
                 $test->where('orders.status','processing');

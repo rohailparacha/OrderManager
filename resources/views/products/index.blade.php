@@ -394,9 +394,9 @@ catch{
                                     <th scope="col" width="9%">{{ __('UPC') }}</th>
                                     <th scope="col" width="9%">{{ __('WM ID') }}</th>
                                     
-                                    <th scope="col" width="18%">{{ __('Title') }}</th>
-                                    <th scope="col" width="8%">{{ __('Total FBA Sellers') }}</th>
-                                    <th scope="col" width="8%">{{ __('Lowest FBA Price') }}</th>
+                                    <th scope="col" width="18%">{{ __('Title') }}</th>                                    
+                                    <th scope="col" width="8%">{{ __('Primary/Secondary') }}</th>
+                                    <th scope="col" width="8%">{{ __('30-Day Sold') }}</th>                                    
                                     <th scope="col" width="8%">{{ __('Price') }}</th>                                    
                                     <th scope="col" width="8%">{{ __('WM Link') }}</th>    
                                     <th scope="col" width="8%">{{ __('Link') }}</th>                                    
@@ -418,9 +418,11 @@ catch{
                                         <td width="9%" class="specifictd">{{ $product->asin }}</td>
                                         <td width="9%" class="specifictd">{{ $product->upc }}</td>
                                         <td width="9%" class="specifictd">{{ $product->wmid }}</td>
-                                        <td width="20%">{{ $product->title }}</td>
-                                        <td width="8%"  class="specifictd">{{ $product->totalSellers }}</td>
-                                        <td width="8%" class="specifictd">{{ number_format((float)$product->lowestPrice, 2, '.', '') }}</td>
+                                        <td width="20%">{{ $product->title }}</td>             
+                                        <td width="20%">
+                                            {{$product->isPrimary}}
+                                        </td>                                        
+                                        <td width="8%"  class="specifictd">{{ $product->{'30days'} }}</td>                                        
                                         <td width="8%" class="specifictd">{{ number_format((float)$product->price, 2, '.', '') }}</td>                                        
                                         <td width="9%" class="specifictd">
                                         <a href="https://www.walmart.com/ip/{{ $product->wmid }}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a>

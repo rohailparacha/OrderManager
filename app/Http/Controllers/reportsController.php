@@ -7,14 +7,13 @@ use App\orders;
 use App\accounts;
 use App\carriers; 
 use App\order_details;
-use DB;
 use App\gmail_accounts;
 use App\informed_settings;
 use App\User;
 use App\Exports\ReportExport;
 use Excel; 
+use DB;
 use Carbon\Carbon;
-
 
 class reportsController extends Controller
 {
@@ -24,16 +23,23 @@ class reportsController extends Controller
         $this->middleware('auth');
     }
 
-    public function dailyReport(Request $request)
+     public function dailyReport(Request $request)
     {        
+        $date = $request->datepicked;
         $settings = informed_settings::all();
         $accounts = accounts::all(); 
         $labels= array(); 
-        $datasets = array(); 
+        $datasets = array();
+        
+        $sold=0; 
+        $cancelled = 0; 
+
         foreach($settings as $setting)
         {   
             $labels[]= $setting->minAmount."-".$setting->maxAmount;
         }
+
+        $labels[]= 'Cancelled';
 
         $colors = ['red','orange','blue'];
         $cnt =0; 
@@ -60,9 +66,25 @@ class reportsController extends Controller
                     $col = $col->whereDate('orders.date', Carbon::parse($date))->get()->first();
                 }
                 
-                $data[]= $col->qty;                
+                $data[]= $col->qty;   
+                $sold+=$col->qty;             
             }
 
+            $col = orders::select(DB::raw('IFNULL(SUM(orders.quantity),0) As qty'))
+            ->where('status','cancelled')
+            ->where('storeName',$account->store);
+            
+            if(empty($date))
+            {
+                $col = $col->whereDate('date', Carbon::today())->get()->first();
+            }
+            else
+            {
+                $col = $col->whereDate('date', Carbon::parse($date))->get()->first();
+            }
+            
+            $data[]= $col->qty;  
+            $cancelled+=$col->qty;
             $backgroundColor = $colors[$cnt];
             $cnt++;                    
 
@@ -71,9 +93,8 @@ class reportsController extends Controller
         }
         
         
-        return view('report.dailyReport',compact('settings','labels','datasets','date'));
+        return view('report.dailyReport',compact('settings','labels','datasets','date','sold','cancelled'));
     }
-
     public function index()
     {
         $startDate = orders::min('date');
