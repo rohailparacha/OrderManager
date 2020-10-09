@@ -4,6 +4,7 @@ namespace App\Console;
 use Config;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use DB;
 
 class Kernel extends ConsoleKernel
 {
@@ -29,10 +30,12 @@ class Kernel extends ConsoleKernel
         //$schedule->call('App\Http\Controllers\productsController@repricing')->timezone('Asia/Tehran')->dailyAt('02:30');
 
         $schedule->command('queue:restart')->everyFiveMinutes();
-
+        
+    //    $schedule->call(function () {DB::table('categories')->insert(['name'=>'cronCheck']);  })->everyMinute();
+        
+        $schedule->command('queue:listen --timeout=0')->everyMinute()->withoutOverlapping();
+    
         $schedule->command('queue:work --daemon --timeout=0')->everyMinute()->withoutOverlapping();
-        $schedule->command('queue:listen --daemon --timeout=0')->everyMinute()->withoutOverlapping();
-
     }
 
     /**

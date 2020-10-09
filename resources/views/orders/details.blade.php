@@ -105,6 +105,7 @@ $('#btnBce').on('click',function(event){
     $('#emptyAmount').hide();  
     $('#emptyAccount').hide(); 
     $('#charcountError').hide();
+    $('#dupIssueProcess').hide(); 
  });
 
  
@@ -121,6 +122,7 @@ $('#btnBce').on('click',function(event){
     $('#emptyAmount').hide(); 
     $('#emptyAccount').hide(); 
     $('#charcountError').hide();
+    $('#dupIssueProcess').hide(); 
  });
 
  $('#btnShip').on('click',function(event){
@@ -316,9 +318,16 @@ $('#btnBce').on('click',function(event){
                console.log(data);
                if (data == 'success') {
                    $('#process').modal('hide');
-                   $('#error2').hide();  
+                   $('#error2').hide(); 
+                   $('#dupIssueProcess').hide();  
                    document.location.reload();                       
                } 
+               else if(data.startsWith("Purchase Order"))
+               {      
+                    $('#dupIssueProcess').show();             
+                    $('#dupIssueProcess').text(data);
+                    
+               }
                else
                {                                
                 $('#error2').show();
@@ -609,8 +618,16 @@ function onlyUnique(value, index, self) {
                if (data == 'success') {
                    $('#process').modal('hide');
                    $('#error2').hide();  
+                   $('#dupIssueProcess').hide(); 
                    document.location.reload();                       
-               } 
+               }
+               else if(data.startsWith("Purchase Order"))
+               {      
+                    $('#dupIssueProcess').show();             
+                    $('#dupIssueProcess').text(data);
+                    
+               }
+
                else
                {                                
                 $('#error2').show();
@@ -1134,6 +1151,9 @@ td {
       <div class="alert alert-danger" id="error2" style="display:none">
             Error while processing order. Please check the inputs below: 
        </div>
+
+        <div class="alert alert-danger" id="dupIssueProcess" style="display:none">             
+        </div>
        
      
         <div class="modal-content">

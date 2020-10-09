@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => __('BCE Conversions')])
+@extends('layouts.app', ['title' => __('Order Fulfillment BCE Conversions')])
 
 @section('content')
 @include('layouts.headers.cards')
@@ -77,10 +77,11 @@ $(document).ready(function(){
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-6">
-                                <h3 class="mb-0">{{ __('BCE Conversions - 2') }}</h3>                                
+                                <h3 class="mb-0">{{ __('Order Fulfillment Cancel Alert') }}</h3>                                
                             </div>  
                             <div class="col-6" style="text-align:right;">
-                            <a href="conversionssync" class="btn btn-primary btn-md">Sync</a>                            
+                            <a href="orderCancelledExport" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:30px;">Export</a>       
+                            
                             @if(!empty($search) && $search==1)
                                 <a href="{{ route($route) }}"class="btn btn-primary btn-md">Go Back</a>
                             @endif 
@@ -97,12 +98,15 @@ $(document).ready(function(){
                                 </button>
                             </div>
                         @endif
-                    </div>            
-                    
+                    </div>
+
                     <div class="card-header border-0" style="padding-top:0px;">
                         <div class="row align-items-center">
                             <div class="col-8">
-                        <strong><span  style="font-size:14px; color:red; padding-left:5px;">Unshipped BCE Records : {{$count}}</span></strong>
+                             </div>
+
+                            <div class="col-4" style="text-align:right;"> 
+                            Showing {{$orders->toArray()['from']}} - {{$orders->toArray()['to']}} of {{$orders->toArray()['total']}} records                        
                             </div>
                         </div>
                     </div>
@@ -111,41 +115,45 @@ $(document).ready(function(){
                         <table class="table align-items-center table-flush">
                             <thead class="thead-light">
                                 <tr>
-                                    <th scope="col">{{ __('Date') }}</th>                                    
-                                    <th scope="col">{{ __('Store Name') }}</th>                                    
-                                    <th scope="col">{{ __('Buyer Name') }}</th>
-                                    <th scope="col">{{ __('Sell Order Id') }}</th>
-                                    <th scope="col">{{ __('Purchase Order Id') }}</th>                                    
-                                    <th scope="col">{{ __('City') }}</th>
-                                    <th scope="col">{{ __('State') }}</th>
-                                    <th scope="col">{{ __('Zip Code') }}</th>
-                                    <th scope="col">{{ __('Old Tracking Number') }}</th>
-                                    <th scope="col">{{ __('BCE Tracking Number') }}</th>
-                                    <th scope="col">{{ __('UPS Tracking Number') }}</th>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">{{ __('Purchase Order Id') }}</th>                                   
+
+                                    <th scope="col">{{ __('Status') }}</th>
+                                    
+                                    <th scope="col">{{ __('View') }}</th>
                                     <th scope="col"></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($orders as $order)
-                                    <tr>                                        
-                                        <td>{{ $provider::getIranTime(date_format(date_create($order->date), 'm/d/Y H:i:s')) }}</td>
-                                        <td>{{ $order->storeName }}</td>
-                                        <td>{{ $order->buyerName }}</td>
-                                        <td><a target="_blank" href="orderDetails/{{$order->id}}">{{ $order->sellOrderId }}</a></td>
-                                        <td>{{ $order->poNumber }}</td>
-                                        <td>{{ $order->city }}</td>
-                                        <td>{{ $order->state }}</td>
-                                        <td>{{ $order->postalCode }}</td>
-                                        <td>{{ $order->trackingNumber }}</td>
-                                        <td><a target="_blank" href="https://bluecare.express/Tracking?trackingReference={{ $order->newTrackingNumber }}">{{ $order->newTrackingNumber }}</a></td>
-
-                                        <td>{{ $order->upsTrackingNumber }}</td>
-                                        @if($order->status!='shipped')
-                                        <td><button name="shipBtn" id="ship{{$loop->iteration}}" data-id= {{$order->id}} data-track= {{$order->newTrackingNumber}} data-carrier= "Bluecare Express" class="btn btn-primary btn-sm">Ship</button></td>
-                                        @else
-                                        <td>Shipped</td>
-                                        @endif
-                                       
+                                    <tr>
+                                        <td>  
+                                        {{ $provider::getIranTime(date_format(date_create($order->ordercreatedate), 'm/d/Y H:i:s')) }}
+                                        </td>                                      
+                                        <td>{{ $order->afpoNumber }}</td>
+                                        <td>{{$order->orderStatus}}</td>
+                                        
+                                        <td><a href="orderDetails/{{$order->id}}" class="btn btn-primary btn-sm">Details</a>
+                                        <a target="_blank" href="https://www.amazon.com/progress-tracker/package/ref=pe_2640190_232586610_TE_typ?_encoding=UTF8&from=gp&orderId={{$order->poNumber}}&packageIndex=0&itemId={{$order->itemId}}" class="btn btn-primary btn-sm">Shipping Link</a>
+                                        </td>
+                                        <td class="text-right prodtd">
+                                            <div class="dropdown">
+                                                <a class="btn btn-sm btn-icon-only text-light" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">                                                                                            
+                                                        <form action="{{ route('deleteCancelled', $order->cancelledId) }}" method="post">
+                                                            @csrf
+                                                            @method('delete')                                                                                                                                                           
+                                                            @if(auth()->user()->role==1|| auth()->user()->role==2)
+                                                            <button type="button" class="dropdown-item" onclick="confirm('{{ __("Are you sure you want to delete this orders?") }}') ? this.parentElement.submit() : ''">
+                                                                {{ __('Delete') }}
+                                                            </button>
+                                                            @endif
+                                                        </form>                                                       
+                                                </div>
+                                            </div>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>

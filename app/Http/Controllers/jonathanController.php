@@ -570,8 +570,8 @@ class jonathanController extends Controller
         }
                     
         $body = json_decode($response->getBody()->getContents());
-        
-        Session::flash('success_msg', $body->count. __(' Orders Processed'));
+        $count = ($body) ? $body->count :'0';
+        Session::flash('success_msg', $count. __(' Orders Processed'));
         return redirect()->route('jonathannew');
     }
 
@@ -669,7 +669,7 @@ class jonathanController extends Controller
         $maxDailyAmount =0;
         $discount = 0; 
         $maxPrice =0;
-        
+
         $stores=array();
         
             $input = [

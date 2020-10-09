@@ -4,8 +4,23 @@
         <!-- Brand -->
         <a class="h4 mb-0 text-white text-uppercase d-none d-lg-inline-block" href="{{ route('home') }}">{{ __('Dashboard') }}</a>
         <!-- Form -->
-        @if(request()->route()->getName()=='newOrders' ||request()->route()->getName()=='newOrdersFlagged'  ||request()->route()->getName()=='newOrdersExpensive' ||request()->route()->getName()=='processedtransactions' ||request()->route()->getName()=='transactions' ||request()->route()->getName()=='blacklist'  ||request()->route()->getName()=='returns'||request()->route()->getName()=='refunds'||request()->route()->getName()=='completed' || request()->route()->getName()=='processedOrders' || request()->route()->getName()=='cancelledOrders' || request()->route()->getName()=='report' ||request()->route()->getName()=='conversions' ||request()->route()->getName()=='conversions2' ||request()->route()->getName()=='upsConversions'||request()->route()->getName()=='upsApproval'||request()->route()->getName()=='upsShipped'||request()->route()->getName()=='deliveredConversions' || request()->route()->getName()=='shippedOrders'|| request()->route()->getName()=='products' || request()->route()->getName()=='secondaryproducts' || request()->route()->getName()=='product.report' || request()->route()->getName()=='sold.report')
+        @if(request()->route()->getName()=='newOrders' ||request()->route()->getName()=='newOrdersFlagged'  ||request()->route()->getName()=='newOrdersExpensive' ||request()->route()->getName()=='processedtransactions' ||request()->route()->getName()=='transactions' ||request()->route()->getName()=='blacklist'  ||request()->route()->getName()=='returns'||request()->route()->getName()=='refunds'||request()->route()->getName()=='completed' || request()->route()->getName()=='processedOrders' || request()->route()->getName()=='cancelledOrders' || request()->route()->getName()=='report'   ||request()->route()->getName()=='conversions' ||request()->route()->getName()=='conversions2' ||request()->route()->getName()=='upsConversions'||request()->route()->getName()=='upsApproval'||request()->route()->getName()=='upsShipped'||request()->route()->getName()=='deliveredConversions' || request()->route()->getName()=='shippedOrders'|| request()->route()->getName()=='products' || request()->route()->getName()=='secondaryproducts' || request()->route()->getName()=='product.report' || request()->route()->getName()=='sold.report')
         <form method="post" action="search" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
+
+        @csrf
+            <div class="form-group mb-0">
+                <div class="input-group input-group-alternative">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    </div>
+                    <input class="form-control" placeholder="Search" name="searchQuery" id="searchQuery" type="text">
+                    <input class="form-control" name="route" type="hidden" value={{ request()->route()->getName()}}>
+                </div>
+            </div>
+        </form>
+
+         @elseif(request()->route()->getName() =='duplicate-record')
+        <form method="post" action="duplicate-search" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
 
         @csrf
             <div class="form-group mb-0">

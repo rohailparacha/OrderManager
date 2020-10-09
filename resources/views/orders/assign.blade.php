@@ -274,14 +274,15 @@ $(document).ready(function(){
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
-                                                    @foreach($flags as $flag)
-                                                     @if(empty($route))
+                                                   @foreach($flags as $flag)
+                                                    @if(empty($route))
                                                     <a class="dropdown-item" href="/orderFlag/{{$order->id}}/{{$flag->id}}">{{$flag->name}}</a>
                                                     @else
                                                     <a class="dropdown-item" href="/orderFlag/{{$route}}/{{$order->id}}/{{$flag->id}}">{{$flag->name}}</a>
                                                     @endif
                                                     @endforeach
-                                                   @if(empty($route))
+
+                                                    @if(empty($route))
                                                     <a class="dropdown-item" href="/orderFlag/{{$order->id}}/0">{{ __('Unflag') }}</a>
                                                     @else
                                                     <a class="dropdown-item" href="/orderFlag/{{$route}}/{{$order->id}}/0">{{ __('Unflag') }}</a>

@@ -20,11 +20,11 @@ class CreateLogsTable extends Migration
             $table->integer('identifiers')->nullable()->default(0);
             $table->integer('errorItems')->nullable()->default(0);
             $table->integer('successItems')->nullable()->default(0);        
-            $table->string('error')->nullable();            
+            $table->string('error')->nullable();
             $table->enum('stage',['SyncCentric','Informed','SellerActive'])->nullable();
             $table->enum('status',['Failed','Completed','In Progress']);
             $table->string('action')->nullable();
-            $table->string('scaccount')->nullable();
+             $table->string('scaccount')->nullable();
         });
     }
 

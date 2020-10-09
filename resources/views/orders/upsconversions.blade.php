@@ -179,7 +179,7 @@ catch{
                     <div class="card-header border-0" style="padding-top:0px;">
                         <div class="row align-items-center">
                             <div class="col-8">
-                        <strong><span  style="font-size:14px; color:red; padding-left:5px;">Unshipped Records : {{$count}}</span></strong>
+                        <strong><span  style="font-size:14px; color:red; padding-left:5px;">Waiting For Tracking: {{$count}}</span></strong>
                             </div>
                         </div>
                     </div>
@@ -210,7 +210,9 @@ catch{
                                         <td>{{ $order->storeName }}</td>
                                         <td>{{ $order->buyerName }}</td>
                                         <td><a target="_blank" href="orderDetails/{{$order->id}}">{{ $order->sellOrderId }}</a></td>
-                                        <td><a target="_blank" href="https://www.amazon.com/progress-tracker/package/ref=ppx_yo_dt_b_track_package?_encoding=UTF8&itemId=klpjsskrrrpoqn&orderId={{$order->poNumber}}">{{ $order->poNumber }}</a></td>                                      
+                                        <td><a target="_blank" href="https://www.amazon.com/progress-tracker/package/ref=ppx_yo_dt_b_track_package?_encoding=UTF8&itemId=klpjsskrrrpoqn&orderId={{$order->poNumber}}">{{ $order->poNumber }}</a></td>        
+                                        
+                                        
                                         <td>{{ $order->city }}</td>
                                         <td>{{ $order->state }}</td>
                                         <td>{{ $order->postalCode }}</td>

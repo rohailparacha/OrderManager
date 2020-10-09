@@ -145,7 +145,7 @@ class reportsController extends Controller
     public function filter(Request $request)
     {
         if($request->has('daterange'))
-            $dateRange = $request->get('daterange');
+        $dateRange = $request->get('daterange');
         $startDate = explode('-',$dateRange)[0];
         $from = date("Y-m-d", strtotime($startDate));  
         $endDate = explode('-',$dateRange)[1];
@@ -246,5 +246,139 @@ class reportsController extends Controller
 
         return $total;
 
+    }
+
+     public function search(Request $request)
+    {
+        $query = $request->searchQuery;
+        $route = $request->route; 
+        
+        $search = 1;
+
+        $startDate = orders::min('date');
+        $endDate = orders::max('date');
+
+        $from = date("m/d/Y", strtotime($startDate));  
+        $to = date("m/d/Y", strtotime($endDate));  
+
+
+        if($route == 'duplicate-record')
+        {
+            
+            $poNumber = 0;
+          
+            $orders = orders::select()
+            ->where(function($test) use ($query){
+                $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
+                $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
+            })->groupBy('poNumber')->where('poNumber','!=','')->get();
+            
+            $orders = $orders;
+           
+            $stores = accounts::select(['id','store'])->get();         
+            
+            $carriers = carriers::all(); 
+            $carrierArr = array(); 
+            foreach($carriers as $carrier)
+            {
+                $carrierArr[$carrier->id]= $carrier->name; 
+            }
+    
+            
+            $users = User::all();
+            foreach($orders as $order)
+            {            
+                $order->shippingPrice = $this->getTotalShipping($order->id);
+            } 
+            $accounts = gmail_accounts::all(); 
+            return view('report.duplicate',compact('orders','stores','dateRange','statusFilter','marketFilter','storeFilter','carrierArr','userFilter','users' ,'search','route','accounts','query'));
+
+         
+        }
+        else
+        redirect()->back();
+    }
+    
+    
+
+      public function searchfilter(Request $request)
+    {
+        
+        $search = 1;
+        if($request->has('poNumber'))
+            $poNumber = $request->get('poNumber');
+        
+        //now show orders
+        $orders = orders::select('poNumber');
+        
+         if(!empty($poNumber)&& $poNumber !=0)
+        {            
+            $orders = $orders->where('poNumber',$poNumber);
+        }
+
+        
+       
+        
+        $orders  = $orders->orderBy('id', 'DESC')->groupBy('poNumber')
+        ->havingRaw('COUNT(*) > 1')->where('poNumber','!=','')->get(); 
+
+        foreach($orders as $order)
+        {            
+            $order->shippingPrice = $this->getTotalShipping($order->id);
+        }
+
+
+        $stores = accounts::select(['id','store'])->get();
+
+        $carriers = carriers::all(); 
+
+        $users = User::select(['id','name'])->get(); 
+
+        $carrierArr = array(); 
+        foreach($carriers as $carrier)
+        {
+            $carrierArr[$carrier->id]= $carrier->name; 
+        }
+
+        $accounts = gmail_accounts::all(); 
+
+        return view('report.duplicate',compact('accounts','orders','stores','userFilter','carrierArr','users','poNumber','search'));
+    }
+    public function duplicateRecord()
+    {
+        $startDate = orders::min('date');
+        $endDate = orders::max('date');
+
+        $from = date("m/d/Y", strtotime($startDate));  
+        $to = date("m/d/Y", strtotime($endDate));  
+
+        $dateRange = $from .' - '.$to;
+        $storeFilter = 0;
+        $marketFilter = 0;
+        $statusFilter = 0;
+        $userFilter = 0; 
+
+        
+        $orders = orders::select()->orderBy('id', 'DESC')->groupBy('poNumber')
+        ->havingRaw('COUNT(*) > 1')->where('poNumber','!=','')->get();
+
+       
+        foreach($orders as $order)
+        {            
+            $order->shippingPrice = $this->getTotalShipping($order->id);
+        }
+
+        $stores = accounts::select(['id','store'])->get();         
+        $users = User::select(['id','name'])->get(); 
+
+        $carriers = carriers::all(); 
+        $carrierArr = array(); 
+        foreach($carriers as $carrier)
+        {
+            $carrierArr[$carrier->id]= $carrier->name; 
+        }
+
+        $accounts = gmail_accounts::all(); 
+        return view('report.duplicate',compact('accounts','orders','stores','dateRange','statusFilter','marketFilter','storeFilter','userFilter','carrierArr', 'users'));
     }
 }

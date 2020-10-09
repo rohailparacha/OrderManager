@@ -99,7 +99,7 @@ catch{
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-6">
-                                <h3 class="mb-0">{{ __('Cindy - Auto Fulfill Orders') }}</h3>
+                                <h3 class="mb-0">{{ __('Auto Fulfill Orders') }}</h3>
                             </div>  
                             
                             <div class="col-6" style="text-align:right;">
@@ -214,7 +214,6 @@ catch{
                                     <th scope="col" width="8%">{{ __('Qty') }}</th>                                   
                                     <th scope="col" width="10%">{{ __('Total Purchase Amount') }}</th>
                                      <th scope="col" width="10%">{{ __('Total Amount') }}</th>
-                                     <th scope="col" width="11%">{{ __('Net') }}</th>
                                     <th scope="col" width="11%">{{ __('Flag') }}</th>
                                     <th scope="col" width="8%">{{ __('Action') }}</th>
                                     <th scope="col" width="3%"></th>
@@ -236,29 +235,33 @@ catch{
                                          
                                         <td width="10%">{{ number_format((float)$order->totalAmount +(float)$order->shippingPrice , 2, '.', '') }}</td>
                                        
-                                        @if((number_format(((float)$order->totalAmount +(float)$order->shippingPrice) *0.85 , 2, '.', '') - number_format((float)$order->lowestPrice , 2, '.', '')) < ($order->quantity * 5))
-                                        <td width="10%" style="color:red;">
-                                        @else
-                                        <td width="10%">
-                                        @endif
-                                        {{ number_format((((float)$order->totalAmount +(float)$order->shippingPrice) *0.85) - (float)$order->lowestPrice , 2, '.', '') }}  
-                                        </td>
                                         <td width="11%">
                                         @if($order->flag==0)
                                         <span></span>
-                                        @else                                        
-                                        @foreach($flags as $flag)
-                                        @if($flag->id == $order->flag)
-                                            @if(strtolower(trim($flag->color))=='yellow')
-                                            <p style="padding: 8px 4px 8px 4px;background-color:{{$flag->color}};color:black;width:100px;text-align: center;font-weight: bold;font-size: 14px;">{{$flag->name}}</p>
-                                            @else
-                                            <p style="padding: 8px 4px 8px 4px;background-color:{{$flag->color}};color:white;width:100px;text-align: center;font-weight: bold;font-size: 14px;">{{$flag->name}}</p>
-                                            @endif
-                                        @endif
-                                        @endforeach             
-                                        @endif                           
-                                        </td>
+                                        @elseif($order->flag==1)
+                                        <p style="padding: 8px 4px 8px 4px;background-color:red;color:white;width:100px;text-align: center;font-weight: bold;font-size: 14px;">Overpriced</p>
+                                        @elseif($order->flag==2)
+                                        <p style="padding: 8px 4px 8px 4px; background-color:orange; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Quantity Limit</p>
+                                        @elseif($order->flag==3)
+                                        <p style="padding: 8px 4px 8px 4px; background-color:yellow; color:black; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Unavailable</p>
+                                        @elseif($order->flag==4)
+                                        <p style="padding: 8px 4px 8px 4px; background-color:green; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Date</p>
+                                        @elseif($order->flag==5)
+                                        <p style="padding: 8px 4px 8px 4px; background-color:blue; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Address Issue</p>
+                                        @elseif($order->flag==6)
+                                        <p style="padding: 8px 4px 8px 4px; background-color:gray; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Other</p>
+                                        @elseif($order->flag==7)
+                                        <p style="padding: 8px 4px 8px 4px; background-color:purple; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Tax Issue</p>                                        
+                                        @elseif($order->flag==8)
+                                        <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Cindy</p>                                        
+                                        @elseif($order->flag==9)
+                                        <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Jonathan</p>                                    
                                         
+                                        @elseif($order->flag==10)
+                                        <p style="padding: 8px 4px 8px 4px; background-color:brown; color:white; width:100px;text-align: center;font-weight: bold;font-size: 14px;">Samuel</p>  
+                                        
+                                        @endif
+                                        </td>
                                         <td width="8%"><a href="orderDetails/{{$order->id}}" class="btn btn-primary btn-sm">Details</a></td>
                                         <td class="text-right" width="3%" style="padding:0px!important">
                                             <div class="dropdown">
@@ -266,20 +269,17 @@ catch{
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
-                                                    @foreach($flags as $flag)
-                                                    @if(empty($route))
-                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/{{$flag->id}}">{{$flag->name}}</a>
-                                                    @else
-                                                    <a class="dropdown-item" href="/orderFlag/{{$route}}/{{$order->id}}/{{$flag->id}}">{{$flag->name}}</a>
-                                                    @endif
-                                                    @endforeach
-
-                                                    @if(empty($route))
+                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/1">{{ __('Overpriced') }}</a>
+                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/2">{{ __('Qty Limit') }}</a>
+                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/3">{{ __('Unavailable') }}</a>
+                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/4">{{ __('Date') }}</a>
+                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/5">{{ __('Address Problem') }}</a>
+                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/6">{{ __('Other') }}</a>
+                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/7">{{ __('Tax Issue') }}</a>
+                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/8">{{ __('Cindy') }}</a>
+                                        <a class="dropdown-item" href="/orderFlag/{{$order->id}}/9">{{ __('Jonathan') }}</a>
+                                        <a class="dropdown-item" href="/orderFlag/{{$order->id}}/10">{{ __('Samuel') }}</a>
                                                     <a class="dropdown-item" href="/orderFlag/{{$order->id}}/0">{{ __('Unflag') }}</a>
-                                                    @else
-                                                    <a class="dropdown-item" href="/orderFlag/{{$route}}/{{$order->id}}/0">{{ __('Unflag') }}</a>
-                                                    @endif
-                                                    
                                                 </div>
                                             </div>
                                         </td>

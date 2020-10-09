@@ -237,7 +237,12 @@ class UPSController extends Controller
     public function checkDate($orderId,$labelCreateDate)
     {
         $order = orders::where('id',$orderId)->get()->first();
-        if($order->date>$labelCreateDate)
+        
+        $firstDate = $labelCreateDate->format('Y-m-d');
+        
+        $secondDate = $order->date->format('Y-m-d');
+        
+        if($secondDate>$firstDate)
             return true; 
         else
             return false; 

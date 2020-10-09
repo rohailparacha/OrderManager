@@ -32,13 +32,14 @@ class ReportExport implements FromCollection,WithHeadings,ShouldAutoSize
     * @return \Illuminate\Support\Collection
     */
 
-    public function getIranTime($date)
-    {        
+ public static function getIranTime($date)
+    {
+        
         $datetime = new \DateTime($date);        
         
         return $datetime->format('m/d/Y H:i:s');
+        
     }
-    
     public function getTotalShipping($id)
     {
 

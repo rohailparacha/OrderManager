@@ -569,8 +569,8 @@ class orderFulfillmentController extends Controller
         }
                     
         $body = json_decode($response->getBody()->getContents());
-
-        Session::flash('success_msg', $body->count. __(' Orders Processed'));
+        $count = ($body) ? $body->count :'0';
+        Session::flash('success_msg', $count. __(' Orders Processed'));
         return redirect()->route('cindynew');
     }
 

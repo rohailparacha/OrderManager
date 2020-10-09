@@ -125,45 +125,6 @@ catch{
                         </div>                        
                     </div>
                     
-                    <div class="row" style="margin-left:0px!important;">
-                        <div class="col-12 text-center" id="filters">
-                        <form action="upsfilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
-                            @csrf
-                            <div style="width:100%; padding-bottom:2%;">
-                                <div class="form-group">                                
-
-                                <div style="padding-right:1%;">
-                                <select class="form-control" name="storeFilter" style="margin-right:0%;width:180px;">
-                                    <option value="0">Store Name</option>
-                                    @foreach($stores as $store)
-                                    <option value="{{$store->id}}" {{ isset($storeFilter) && $storeFilter==$store->id?"selected":"" }}>{{$store->store}}</option>
-                                    @endforeach
-                                    
-                                    
-                                </select>
-                                </div>
-
-                                <div style="padding-right: 1%; float:right; width=170px; ">                                
-                                    <input class="form-control" type="text" name="daterange" value="{{$dateRange ?? ''}}" />
-                                </div>
-                                   
-                                                                        
-                                    
-                                    <input type="submit" value="Filter" class="btn btn-primary btn-md">     
-                                    <a id="export" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:10px;">Export</a>          
-                                </div>
-                                
-                            </div>
-                            
-                            
-                            
-                        </form>   
-                          
-                        
-                    </div>
-
-                    
-                </div>
                
                     <div class="col-12">
                         @if (session('status'))
@@ -179,7 +140,7 @@ catch{
                     <div class="card-header border-0" style="padding-top:0px;">
                         <div class="row align-items-center">
                             <div class="col-8">
-                        <strong><span  style="font-size:14px; color:red; padding-left:5px;">Unshipped Records : {{$count}}</span></strong>
+                        <strong><span  style="font-size:14px; color:red; padding-left:5px;">Shipped Records : {{$count}}</span></strong>
                             </div>
                         </div>
                     </div>
@@ -210,7 +171,7 @@ catch{
                                         <td>{{ $order->storeName }}</td>
                                         <td>{{ $order->buyerName }}</td>
                                         <td><a target="_blank" href="orderDetails/{{$order->id}}">{{ $order->sellOrderId }}</a></td>
-                                        <td><a target="_blank" href="https://www.amazon.com/progress-tracker/package/ref=ppx_yo_dt_b_track_package?_encoding=UTF8&itemId=klpjsskrrrpoqn&orderId={{$order->poNumber}}">{{ $order->poNumber }}</a></td>                                       
+                                         <td><a target="_blank" href="https://www.amazon.com/progress-tracker/package/ref=ppx_yo_dt_b_track_package?_encoding=UTF8&itemId=klpjsskrrrpoqn&orderId={{$order->poNumber}}">{{ $order->poNumber }}</a></td>                                       
                                         <td>{{ $order->city }}</td>
                                         <td>{{ $order->state }}</td>
                                         <td>{{ $order->postalCode }}</td>

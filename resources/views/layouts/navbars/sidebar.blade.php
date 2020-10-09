@@ -517,6 +517,11 @@
                                     {{ __('Report') }}
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('duplicate-record') }}">
+                                    Duplicate Record
+                                </a>
+                            </li>
 
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('product.report') }}">

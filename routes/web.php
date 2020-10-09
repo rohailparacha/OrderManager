@@ -70,6 +70,14 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::post('checkPass','orderController@checkPass')->name('checkPass');
 	Route::post('checkResetPass','orderController@checkResetPass')->name('checkResetPass');
 	Route::get('report','reportsController@index')->name('report')->middleware('admin');
+	/*-------find duplicate-----------------*/
+	Route::get('duplicate-record','reportsController@duplicateRecord')->name('duplicate-record')->middleware('admin');
+
+	Route::any('duplicate-search','reportsController@search')->name('duplicate-search')->middleware('admin');
+
+	Route::any('search-filter','reportsController@searchfilter')->name('search-filter')->middleware('admin');
+
+
 	Route::get('dailyReport','reportsController@dailyReport')->name('dailyReport')->middleware('admin');
 	Route::any('filter','reportsController@filter')->name('filter')->middleware('admin');
 	Route::any('export','reportsController@export')->name('export')->middleware('admin');	
