@@ -116,71 +116,7 @@ class orderController extends Controller
             $trackingId = '';
             $carrier = '';
             
-            // if($order->account_id=='Vaughn')
-            // {               
-            //     try{        
-            //         $client = new client(); 
-                    
-            //         $endPoint = env('SAMUEL_TOKEN', '');
 
-            //         $response = $client->request('GET', $endPoint,
-            //         [
-            //             'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
-            //             'query' => ['sellOrderId' => $order->sellOrderId,'function' => 'fetchShipping']          
-            //         ]);    
-                    
-            //         $statusCode = $response->getStatusCode();
-                
-            //         $body = json_decode($response->getBody()->getContents());    
-                    
-            //         $carrier = $body->carrier; 
-            //         $trackingId = $body->trackingId;
-                    
-            //         if(empty($carrier) || empty($trackingId))
-            //         {
-                        
-            //             continue;
-            //         }
-            //         else
-            //         {
-                         
-            //             if(strtolower($carrier)=='bce' || strtolower($carrier)=='bluecare express')
-            //             {
-                            
-            //                 $bceCarrier = carriers::where('name','Bluecare Express')->get()->first(); 
-
-            //                 orders::where('id',$order->id)->update(['carrierName'=>$bceCarrier->id,'trackingNumber'=>$trackingId,  'newTrackingNumber'=>$trackingId, 'of_bce_created_at'=>Carbon::now(), 'isBCE'=>true ]);
-
-            //                 $this->sendOrderToSheet($order->id);
-            //             }
-            //             else
-            //             {
-            //                 $carrierId = carriers::where('name',$carrier)->get()->first(); 
-                                
-            //                 if(empty($carrierId))
-            //                 {
-            //                     $carrierId = carriers::where('alias','like','%'.$carrier.'%')->get()->first(); 
-            //                 }
-
-            //                 if(empty($carrierId))
-            //                     continue;
-
-            //                 $this->shipOrder($order->id, $trackingId, $carrierId->name, 'new');
-                            
-            //                 $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId, 'status'=>'shipped']);
-                            
-            //                 $shippedCounter++;
-            //             }
-                        
-            //         }
-            //     }
-            //     catch(\Exception $ex)
-            //     {
-                 
-                  
-            //     }
-            //     continue;
-            // }
             if(empty(trim($order->poNumber)))
                 continue; 
             
@@ -239,47 +175,45 @@ class orderController extends Controller
                     else
                     {
                         
+                        
                         try{
                             $baseUrl = "https://www.amazon.com/progress-tracker/package/ref=ppx_yo_dt_b_track_package?_encoding=UTF8";
                             
                              
                             $order_details = order_details::where('order_id',$order->id)->get();
                             
-                            if(count($order_details)>1)
+                          
+                            if($order->account_id=="Cindy"|| $order->account_id=='Jonathan' || $order->account_id=='Vaughn')
                             {
-                                if($order->account_id=="Cindy"|| $order->account_id=='Jonathan' || $order->account_id=='Vaughn')
-                                {
-                                   
-                                 
-                                 $response = $client->request('GET', $baseUrl.'&itemId='.$order->itemId.'&orderId='.trim($number),
-                                 [   
-                     
-                                 ]);    
-                                 
-                                 
-                                 $statusCode = $response->getStatusCode();
-                                 
-                                 $html = $response->getBody()->getContents();   
-                                }
-                                else
-                                {                                    
-                                    $response = $client->request('GET', $baseUrl.'&itemId=klpjsskrrrpoqn&orderId='.trim($number).'&shipmentId='.$this->getShipment($order->poNumber),
-                                    [   
-                        
-                                    ]);    
-                                    
-                                    
-                                    $statusCode = $response->getStatusCode();
-                                    
-                                    $html = $response->getBody()->getContents();   
-                                }
                                 
+                                
+                                $response = $client->request('GET', $order->trackingLink,
+                                [   
+                    
+                                ]);    
+                                
+                                
+                                $statusCode = $response->getStatusCode();
+                                
+                                $html = $response->getBody()->getContents();   
                             }
+                            
                             else                                
                             {
-                                    $response = $client->request('GET', $baseUrl.'&itemId=klpjsskrrrpoqn&orderId='.trim($number),[]);    
+                                
+                                
+                                    $trakUrl = $this->getTrackingUrl($order->poNumber);
                                     
+                                    if(empty($trakUrl) || !$trakUrl)
+                                    {
+                                        continue;
+                                    }
+                                    $response = $client->request('GET', $trakUrl,[]);    
                                     
+                                    orders::where('id',$order->id)->update(['trackingLink'=>$trakUrl]);
+
+                                    $order_details = order_details::where('order_id',$order->id)->get();
+
                                     $statusCode = $response->getStatusCode();
                                     
                                     $html = $response->getBody()->getContents();   
@@ -396,34 +330,7 @@ class orderController extends Controller
                                  
                                 $this->sendOrderToSheet($order->id);
                                 $shippedCounter++;              
-                                $found = true; 
-                                
-                                //$shipmentId = $this->getShipment(trim($number));
-                                            
-                                //if(empty($shipmentId) || $shipmentId== 'Error')
-                                  //      continue;
-                                        
-                                //$resp = $this->getBceResponse($order->id,$shipmentId , $trackingId, 'Walmart',1);
-                               
-                                //$resp = $this->insertConversionRecord($order->id,$shipmentId , $trackingId);
-                                //continue; 
-
-                                //$forward = $this->forwardEmail(trim($number));
-                               
-                                // if(!empty($resp) && $resp!= 'Error')
-                                // {
-                                //     try{
-                                       
-                                //         $order = orders::where('id',$order->id)->update(['carrierName'=>$bceCarrier->id, 'trackingNumber'=>$trackingId, 'newTrackingNumber'=>$resp, 'converted'=>true]);   
-                                //         $shippedCounter++;              
-                                //         $found = true; 
-                                        
-                                //     }
-                                //         catch(\Exception $ex)
-                                //         {
-                        
-                                //         }
-                                //     }
+                                $found = true;                                
 
                                 
                                 }
@@ -2857,10 +2764,14 @@ class orderController extends Controller
                   
                 if($exists>0)
                     continue; 
-              
+                
+               $att = 'OrderDetails';
+
+               if(count($order->$att)<1)
+                    continue; 
                $orderId = orders::create($temp)->id;
                 
-                $att = 'OrderDetails';
+                
                 foreach($order->$att as $item)
                 {
                 
@@ -3444,10 +3355,25 @@ class orderController extends Controller
            return "failure";
         }
 
-        if($status=='update')
+        if($status=='new')
+        {
+            $count = orders::where('poNumber',$po)->where('id','!=',$id)->get()->first(); 
+            if(!empty($count))
+                return "Purchase Order Number  Duplicate - ".$count->poNumber;
+            else{
+           
+             $order = orders::where('id',$id)->update(['poTotalAmount'=>$amount, 'poNumber'=>$po, 'status'=>'processing', 'account_id'=>$account]);
+            }
+        } else {
+
+            $count = orders::where('poNumber',$po)->where('id','!=',$id)->get()->first(); 
+            if(!empty($count))
+                return "Purchase Order Number  Duplicate - ".$count->poNumber;
+            else
+            {
             $order = orders::where('id',$id)->update(['poTotalAmount'=>$amount, 'poNumber'=>$po, 'account_id'=>$account]);
-        else
-            $order = orders::where('id',$id)->update(['poTotalAmount'=>$amount, 'poNumber'=>$po, 'status'=>'processing', 'account_id'=>$account]);
+            }
+        }
         
         if($order)
             return "success";
@@ -4934,7 +4860,44 @@ class orderController extends Controller
         }
     }
 
-    
+    public function getTrackingUrl($orderId)
+    {
+        $client = new client(); 
+
+        $accounts = gmail_accounts::get();
+
+        foreach($accounts as $account)
+        {   
+            try{    
+            $response = $client->request('GET', $account->url,
+            [
+                'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
+                'query' => ['orderId' => $orderId, 'orderType'=>$account->accountType]         
+            ]);
+            
+
+            
+            $body = json_decode($response->getBody()->getContents());
+            
+            if($body->status!=200)
+                continue;
+                        
+           
+            if(!empty($body->shippingLink))
+                return $body->shippingLink;
+
+            else
+                continue; 
+            }
+            catch(\Exception $ex)
+            {
+                
+            } 
+        }   
+        
+        return "Error";
+    }
+
     public function getShipment($orderId)
     {
         $client = new client(); 

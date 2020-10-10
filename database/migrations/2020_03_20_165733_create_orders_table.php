@@ -44,6 +44,7 @@ class CreateOrdersTable extends Migration
             $table->boolean('converted')->default(false);
             $table->boolean('isBCE')->default(false);
             $table->integer('assigned')->default(0);
+            $table->string('trackingLink')->nullable();
             $table->enum('status', ['unshipped','pending','shipped','cancelled','processing']);
             $table->enum('flag', ['0','1','2','3','4','5','6']);
             $table->foreign('account_id')->references('id')->on('accounts');

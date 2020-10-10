@@ -89,6 +89,7 @@ Route::post('autofulfill_update', function(Request $request) {
         'poNumber'=>$record['poNumber'],
         'itemId'=>$record['itemId'],
         'afpoNumber'=>$record['afpoNumber'],
+        'trackingLink'=>$record['trackingLink'],
         'account_id'=>'Cindy',
         'status'=>'processing'
         ]);
@@ -120,6 +121,7 @@ Route::post('vaughn_update', function(Request $request) {
         'poNumber'=>$record['poNumber'], 
         'itemId'=>$record['itemId'],      
         'afpoNumber'=>$record['afpoNumber'],
+        'trackingLink'=>$record['trackingLink'],
         'account_id'=>'Vaughn',        
         'status'=>'processing'
         ]);
@@ -150,6 +152,7 @@ Route::post('jonathan_update', function(Request $request) {
         'poTotalAmount'=>$record['poTotalAmount'],
         'poNumber'=>$record['poNumber'],        
         'afpoNumber'=>$record['afpoNumber'],
+        'trackingLink'=>$record['trackingLink'],
         'account_id'=>'Jonathan',        
         'status'=>'processing',
         'itemId'=>$record['itemId']

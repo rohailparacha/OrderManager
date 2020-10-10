@@ -271,7 +271,8 @@ class reportsController extends Controller
             ->where(function($test) use ($query){
                 $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
                 $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
-            })->groupBy('poNumber')->where('poNumber','!=','')->get();
+                $test->orWhere('sellOrderId', 'LIKE', '%'.$query.'%');
+            })->groupBy('poNumber')->where('poNumber','!=','')->paginate(100);
             
             $orders = $orders;
            
@@ -305,6 +306,7 @@ class reportsController extends Controller
     {
         
         $search = 1;
+        $route = 'duplicate-record'; 
         if($request->has('poNumber'))
             $poNumber = $request->get('poNumber');
         
@@ -320,7 +322,7 @@ class reportsController extends Controller
        
         
         $orders  = $orders->orderBy('id', 'DESC')->groupBy('poNumber')
-        ->havingRaw('COUNT(*) > 1')->where('poNumber','!=','')->get(); 
+        ->havingRaw('COUNT(*) > 1')->where('poNumber','!=','')->paginate(100); 
 
         foreach($orders as $order)
         {            
@@ -342,7 +344,7 @@ class reportsController extends Controller
 
         $accounts = gmail_accounts::all(); 
 
-        return view('report.duplicate',compact('accounts','orders','stores','userFilter','carrierArr','users','poNumber','search'));
+        return view('report.duplicate',compact('accounts','orders','stores','userFilter','carrierArr','users','poNumber','search','route'));
     }
     public function duplicateRecord()
     {
@@ -360,7 +362,7 @@ class reportsController extends Controller
 
         
         $orders = orders::select()->orderBy('id', 'DESC')->groupBy('poNumber')
-        ->havingRaw('COUNT(*) > 1')->where('poNumber','!=','')->get();
+        ->havingRaw('COUNT(*) > 1')->where('poNumber','!=','')->paginate(100);
 
        
         foreach($orders as $order)

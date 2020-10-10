@@ -102,13 +102,10 @@
                             </thead>
                             <tbody>
                               @if($orders->count() >0)
-                              @foreach ($orders as $ord)
+                              @foreach ($orders as $order)
 
-                                <?php   $allorders = App\orders::where('poNumber',$ord->poNumber)->orderby('id','DESC')->paginate(100); 
-
-                                ?>
                                    
-                                    @foreach ($allorders as $order)
+                                   
                                     <tr>
                                         
                                         <td>{{ $provider::getIranTime(date_format(date_create($order->date), 'm/d/Y H:i:s')) }}</td>
@@ -142,8 +139,7 @@
                                         <td>{{ $order->status }}</td>
                                         <td><a href="orderDetails/{{$order->id}}" class="btn btn-primary btn-sm">Details</a></td>
                                     </tr>
-                                    @endforeach
-                                   
+                                  
                                     @endforeach
                                     @endif
                                    
@@ -153,12 +149,12 @@
                      @if($orders->count() >0)
                     <div class="row" style="padding-right:2%">
                     <div class="col-md-4 offset-md-8" style="text-align:right">
-                        <span>Showing {{$allorders->toArray()['from']}} - {{$allorders->toArray()['to']}} of {{$allorders->toArray()['total']}} records</span>        
+                        <span>Showing {{$orders->toArray()['from']}} - {{$orders->toArray()['to']}} of {{$orders->toArray()['total']}} records</span>        
                     </div>
                     </div>
                     <div class="card-footer py-4">
                         <nav class="d-flex justify-content-end" aria-label="...">
-                            {{$allorders->links()}}
+                            {{$orders->links()}}
                         </nav>
                     </div>
                     @endif
