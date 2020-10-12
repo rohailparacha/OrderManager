@@ -306,9 +306,11 @@ class orderController extends Controller
                             }
             
                             $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
+                            $dmxCarrier  = carriers::where('name','Dynamex')->get()->first(); 
+
                             $bceCarrier = carriers::where('name','Bluecare Express')->get()->first(); 
             
-                            if($carrierId->id == $amzCarrier->id && $order->marketplace == 'Walmart' && $this->startsWith($trackingId,'TBA'))
+                            if(($carrierId->id == $amzCarrier->id && $order->marketplace == 'Walmart' && $this->startsWith($trackingId,'TBA'))||$carrierId->id == $dmxCarrier->id)
                             {       
                                
                                $resp='';
