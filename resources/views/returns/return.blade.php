@@ -352,7 +352,13 @@ $(document).ready(function(){
                                     <th scope="col" class="prodth">{{ __('Tracking Number') }}</th>  
                                     <th scope="col" class="prodth">{{ __('Label') }}</th>
                                     
+
+                                    
+                                    @if(!empty($search) && $search==1)
+                                    <th scope="col" class="prodth">{{ __('Status') }}</th>                                                                         
+                                    @else
                                     <th scope="col" class="prodth">{{ __('Return') }}</th>                                                                         
+                                    @endif
                                                                                                     
                                     <th scope="col" class="prodth"></th>
                                 </tr>
@@ -414,12 +420,24 @@ $(document).ready(function(){
                                             @endif
                                         </td>                                        
                                         
+                                        
+
+                                        @if(!empty($search) && $search==1)
+                                        @if(empty($return->status))
+                                        <th scope="col" class="prodth">New</th>                                                                         
+                                        @elseif($return->status=='returned')
+                                        <th scope="col" class="prodth">Returned</th>  
+                                        @elseif($return->status=='refunded')
+                                        <th scope="col" class="prodth">Refunded</th>  
+                                        @endif
+                                        @else
                                         @if($return->status!='refunded' && $return->status!='returned')
                                         <td class="prodtd"><a  href="./updateStatus?status=1&id={{$return->id}}"  class="btn btn-primary btn-sm">Return</a></td>
                                         @else                                    
                                             <td class="prodtd">Returned</td>    
+                                        @endif                                                                     
                                         @endif
-                                                                                
+
                                   
                                         <td class="text-right prodtd">
                                             <div class="dropdown">

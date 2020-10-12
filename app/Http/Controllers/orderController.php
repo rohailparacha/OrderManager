@@ -2117,7 +2117,7 @@ class orderController extends Controller
                     ->join('orders','order_details.order_id','orders.id')
                     ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
                     ->groupBy('SKU')
-                    ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                    ->havingRaw('count(*) >= ?', [$setting->soldQty]);
                     });
                     $test->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
                 });
@@ -2129,7 +2129,7 @@ class orderController extends Controller
                         ->join('orders','order_details.order_id','orders.id')
                         ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
                         ->groupBy('SKU')
-                        ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                        ->havingRaw('count(*) >= ?', [$setting->soldQty]);
                         });
                     $test->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
                 });
@@ -2421,7 +2421,7 @@ class orderController extends Controller
                 ->join('orders','order_details.order_id','orders.id')
                 ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
                 ->groupBy('SKU')
-                ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                ->havingRaw('count(*) >= ?', [$setting->soldQty]);
                 });
                 $test->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
             })
@@ -2900,7 +2900,7 @@ class orderController extends Controller
                 }
 
                 try{
-                    order_details::insert($details);   
+                   order_details::insert($details);   
                     $this->autoFlag($orderId);            
                 }
                 catch(\Exception $ex)
@@ -2933,7 +2933,6 @@ class orderController extends Controller
                 $sendJonathanOrders['data'] = $this->parseFulfillment($jonathanOrders,'jonathan',$sendVaughnOrders,$sendCindyOrders);
             }
         }       
- 
         $endPoint = env('CINDY_TOKEN', '');
         if(!empty($endPoint))
             $this->sendToGoogle($endPoint, $sendCindyOrders);
@@ -2945,6 +2944,7 @@ class orderController extends Controller
         $endPoint = env('JONATHAN_TOKEN', '');
         if(!empty($endPoint))
             $this->sendToGoogle($endPoint, $sendJonathanOrders);
+        
         
         
     }
@@ -3003,6 +3003,7 @@ class orderController extends Controller
 
         $body = json_encode($orders); 
                 
+        
 
         try{                    
 
@@ -3015,12 +3016,14 @@ class orderController extends Controller
             $statusCode = $response->getStatusCode();
 
             $body = json_decode($response->getBody()->getContents());    
-          
+            echo json_encode($body);
         }
         catch(\Exception $ex)
         {
-           
+           echo $ex;
         }
+
+    
     }
 
     public function updateSheetTracking($tracking, $sellOrderId, $carrier)
@@ -3049,6 +3052,7 @@ class orderController extends Controller
 
     public function parseFulfillment($fulfillmentOrders, $flag, $orders2, $orders3)
     {
+        
         $freshOrders = array();
         
         foreach($fulfillmentOrders as $order)
@@ -3098,6 +3102,7 @@ class orderController extends Controller
         elseif($acc=='vaughn')
             $flagnum = 10;
         
+        
         $googleOrders = array();
 
         $settings = settings::where('name',$acc)->get()->first(); 
@@ -3123,7 +3128,7 @@ class orderController extends Controller
         $maxDailyAmount = $settings->maxDailyAmount; 
 
         $amt = 0; 
-
+        
         foreach($orders as $order)
         {
             $flag = false;             
@@ -3152,7 +3157,7 @@ class orderController extends Controller
                     }                              
                 
             }
-        
+            
             if($quantityRangeCheck)
             {
                 if($order["qty"]>=$minQty && $order["qty"]<=$maxQty)
@@ -3163,6 +3168,7 @@ class orderController extends Controller
                         continue;
                     }
             }           
+           
 
             $dailyOrders = orders::where('flag',$flagnum)->whereDate('flag_date',Carbon::today())->get();
             
@@ -3193,6 +3199,8 @@ class orderController extends Controller
                     $flag = true; 
             }
             
+           
+
             if($this->checkExisting($orders2, $order['referenceNumber']))
             {
                 $flag=false;

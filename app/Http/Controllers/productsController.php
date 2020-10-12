@@ -115,7 +115,7 @@ class productsController extends Controller
             ->join('orders','order_details.order_id','orders.id')
             ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
             ->groupBy('SKU')
-            ->havingRaw('count(*) > ?', [$setting->soldQty]);
+            ->havingRaw('count(*) >= ?', [$setting->soldQty]);
             })            
             ->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
             
@@ -154,7 +154,7 @@ class productsController extends Controller
             ->join('orders','order_details.order_id','orders.id')
             ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
             ->groupBy('SKU')
-            ->havingRaw('count(*) > ?', [$setting->soldQty]);
+            ->havingRaw('count(*) >= ?', [$setting->soldQty]);
             })
             ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
             $last_run = $prd->max('modified_at');     
@@ -224,7 +224,7 @@ class productsController extends Controller
             ->join('orders','order_details.order_id','orders.id')
             ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
             ->groupBy('SKU')
-            ->havingRaw('count(*) > ?', [$setting->soldQty]);
+            ->havingRaw('count(*) >= ?', [$setting->soldQty]);
             })
             ->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString())
             ->select(['products.*', DB::raw("'Primary' As isPrimary")])
@@ -291,7 +291,7 @@ class productsController extends Controller
             ->join('orders','order_details.order_id','orders.id')
             ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
             ->groupBy('SKU')
-            ->havingRaw('count(*) > ?', [$setting->soldQty]);
+            ->havingRaw('count(*) >= ?', [$setting->soldQty]);
             })
             ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString())
             ->select(['products.*', DB::raw("'Secondary' As isPrimary")])

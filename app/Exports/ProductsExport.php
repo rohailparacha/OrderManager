@@ -58,7 +58,7 @@ class ProductsExport implements FromCollection,WithHeadings,ShouldAutoSize
                 ->join('orders','order_details.order_id','orders.id')
                 ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
                 ->groupBy('SKU')
-                ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                ->havingRaw('count(*) >= ?', [$setting->soldQty]);
                 })
                 ->orWhere('created_at', '>', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
     
@@ -71,7 +71,7 @@ class ProductsExport implements FromCollection,WithHeadings,ShouldAutoSize
                 ->join('orders','order_details.order_id','orders.id')
                 ->where('date', '>=', Carbon::now()->subDays($setting->soldDays)->toDateTimeString())
                 ->groupBy('SKU')
-                ->havingRaw('count(*) > ?', [$setting->soldQty]);
+                ->havingRaw('count(*) >= ?', [$setting->soldQty]);
                 })
                 ->Where('created_at', '<=', Carbon::now()->subDays($setting->createdBefore)->toDateTimeString());
         }
