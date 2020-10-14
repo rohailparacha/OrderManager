@@ -48,6 +48,16 @@ return [
             'root' => storage_path('app'),
         ],
 
+        'imports' => [
+            'driver' => 'local',
+            'root' => public_path('repricing/imports'),
+        ],
+
+        'exports' => [
+            'driver' => 'local',
+            'root' => public_path('repricing/exports'),
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

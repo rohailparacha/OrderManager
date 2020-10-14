@@ -54,6 +54,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('sync','orderController@syncOrders')->name('sync')->middleware('admin');	
 	Route::any('search','orderController@search')->name('search');
 	Route::get('orderDetails/{id}','orderController@details')->name('orderDetails');
+	Route::post('updateNotes','orderController@updateNotes')->name('updateNotes');
 	Route::post('updateOrder','orderController@updateOrder')->name('updateOrder');
 	Route::get('assign','orderController@assign')->name('orderassign')->middleware('admin');
 	Route::post('assignOrder','orderController@assignOrder')->middleware('admin');
@@ -137,6 +138,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::post('secondaryExportAsins','productsController@secondaryExportAsins');
 
 	Route::get('logs','productsController@getLogs')->name('logs')->middleware('admin');
+	Route::get('logsSecondary','productsController@getLogsSecondary')->name('logsSecondary')->middleware('admin');
 	Route::post('getLogs','productsController@getLogBatches')->name('getLogBatches')->middleware('admin');
 	Route::post('/editAmzProduct', 'productsController@editAmzProduct')->middleware('admin');
 
@@ -373,6 +375,45 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::any('jonathanCompletedFilter','jonathanReturnsController@completedFilter')->middleware('admin');
 	Route::get('jonathanLabelDelete/{route}/{id}','jonathanReturnsController@labelDeleteRoute');
 	Route::delete('/jonathanDeleteReturn/{route}/{id}','jonathanReturnsController@deleteReturnRoute')->middleware('admin');
+
+	//jonathan2 auto fulfillment settings
+	Route::get('/jonathan2Setting', 'jonathan2Controller@index')->name('jonathan2Setting');
+	Route::post('/jonathan2StoreSettings', 'jonathan2Controller@storeSettings')->name('jonathan2StoreSettings');
+	Route::any('/jonathan2OrderFulfillmentExport', 'jonathan2Controller@export')->name('jonathan2OrderFulfillmentExport');
+	Route::delete('jonathan2DeleteCancelled/{id}','jonathan2Controller@deleteCancelled')->name('jonathan2DeleteCancelled')->middleware('admin');	
+	Route::delete('jonathan2DeleteConversion/{id}','jonathan2Controller@deleteConversion')->name('jonathan2DeleteConversion')->middleware('admin');	
+	Route::any('/jonathan2OrderCancelledExport', 'jonathan2Controller@orderCancelledExport')->name('jonathan2OrderCancelledExport');
+	Route::post('jonathan2UpdateBCE','jonathan2Controller@updateBCE')->name('jonathan2UpdateBCE');
+
+	//jonathan2 orders
+	Route::get('jonathan2Process','jonathan2Controller@autoFulfillProcess')->name('jonathan2Process')->middleware('admin');	
+	Route::get('jonathan2conversions','jonathan2Controller@autofulfillconversions')->name('jonathan2bce')->middleware('admin');	
+	Route::get('jonathan2Processed','jonathan2Controller@autofulfillProcessed')->name('jonathan2processed')->middleware('admin');	
+	Route::get('jonathan2Cancel','jonathan2Controller@autofulfillCancel')->name('jonathan2cancel')->middleware('admin');		
+	Route::get('jonathan2','jonathan2Controller@autoFulfill')->name('jonathan2new')->middleware('admin');	
+	Route::any('jonathan2export','jonathan2Controller@jonathan2export')->name('jonathan2export')->middleware('admin');	
+	Route::any('jonathan2Filter','jonathan2Controller@autoFulfillFilter')->middleware('admin');
+	Route::any('jonathan2search','jonathan2Controller@search')->name('jonathan2search');
+
+
+	//jonathan2 Returns
+	
+	Route::get('/jonathan2ReturnPending', 'jonathan2ReturnsController@index')->name('jonathan2return')->middleware('admin');
+	Route::get('/jonathan2RefundPending', 'jonathan2ReturnsController@refunds')->name('jonathan2refund')->middleware('admin');
+	Route::get('/jonathan2CompletedReturns', 'jonathan2ReturnsController@completed')->name('jonathan2completed')->middleware('admin');
+	Route::post('/jonathan2Addreturn', 'jonathan2ReturnsController@addReturn')->middleware('admin');
+	Route::post('/jonathan2Editreturn', 'jonathan2ReturnsController@editReturn')->middleware('admin');
+	Route::delete('/jonathan2DeleteReturn/{id}','jonathan2ReturnsController@deleteReturn')->name('jonathan2DeleteReturn')->middleware('admin');
+	Route::post('jonathan2Returnsupload','jonathan2ReturnsController@uploadSubmit');
+	Route::post('jonathan2UploadLabel','jonathan2ReturnsController@uploadLabel');
+	Route::get('jonathan2UpdateStatus','jonathan2ReturnsController@updateStatus');
+	Route::get('jonathan2LabelPrint/{id}','jonathan2ReturnsController@labelPrint');
+	Route::get('jonathan2LabelDelete/{id}','jonathan2ReturnsController@labelDelete');
+	Route::any('jonathan2ReturnFilter','jonathan2ReturnsController@returnFilter')->middleware('admin');
+	Route::any('jonathan2RefundFilter','jonathan2ReturnsController@refundFilter')->middleware('admin');
+	Route::any('jonathan2CompletedFilter','jonathan2ReturnsController@completedFilter')->middleware('admin');
+	Route::get('jonathan2LabelDelete/{route}/{id}','jonathan2ReturnsController@labelDeleteRoute');
+	Route::delete('/jonathan2DeleteReturn/{route}/{id}','jonathan2ReturnsController@deleteReturnRoute')->middleware('admin');
 
 	//order flags
 	Route::get('/flags', 'flagsController@flags')->name('flags')->middleware('admin');

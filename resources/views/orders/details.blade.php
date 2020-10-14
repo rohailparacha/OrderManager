@@ -735,6 +735,12 @@ td {
 </style>
 
 <div class="container-fluid mt--7">
+        @if(Session::has('error_msg'))
+            <div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>{{Session::get('error_msg')}}</div>
+        @endif
+        @if(Session::has('success_msg'))
+            <div class="alert alert-success"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>{{Session::get('success_msg')}}</div>
+        @endif
         <div class="row">
             <div class="col">
                 <div class="card shadow">
@@ -949,9 +955,20 @@ td {
                     </div>
                     
                     
-                    <div class="row">
+                    <div class="row mt-3">
+                    <div class="col-md-4 mt-2" style="padding-left:4%;">                    
                     
-                    <div class="col-md-4 offset-md-8"  style="float:right;">
+                    @if(!empty($flag->name))
+                    @if(strtolower(trim($flag->color))=='yellow')
+                    <H3 style="padding: 8px 4px 8px 4px;background-color:{{$flag->color}};color:black;width:100px;text-align: center;font-weight: bold;font-size: 14px;">
+                    @else                    
+                    <H3 style="padding: 8px 4px 8px 4px;background-color:{{$flag->color}};color:white;width:100px;text-align: center;font-weight: bold;font-size: 14px;">
+                    @endif
+                    {{$flag->name}}
+                    @endif
+                    </H3>
+                    </div>
+                    <div class="col-md-4 offset-md-4"  style="float:right;">
                     
 
                         @if(($order->status=='unshipped' || $order->status=='pending' || auth()->user()->role==1) && $order->status!='cancelled')            
@@ -975,7 +992,7 @@ td {
                         </div>
                     </div>
 
-                    <div class="container table-responsive">
+                    <div class="container table-responsive" style="min-height:200px!important;">
                         <table class="table align-items-center table-flush">
                             <thead class="thead-light">
                                 <tr>
@@ -1024,11 +1041,38 @@ td {
                             </tbody>
                         </table>
                     </div>
-                    <div class="card-footer py-4">
-                        <nav class="d-flex justify-content-end" aria-label="...">
-                            {{$details->links()}}
-                        </nav>
-                    </div>
+        <div class="card-footer py-4">
+            <nav class="d-flex justify-content-end" aria-label="...">
+                {{$details->links()}}
+            </nav>
+        </div>
+    
+    <div class="container row mt-5" >
+    
+    <form action="../updateNotes" class="form-horizontal" method="post" >
+    <input type="hidden" class="form-control" name="idnotes" value="{{$order->id}}">
+    {{csrf_field()}}
+    <div class="row clearfix">
+       <div class="col-sm-2 form-control-label">
+           <h3 for="email_address_2">@lang('Notes:')</h3>
+       </div>
+       <div class="col-sm-8">
+           <div class="form-group">
+               <div class="form-line">
+                   <div class="form-line">
+                    <textarea id="w3review" name="notestbx" rows="2" cols="50">{{$order->notes}}</textarea>                    
+                   </div>
+                    <div class="errorMsg">{!!$errors->survey_question->first('Notes');!!}</div>
+               </div>
+           </div>
+       </div>
+       <div class="col-sm-2">
+       <input type="submit" class="btn btn-primary btn-md" value="Update Notes" style="margin-left:10px;"/>
+       </div>
+       
+    </div>
+   </form>
+      </div>
                 </div>
             </div>
         </div>
@@ -1224,7 +1268,8 @@ td {
                         <option value="Bonanza">Bonanza</option>
                         <option value="Target">Target</option>
                         <option value="Cindy">Cindy</option>                        
-                        <option value="Jonathan">Jonathan</option>                        
+                        <option value="Jonathan">Jonathan</option>
+                        <option value="Jonathan2">Jonathan2</option>                        
                         <option value="Vaughn">Vaughn</option>                        
                         <option value="Other">Other</option>                        
                     </select>

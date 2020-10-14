@@ -79,7 +79,20 @@
             </div>
         </form>
 
+        @elseif(request()->route()->getName() =='jonathan2processed'||request()->route()->getName()=='jonathan2new'||request()->route()->getName()=='jonathan2bce'||request()->route()->getName()=='jonathan2return'||request()->route()->getName()=='jonathan2cancel'||request()->route()->getName()=='jonathan2refund'||request()->route()->getName()=='jonathan2completed')
+        <form method="post" action="jonathan2search" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
 
+        @csrf
+            <div class="form-group mb-0">
+                <div class="input-group input-group-alternative">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    </div>
+                    <input class="form-control" placeholder="Search" name="searchQuery" id="searchQuery" type="text">
+                    <input class="form-control" name="route" type="hidden" value={{ request()->route()->getName()}}>
+                </div>
+            </div>
+        </form>
 
         @elseif(request()->route()->getName()=='ebayProducts' || request()->route()->getName()=='walmartProducts')
         <form method="post" action="../search" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">

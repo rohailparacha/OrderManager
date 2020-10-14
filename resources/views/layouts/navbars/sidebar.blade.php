@@ -332,6 +332,57 @@
                 </li>
 
                 <li class="nav-item">
+                    <a class="nav-link active" href="#jonathan2" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                        <i class="fa fa-sort text-primary" ></i>
+                        <span class="nav-link-text text-primary" >{{ __('Jonathan - No Discount') }}</span>
+                    </a>
+
+                    <div class="collapse show" id="jonathan2">
+                        <ul class="nav nav-sm flex-column">                            
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('jonathan2new') }}">
+                                    {{ __('New Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathan2processed') }}">
+                                    {{ __('Processed Orders') }}
+                                </a>
+                            </li>
+                        
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathan2cancel') }}">
+                                    {{ __('Cancel Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathan2return') }}">
+                                    {{ __('Return Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathan2refund') }}">
+                                    {{ __('Refund Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('jonathan2completed') }}">
+                                    {{ __('Completed Returns') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('jonathan2Setting') }}">
+                                    {{ __('Jonathan2 - Order Fulfillment Setting') }}
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
                     <a class="nav-link active" href="#users" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
                         <i class="fa fa-users text-primary" ></i>
                         <span class="nav-link-text text-primary" >{{ __('Users') }}</span>
@@ -405,6 +456,12 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('logs') }}">
                                     {{ __('Logs') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('logsSecondary') }}">
+                                    {{ __('Logs New') }}
                                 </a>
                             </li>
                             @endif

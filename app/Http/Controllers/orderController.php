@@ -183,7 +183,7 @@ class orderController extends Controller
                             $order_details = order_details::where('order_id',$order->id)->get();
                             
                           
-                            if($order->account_id=="Cindy"|| $order->account_id=='Jonathan' || $order->account_id=='Vaughn')
+                            if($order->account_id=="Cindy"|| $order->account_id=='Jonathan' || $order->account_id=='Jonathan2' || $order->account_id=='Vaughn')
                             {
                                 
                                 
@@ -232,7 +232,7 @@ class orderController extends Controller
                             try{
                                 $elem = $doc->getElementById('primaryStatus');
                                 $stat =  $elem->nodeValue;                             
-                                if(trim($stat)=='Delayed, not yet shipped' && ($order->account_id=='Cindy'|| $order->account_id=='Jonathan' || $order->account_id=='Vaughn'))
+                                if(trim($stat)=='Delayed, not yet shipped' && ($order->account_id=='Cindy'|| $order->account_id=='Jonathan' || $order->account_id=='Jonathan2'|| $order->account_id=='Vaughn'))
                                 {
                                     $insert = cancelled_orders::updateOrCreate(
                                         ['order_id'=>$order->id,],    
@@ -241,7 +241,7 @@ class orderController extends Controller
                                     
                                 }
                                                                     
-                                if(trim($stat)=='Order cancelled' && ($order->account_id=='Cindy'|| $order->account_id=='Jonathan' || $order->account_id=='Vaughn'))
+                                if(trim($stat)=='Order cancelled' && ($order->account_id=='Cindy'|| $order->account_id=='Jonathan'|| $order->account_id=='Jonathan2' || $order->account_id=='Vaughn'))
                                 {
                                     $insert = cancelled_orders::updateOrCreate(
                                         ['order_id'=>$order->id,],    
@@ -314,7 +314,7 @@ class orderController extends Controller
                             {       
                                
                                $resp='';
-                               if($order->account_id=="Cindy" || $order->account_id=='Jonathan' ||  $order->account_id=='Vaughn')
+                               if($order->account_id=="Cindy" || $order->account_id=='Jonathan'|| $order->account_id=='Jonathan2' ||  $order->account_id=='Vaughn')
                                {    
                                     if(empty($order->of_bce_created_at))
                                         orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at' =>Carbon::now(),'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);
@@ -668,7 +668,7 @@ class orderController extends Controller
         }
                 
         if(auth()->user()->role==1)
-            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag','0')
+            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')->where('flag','0')
             ->groupBy('orders.id')            
             ->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
         elseif(auth()->user()->role==2)
@@ -681,14 +681,14 @@ class orderController extends Controller
                     $strArray[]= $str->store;
                 }
                 
-                $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag','0')
+                $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')->where('flag','0')
                 ->groupBy('orders.id')                
                 
                 ->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
         }
             
         else
-            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag','0')
+            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')->where('flag','0')
             
             ->groupBy('orders.id')
             
@@ -702,7 +702,7 @@ class orderController extends Controller
 
      
         
-        $maxPrice = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag','!=','0')->max('totalAmount'));
+        $maxPrice = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')->where('flag','!=','0')->max('totalAmount'));
         foreach($orders as $order)
         {
             
@@ -896,7 +896,7 @@ class orderController extends Controller
         }
                 
         if(auth()->user()->role==1)
-            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag','!=','0')
+            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')->where('flag','!=','0')
             ->groupBy('orders.id')            
             ->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
         elseif(auth()->user()->role==2)
@@ -909,14 +909,14 @@ class orderController extends Controller
                     $strArray[]= $str->store;
                 }
                 
-                $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag','!=','0')
+                $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')->where('flag','!=','0')
                 ->groupBy('orders.id')                
                 
                 ->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
         }
             
         else
-            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag','!=','0')
+            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')->where('flag','!=','0')
             
             ->groupBy('orders.id')            
             ->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
@@ -929,7 +929,7 @@ class orderController extends Controller
 
      
         
-        $maxPrice = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag','!=','0')->max('totalAmount'));
+        $maxPrice = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')->where('flag','!=','0')->max('totalAmount'));
         foreach($orders as $order)
         {
             
@@ -1030,7 +1030,7 @@ class orderController extends Controller
         }
                 
         if(auth()->user()->role==1)
-            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')
+            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')
             ->groupBy('orders.id')
             ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',floatval($val->color))
             ->where('flag','0')
@@ -1045,7 +1045,7 @@ class orderController extends Controller
                     $strArray[]= $str->store;
                 }
                 
-                $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')
+                $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')
                 ->groupBy('orders.id')
                 ->where('flag','0')
                 ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',floatval($val->color))
@@ -1054,7 +1054,7 @@ class orderController extends Controller
         }
             
         else
-            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')
+            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')
             
             ->groupBy('orders.id')
             ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',floatval($val->color))
@@ -1069,7 +1069,7 @@ class orderController extends Controller
 
      
         
-        $maxPrice = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag','!=','0')->max('totalAmount'));
+        $maxPrice = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')->where('flag','!=','0')->max('totalAmount'));
         foreach($orders as $order)
         {
             
@@ -1308,7 +1308,7 @@ class orderController extends Controller
             $val = flags::where('name','Expensive')->get()->first(); 
             $ord = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
             ->leftJoin('products','order_details.SKU','=','products.asin')
-            ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')            
+            ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')            
             ->groupBy('orders.id');
 
             if(auth()->user()->role==1)
@@ -2446,6 +2446,7 @@ class orderController extends Controller
         $oldCount = orders::select()->where('status','unshipped')->count();
         $oldCindy = orders::select()->where('flag','8')->count();
         $oldJonathan = orders::select()->where('flag','9')->count();
+        $oldJonathan2 = orders::select()->where('flag','16')->count();
         $oldVaughn = orders::select()->where('flag','10')->count();
 
 
@@ -2458,16 +2459,18 @@ class orderController extends Controller
         $newCount = orders::select()->where('status','unshipped')->count(); 
         $newCindy = orders::select()->where('flag','8')->count();
         $newJonathan = orders::select()->where('flag','9')->count();
+        $newJonathan2 = orders::select()->where('flag','16')->count();
         $newVaughn = orders::select()->where('flag','10')->count();
         
         $orderCounter = $newCount - $oldCount;
         $cindyCnt = $newCindy - $oldCindy;
         $vaughnCnt = $newVaughn - $oldVaughn;
         $jonathanCnt = $newJonathan - $oldJonathan;
+        $jonathan2Cnt = $newJonathan2 - $oldJonathan2;
 
         Session::flash('success_msg', __('Orders Sync Completed'));
         Session::flash('count_msg', $orderCounter." New Orders are Imported Successfully");
-        Session::flash('inner_msg',"Cindy: " . $cindyCnt ." , Vaughn: " . $vaughnCnt ." , Jonathan: ". $jonathanCnt);
+        Session::flash('inner_msg',"Cindy: " . $cindyCnt ." , Vaughn: " . $vaughnCnt ." , Jonathan: ". $jonathanCnt." , Jonathan2: ". $jonathan2Cnt);
 
         return redirect()->route('newOrders');
     }
@@ -2635,6 +2638,7 @@ class orderController extends Controller
            
         $fulfillmentOrders = array(); 
         $jonathanOrders = array();
+        $jonathan2Orders = array();
         $vaughnOrders = array();
         $endDate = orders::where('status','unshipped')->max('date');
         
@@ -2645,6 +2649,7 @@ class orderController extends Controller
         $setting = settings::where('name','cindy')->get()->first(); 
         $vaughnSetting = settings::where('name','vaughn')->get()->first(); 
         $jonathanSetting = settings::where('name','jonathan')->get()->first(); 
+        $jonathan2Setting = settings::where('name','jonathan2')->get()->first(); 
         
 
         $time = date_format(date_create($endDate), 'H:i:s');
@@ -2804,6 +2809,7 @@ class orderController extends Controller
                     $tempOrder = array();
                     $vaughnOrder = array();
                     $jonathanOrder = array();
+                    $jonathan2Order = array();
         
                     $tempOrder["itemLink"] = "https://www.amazon.com/gp/offer-listing/".$temp2['SKU'];
                     
@@ -2888,6 +2894,21 @@ class orderController extends Controller
                         $jonathanOrders[]=$jonathanOrder; 
                     }
 
+                    if(!empty($jonathan2Setting))
+                    {
+                        $jonathan2Order = $tempOrder;
+                        
+                        $jonathan2Order["maxPrice"] =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$jonathan2Setting->maxPrice/100) * $temp['quantity']; 
+                        
+                        $jonathan2Order["discountPayment"] = empty($product->lowestPrice)?0:$product->lowestPrice * $temp['quantity'] * (1- $jonathan2Setting->discount/100);
+                        
+                        $jonathan2Order["discountFactor"] = $jonathan2Setting->discount;
+                        
+                        $jonathan2Order["maxFactor"] = $jonathan2Setting->maxPrice;
+
+                        $jonathan2Orders[]=$jonathan2Order; 
+                    }
+
                     $fulfillmentOrders[]=$tempOrder;
                     
                     
@@ -2917,20 +2938,25 @@ class orderController extends Controller
         $sendCindyOrders  = array();
         $sendVaughnOrders  = array();
         $sendJonathanOrders  = array();
+        $sendJonathan2Orders  = array();
 
         foreach($priorities as $priority)
         {            
             if($priority->name=='cindy')
             {
-                $sendCindyOrders['data'] = $this->parseFulfillment($fulfillmentOrders,'cindy',$sendVaughnOrders,$sendJonathanOrders);
+                $sendCindyOrders['data'] = $this->parseFulfillment($fulfillmentOrders,'cindy',$sendVaughnOrders,$sendJonathanOrders, $sendJonathan2Orders);
             }
             elseif($priority->name=='vaughn')
             {
-                $sendVaughnOrders['data'] = $this->parseFulfillment($vaughnOrders,'vaughn',$sendCindyOrders,$sendJonathanOrders);
+                $sendVaughnOrders['data'] = $this->parseFulfillment($vaughnOrders,'vaughn',$sendCindyOrders,$sendJonathanOrders, $sendJonathan2Orders);
             }
             elseif($priority->name=='jonathan')
             {
-                $sendJonathanOrders['data'] = $this->parseFulfillment($jonathanOrders,'jonathan',$sendVaughnOrders,$sendCindyOrders);
+                $sendJonathanOrders['data'] = $this->parseFulfillment($jonathanOrders,'jonathan',$sendVaughnOrders,$sendCindyOrders, $sendJonathan2Orders);
+            }
+            elseif($priority->name=='jonathan2')
+            {
+                $sendJonathan2Orders['data'] = $this->parseFulfillment($jonathan2Orders,'jonathan2',$sendVaughnOrders,$sendCindyOrders, $sendJonathanOrders);
             }
         }       
         $endPoint = env('CINDY_TOKEN', '');
@@ -2945,7 +2971,10 @@ class orderController extends Controller
         if(!empty($endPoint))
             $this->sendToGoogle($endPoint, $sendJonathanOrders);
         
-        
+        $endPoint = env('JONATHAN2_TOKEN', '');
+        if(!empty($endPoint))
+            $this->sendToGoogle($endPoint, $sendJonathan2Orders);
+            
         
     }
 
@@ -3050,7 +3079,7 @@ class orderController extends Controller
         }
     }
 
-    public function parseFulfillment($fulfillmentOrders, $flag, $orders2, $orders3)
+    public function parseFulfillment($fulfillmentOrders, $flag, $orders2, $orders3, $orders4)
     {
         
         $freshOrders = array();
@@ -3066,10 +3095,10 @@ class orderController extends Controller
                 $freshOrders[$order['referenceNumber']] = $order; 
         }
 
-        return $this->removeDuplicates($freshOrders, $flag, $orders2, $orders3);
+        return $this->removeDuplicates($freshOrders, $flag, $orders2, $orders3, $orders4);
     }
 
-    public function removeDuplicates($freshOrders, $flag, $orders2, $orders3)
+    public function removeDuplicates($freshOrders, $flag, $orders2, $orders3, $orders4)
     {        
         $finalOrders = array();
         foreach($freshOrders as $order)
@@ -3086,7 +3115,7 @@ class orderController extends Controller
                 
         }
 
-        return $this->checkCriteria($finalOrders, $flag, $orders2, $orders3);
+        return $this->checkCriteria($finalOrders, $flag, $orders2, $orders3, $orders4);
     }
 
    public function checkCriteria($orders, $acc, $orders2, $orders3)
@@ -3101,7 +3130,8 @@ class orderController extends Controller
 
         elseif($acc=='vaughn')
             $flagnum = 10;
-        
+        elseif($acc=='jonathan2')
+            $flagnum = 16; 
         
         $googleOrders = array();
 
@@ -3209,6 +3239,12 @@ class orderController extends Controller
            
 
             if($this->checkExisting($orders3, $order['referenceNumber']))
+            {
+                $flag=false;
+                continue;
+            }
+
+            if($this->checkExisting($orders4, $order['referenceNumber']))
             {
                 $flag=false;
                 continue;
@@ -3503,6 +3539,36 @@ class orderController extends Controller
         return $datetime->format('m/d/Y H:i:s');
         
     }
+
+    public function updateNotes(Request $request)
+    {
+        $notes = $request->notestbx;
+        $id = $request->idnotes;
+
+        $input = [
+            'notes' => $notes     
+        ];
+
+        $rules = [
+            'notes'    => 'max:50'
+        ];
+
+        $validator = Validator::make($input,$rules);
+
+        if($validator->fails())
+        {
+           Session::flash('error_msg', __('Notes cannot be greater than 50 characters'));     
+           return redirect()->back();   
+        }
+
+        orders::where('id',$id)->update(['notes'=>$notes]);        
+        
+        Session::flash('success_msg', __('Notes Updates Successfully'));
+
+        return redirect()->back();
+
+    }
+
     public function newOrders()
     {  
           if(auth()->user()->role==1)
@@ -3510,7 +3576,7 @@ class orderController extends Controller
 
                 $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
                 ->leftJoin('products','order_details.SKU','=','products.asin')
-                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')
                 ->where('flag','0')
                 ->groupBy('orders.id')            
                 ->orderBy('date', 'ASC')->paginate(100);
@@ -3529,7 +3595,7 @@ class orderController extends Controller
                 
                 $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
                 ->leftJoin('products','order_details.SKU','=','products.asin')
-                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')
                 ->where('flag','0')
                 ->groupBy('orders.id')                  
                 ->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
@@ -3542,7 +3608,7 @@ class orderController extends Controller
                 ->leftJoin('products','order_details.SKU','=','products.asin')
                 ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])
                 ->where('status','unshipped')
-                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')
+                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')
                 ->where('flag','0')            
                 ->groupBy('orders.id')            
                 ->where('uid',auth()->user()->id)
@@ -3553,7 +3619,7 @@ class orderController extends Controller
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
         
-        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
+        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
         $minAmount = 0; 
         $maxPrice = $maxAmount;
 
@@ -3662,7 +3728,7 @@ class orderController extends Controller
             {
                 $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
                 ->leftJoin('products','order_details.SKU','=','products.asin')
-                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')
                 ->where('flag','!=','0')                
                 ->groupBy('orders.id')                
                 ->orderBy('date', 'ASC')->paginate(100);
@@ -3681,7 +3747,7 @@ class orderController extends Controller
                 
                 $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
                 ->leftJoin('products','order_details.SKU','=','products.asin')
-                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')
                 ->where('flag','!=' ,'0')
                 ->groupBy('orders.id')                
                 ->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
@@ -3694,7 +3760,7 @@ class orderController extends Controller
                 ->leftJoin('products','order_details.SKU','=','products.asin')
                 ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])
                 ->where('status','unshipped')
-                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')
+                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')
                 ->where('flag','!=' ,'0')
                 ->where('uid',auth()->user()->id)
                 ->groupBy('orders.id')                
@@ -3705,7 +3771,7 @@ class orderController extends Controller
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
         
-        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag','!=','0')->max('totalAmount'));
+        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')->where('flag','!=','0')->max('totalAmount'));
         $minAmount = 0; 
         $maxPrice = $maxAmount;
 
@@ -3757,7 +3823,7 @@ class orderController extends Controller
                                 
                 $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
                 ->leftJoin('products','order_details.SKU','=','products.asin')
-                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')                
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')                
                 ->groupBy('orders.id')
                 ->where('flag','0')
                 ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',floatval($val->color))
@@ -3777,7 +3843,7 @@ class orderController extends Controller
                 
                 $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
                 ->leftJoin('products','order_details.SKU','=','products.asin')
-                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')                
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')                
                 ->groupBy('orders.id')
                 ->where('flag','0')
                 ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',floatval($val->color))
@@ -3789,7 +3855,7 @@ class orderController extends Controller
             {
                 $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
                 ->leftJoin('products','order_details.SKU','=','products.asin')
-                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')                
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')                
                 ->groupBy('orders.id')
                 ->where('flag','0')
                 ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',floatval($val->color))
@@ -3801,7 +3867,7 @@ class orderController extends Controller
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
         
-        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag','!=','0')->max('totalAmount'));
+        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '10')->where('flag','!=','0')->max('totalAmount'));
         $minAmount = 0; 
         $maxPrice = $maxAmount;
 
@@ -5059,7 +5125,8 @@ class orderController extends Controller
 
         $carriers = carriers::all();
         $accounts = gmail_accounts::all(); 
-        return view('orders.details',compact('details','order','carriers','accounts'));
+        $flag = flags::where('id',$order->flag)->get()->first();
+        return view('orders.details',compact('details','order','carriers','accounts','flag'));
     }
 
     

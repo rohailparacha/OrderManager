@@ -19,7 +19,7 @@ class orders extends Model
      * @var array
      */
 
-    protected $fillable = ['id','account_id','orderId','date','marketplace','storeName','sellOrderId','buyerName','quantity','totalAmount','address1','address2','address3','city', 'state', 'country', 'postalCode','phone','status','poTotalAmount','poNumber','assigned','uid','carrierName','trackingNumber','newTrackingNumber','converted','dueDelivery','dueShip','of_bce_created_at','isBCE','trackingLink'];
+    protected $fillable = ['id','account_id','orderId','date','marketplace','storeName','sellOrderId','buyerName','quantity','totalAmount','address1','address2','address3','city', 'state', 'country', 'postalCode','phone','status','poTotalAmount','poNumber','assigned','uid','carrierName','trackingNumber','newTrackingNumber','converted','dueDelivery','dueShip','of_bce_created_at','isBCE','trackingLink','notes'];
 
 
     protected $casts = [

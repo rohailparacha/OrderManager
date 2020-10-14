@@ -10,9 +10,12 @@ use App\amazon_settings;
 use Carbon\Carbon;
 use App\products;
 use App\order_details;
+use URL;
+use App\new_logs;
 use DB;
 use App\accounts;
 use App\Jobs\Repricing;
+use App\Jobs\NewRepricing;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\File; 
 use Validator; 
@@ -20,9 +23,11 @@ use Session;
 use Redirect;
 use Excel; 
 use Response;
+
 use Config;
 use Image;
 use App\Imports\ProductsImport;
+use App\Imports\NewProductsImport;
 use App\Exports\ProductsExport;
 use App\Imports\PricesImport;
 use App\Imports\WMProductsImport;
@@ -69,6 +74,27 @@ class productsController extends Controller
         return view('logs',compact('logs'));
     }
 
+    public function getLogsSecondary()
+    {
+        $logs = new_logs::select()->orderBy('date_started', 'desc')->paginate(100);
+        
+         foreach($logs as $log)
+        {
+            if(!empty($log->date_started))
+            {
+                $log->date_started = Carbon::createFromFormat('Y-m-d H:i:s', $log->date_started, 'UTC')
+            ->setTimezone('America/Los_Angeles');     
+            }
+            
+            if(!empty($log->date_completed))
+            {
+                $log->date_completed = Carbon::createFromFormat('Y-m-d H:i:s', $log->date_completed, 'UTC')
+            ->setTimezone('America/Los_Angeles');       
+            }
+            
+        }
+        return view('logsSecondary',compact('logs'));
+    }
     
     public function getLogBatches(Request $request)
         {
@@ -431,12 +457,13 @@ class productsController extends Controller
             
         }
         $import = new ProductsImport;
+        
         Excel::import($import, $filename);
         $collection = $import->data;
                 
         $status = 'new';
         Repricing::dispatch($collection, $status,3);
-        
+                
         Session::flash('success_msg', 'Import in progress. Check logs for details');
         return redirect()->route('products');
 
@@ -550,7 +577,7 @@ class productsController extends Controller
             
             if($check)
             {                
-                $filename = $request->file->store('imports');   
+                $filename = $request->file->storeAs('.', \Str::random(40) . '.' . $file->getClientOriginalExtension(),['disk' => 'imports']);   
                            
                 Session::flash('success_msg', __('File Uploaded Successfully'));
             }
@@ -567,13 +594,20 @@ class productsController extends Controller
         {
             
         }
-        $import = new PricesImport;
-        Excel::import($import, $filename);
+        //$import = new PricesImport;
+        $import = new NewProductsImport;
+        Excel::import($import, $filename,'imports');
         $collection = $import->data;
+        $url = URL::to('/repricing/imports/').$filename;
+         
+        $id = new_logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress','action'=>'Repricing','upload_link'=> $url]);
 
-       $cnt = $this->updateManualPricing($collection);
+        //now send to Informed 
+        NewRepricing::dispatch($collection, $id);       
+        
+        //$cnt = $this->updateManualPricing($collection);
 
-        Session::flash('success_msg', 'Manual Repricing Completed Successfully. Total '.$cnt.' products updated');
+        Session::flash('success_msg', "Repricing is in progress. Check new logs page.");
         return redirect()->route('products');
 
     }
