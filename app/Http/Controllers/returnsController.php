@@ -27,9 +27,6 @@ class returnsController extends Controller
             {
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')  
                 ->orderBy('created_at','desc')
                 ->whereNull('returns.status')                
                 ->paginate(100);
@@ -48,9 +45,7 @@ class returnsController extends Controller
                                 
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*']) 
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')                 
+                               
                 ->whereIn('orders.storeName',$strArray)      
                 ->whereNull('returns.status')     
                 ->orderBy('created_at','desc')
@@ -62,9 +57,7 @@ class returnsController extends Controller
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])
                 ->where('orders.uid',auth()->user()->id)  
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')                
+                             
                 ->whereNull('returns.status')
                 ->orderBy('created_at','desc')
                 ->paginate(100);
@@ -121,9 +114,7 @@ class returnsController extends Controller
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])
                 ->where('returns.status','returned')    
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')       
+                      
                 ->orderBy('returnDate','desc')
                 ->paginate(100);
             }
@@ -143,9 +134,7 @@ class returnsController extends Controller
                 ->select(['orders.*','returns.*'])                
                 ->whereIn('orders.storeName',$strArray)    
                 ->where('returns.status','returned')  
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')  
+               
                 ->orderBy('returnDate','desc')       
                 ->paginate(100);
             }
@@ -156,9 +145,7 @@ class returnsController extends Controller
                 ->select(['orders.*','returns.*'])
                 ->where('orders.uid',auth()->user()->id)  
                 ->where('returns.status','returned')  
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')  
+                
                 ->orderBy('returnDate','desc')                    
                 ->paginate(100);
             }
@@ -216,9 +203,7 @@ class returnsController extends Controller
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])
                 ->where('returns.status','refunded')  
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')         
+                      
                 ->orderBy('refundDate','desc')
                 ->paginate(100);
             }
@@ -237,9 +222,7 @@ class returnsController extends Controller
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])         
                 ->where('returns.status','refunded')    
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')              
+                           
                 ->whereIn('orders.storeName',$strArray)  
                 ->orderBy('refundDate','desc')           
                 ->paginate(100);
@@ -250,9 +233,7 @@ class returnsController extends Controller
                 $returns = returns::leftJoin('orders','orders.id','=','returns.order_id')
                 ->select(['orders.*','returns.*'])
                 ->where('returns.status','refunded')      
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')     
+                   
                 ->where('orders.uid',auth()->user()->id)  
                 ->orderBy('refundDate','desc')              
                 ->paginate(100);
@@ -413,9 +394,7 @@ class returnsController extends Controller
                 
                 $returns = $returns->orderBy('created_at','desc')
                 ->whereNull('returns.status')
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')  
+                
                 ->paginate(100);
             }
     
@@ -433,9 +412,7 @@ class returnsController extends Controller
                 $returns = $returns
                 ->whereIn('orders.storeName',$strArray)    
                 ->whereNull('returns.status')
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')  
+                
                 ->orderBy('created_at','desc')
                 ->paginate(100);
             }
@@ -446,9 +423,7 @@ class returnsController extends Controller
                 $returns = $returns
                 ->where('orders.uid',auth()->user()->id)                
                 ->whereNull('returns.status')
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')  
+          
                 ->orderBy('created_at','desc')
                 ->paginate(100);
             }
@@ -527,9 +502,7 @@ class returnsController extends Controller
                 
                 $returns = $returns->orderBy('returnDate','desc')
                 ->where('returns.status','returned')
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')  
+                
                 ->paginate(100);
             }
     
@@ -547,9 +520,7 @@ class returnsController extends Controller
                 $returns = $returns
                 ->whereIn('orders.storeName',$strArray)    
                 ->where('returns.status','returned')
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')  
+ 
                 ->orderBy('returnDate','desc')
                 ->paginate(100);
             }
@@ -560,9 +531,7 @@ class returnsController extends Controller
                 $returns = $returns
                 ->where('orders.uid',auth()->user()->id)  
                 ->where('returns.status','returned')   
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')             
+                           
                 ->orderBy('returnDate','desc')
                 ->paginate(100);
             }
@@ -642,9 +611,7 @@ class returnsController extends Controller
                 
                 $returns = $returns->orderBy('refundDate','desc')
                 ->where('returns.status','refunded')
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')  
+                 
                 ->paginate(100);
             }
     
@@ -662,9 +629,7 @@ class returnsController extends Controller
                 $returns = $returns
                 ->whereIn('orders.storeName',$strArray) 
                 ->where('returns.status','refunded')   
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')  
+                 
                 ->orderBy('refundDate','desc')
                 ->paginate(100);
             }
@@ -675,9 +640,7 @@ class returnsController extends Controller
                 $returns = $returns
                 ->where('orders.uid',auth()->user()->id)    
                 ->where('returns.status','refunded')    
-                ->where('orders.flag','!=','8')
-                ->where('orders.flag','!=','9')
-                ->where('orders.flag','!=','10')          
+                       
                 ->orderBy('refundDate','desc')
                 ->paginate(100);
             }

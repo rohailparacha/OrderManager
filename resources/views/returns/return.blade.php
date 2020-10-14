@@ -356,9 +356,9 @@ $(document).ready(function(){
                                     
                                     @if(!empty($search) && $search==1)
                                     <th scope="col" class="prodth">{{ __('Status') }}</th>                                                                         
-                                    @else
-                                    <th scope="col" class="prodth">{{ __('Return') }}</th>                                                                         
                                     @endif
+                                    <th scope="col" class="prodth">{{ __('Action') }}</th>                                                                         
+                                    
                                                                                                     
                                     <th scope="col" class="prodth"></th>
                                 </tr>
@@ -431,12 +431,15 @@ $(document).ready(function(){
                                         <th scope="col" class="prodth">Refunded</th>  
                                         @endif
                                         @else
+                                        @endif
                                         @if($return->status!='refunded' && $return->status!='returned')
                                         <td class="prodtd"><a  href="./updateStatus?status=1&id={{$return->id}}"  class="btn btn-primary btn-sm">Return</a></td>
+                                        @elseif($return->status=='returned' && $return->status!='refunded')
+                                        <td class="prodtd"><a  href="./updateStatus?status=2&id={{$return->id}}"  class="btn btn-primary btn-sm">Refund</a></td>
                                         @else                                    
-                                            <td class="prodtd">Returned</td>    
+                                            <td class="prodtd">Refunded</td>    
                                         @endif                                                                     
-                                        @endif
+                                        
 
                                   
                                         <td class="text-right prodtd">

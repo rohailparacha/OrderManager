@@ -2901,7 +2901,7 @@ class orderController extends Controller
 
                 try{
                    order_details::insert($details);   
-                    $this->autoFlag($orderId);            
+                    //$this->autoFlag($orderId);            
                 }
                 catch(\Exception $ex)
                 {
