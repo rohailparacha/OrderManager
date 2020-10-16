@@ -71,7 +71,11 @@ class NewRepricing implements ShouldQueue
 
         foreach($collection as $col)
         {
-            $this->tmpArray[]= $col['asin'];
+            if(is_numeric($col['lowestPrice']))             
+            {
+                $update = products::where('asin',$col['asin'])->update(['lowestPrice'=>$col['lowestPrice']]);
+                $this->tmpArray[]= $col['asin'];
+            }
         }
 
         $client = new client();
@@ -146,7 +150,7 @@ class NewRepricing implements ShouldQueue
            
            if($status=='Completed' || $status== 'CompletedWithErrors')
            {
-                sleep(3600);
+                //sleep(3600);
                 $this->exportRequest();
            }
            else
@@ -352,7 +356,7 @@ class NewRepricing implements ShouldQueue
         foreach($data as $product)
         {
             if(in_array($product['SKU'],$arr))
-            {
+            {                                  
                 try{            
                     $update = products::where('asin',$product['SKU'])->where('lowestPrice','!=',0)->update(['price'=>$product['CURRENT_PRICE']]);
                     }
@@ -373,8 +377,9 @@ class NewRepricing implements ShouldQueue
         $filename = date("d-m-Y")."-".time()."-selleractive-export.csv";
         
         Excel::store(new NewSellerActiveExport($this->collection), $filename,'exports');   
-        
-        $url = URL::to('/repricing/exports/').$filename;
+
+        $url = URL::to('/repricing/exports/')."/".$filename;
+
 
         $id = new_logs::where('id',$this->id)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Completed','export_link'=> $url]);
     }

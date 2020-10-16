@@ -36,7 +36,10 @@ class NewSellerActiveExport implements FromCollection,WithHeadings,ShouldAutoSiz
 
         foreach($collection as $col)
         {
-            $product = products::where('asin',$col['asin'])->get()->first();
+            $product = products::where('asin',$col['asin'])
+            ->leftJoin('accounts','products.account','accounts.store')
+            ->leftJoin('blacklist','products.asin','blacklist.sku')
+            ->select(['products.*','accounts.lagTime','accounts.quantity','accounts.maxListingBuffer','blacklist.allowance'])->get()->first();
 
             if(empty($product))
                 continue;
@@ -44,7 +47,7 @@ class NewSellerActiveExport implements FromCollection,WithHeadings,ShouldAutoSiz
                 continue; 
                 
             $qty='0';
-            if($product->lowestPrice==0)
+            if($product->lowestPrice==0 || !is_numeric($col['lowestPrice']))
                 $qty='0';
             else
                 $qty=empty($product->quantity)?'100':$product->quantity;

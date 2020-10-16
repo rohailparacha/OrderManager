@@ -47,8 +47,8 @@ class NewProductsImport implements ToCollection
                 }       
 
                 $price = $row[$priceIndex];   
-                if(is_numeric($price))   
-                    $dataArray[]= ['asin'=>$asin, 'lowestPrice'=>$price];
+                
+                $dataArray[]= ['asin'=>$asin, 'lowestPrice'=>$price];
             } 
         }
         

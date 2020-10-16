@@ -598,8 +598,7 @@ class productsController extends Controller
         $import = new NewProductsImport;
         Excel::import($import, $filename,'imports');
         $collection = $import->data;
-        $url = URL::to('/repricing/imports/').$filename;
-         
+        $url = URL::to('/repricing/imports/').trim($filename, '.');
         $id = new_logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress','action'=>'Repricing','upload_link'=> $url]);
 
         //now send to Informed 

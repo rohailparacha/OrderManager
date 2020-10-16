@@ -3118,7 +3118,7 @@ class orderController extends Controller
         return $this->checkCriteria($finalOrders, $flag, $orders2, $orders3, $orders4);
     }
 
-   public function checkCriteria($orders, $acc, $orders2, $orders3)
+   public function checkCriteria($orders, $acc, $orders2, $orders3, $orders4)
     {
         $flagnum =8; 
             

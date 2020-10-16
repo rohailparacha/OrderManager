@@ -44,7 +44,8 @@ class NewInformedExport implements FromCollection,WithHeadings,ShouldAutoSize
         
         foreach($collection as $col)
         {
-       
+            if(!is_numeric($col['lowestPrice']))   
+                continue;
 
             $product = products::where('asin',$col['asin'])->get()->first();
 
