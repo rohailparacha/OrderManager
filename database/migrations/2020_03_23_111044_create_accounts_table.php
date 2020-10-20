@@ -17,11 +17,13 @@ class CreateAccountsTable extends Migration
             $table->id();
             $table->string('store');
             $table->unsignedBigInteger('scaccount_id');
+            $table->unsignedBigInteger('infaccount_id');
             $table->string('username');
             $table->text('password');
             $table->string('manager_id');
             $table->integer('lagTime')->default(0);            
             $table->foreign('scaccount_id')->references('id')->on('sc_accounts');
+            $table->foreign('infaccount_id')->references('id')->on('informed_accounts');
             $table->integer('informed_id');
             $table->integer('maxListingBuffer')->default(2);
             $table->integer('quantity')->default(100);

@@ -527,6 +527,12 @@
                             </li>
 
                             <li class="nav-item">
+                                <a class="nav-link" href="{{ route('informedaccounts') }}">
+                                    {{ __('Informed Accounts') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
                                 <a class="nav-link" href="{{ route('amazonsettings') }}">
                                     {{ __('Amazon Product Settings') }}
                                 </a>

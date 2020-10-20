@@ -68,6 +68,7 @@ table {
                                     <th scope="col" width="8%">{{ __('Max Listing Buffer') }}</th>
                                     <th scope="col" width="5%">{{ __('Lag Time') }}</th>
                                     <th scope="col" width="8%">{{ __('SC Account') }}</th>
+                                    <th scope="col" width="8%">{{ __('Informed Account') }}</th>
                                     <th scope="col" width="7%">{{ __('Informed Id') }}</th>
                                     <th scope="col" width="8%">{{ __('Manager') }}</th>
                                     <th scope="col" width="5%"></th>
@@ -83,6 +84,7 @@ table {
                                         <td style="text-align:center;">{{ $account->maxListingBuffer }}</td>
                                         <td style="text-align:center;">{{ $account->lagTime }}</td>
                                         <td>{{ $account->name }}</td>
+                                        <td>{{ $account->informed_name }}</td>
                                         <td>{{ $account->informed_id }}</td>                                    
                                         <td>{{ $account->manager }}</td>                                        
                                         <td class="text-right">

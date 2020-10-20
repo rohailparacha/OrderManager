@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\informed_settings;
+use App\informed_accounts;
 use Illuminate\Http\Request;
 use Validator;
 use Response; 
@@ -19,8 +20,12 @@ class informedSettingsController extends Controller
 
     public function settings()
     {
-        $settings = informed_settings::select()->paginate(100);
-        return view('informed', compact('settings'));
+        $settings = informed_settings::select(['informed_settings.*','informed_accounts.name'])
+        ->leftJoin('informed_accounts','informed_settings.account_id','informed_accounts.id')   
+        ->paginate(100);
+
+        $accounts = informed_accounts::all();
+        return view('informed', compact('settings','accounts'));
     }
 
     public function addSetting(Request $request)
@@ -28,12 +33,14 @@ class informedSettingsController extends Controller
         $input = [
             'strategy' => $request->get('strategy'),            
             'min' => $request->get('min'),            
-            'max' => $request->get('max'),            
+            'max' => $request->get('max'), 
+            'acc' =>$request->get('acc')           
         ];  			
         $rules = [
                 'strategy'    => 'required',                
-                'min'    => ['required','numeric',new PriceRange($request->get('id'))],
-                'max'    => ['required','numeric','min:'.(int)$request->get('min'),new PriceRange($request->get('id'))],                        
+                'min'    => ['required','numeric',new PriceRange($request->get('id'),$request->get('acc'))],
+                'max'    => ['required','numeric','min:'.(int)$request->get('min'),new PriceRange($request->get('id'),$request->get('acc'))],                        
+                'acc' =>'required'
         ];
         
 
@@ -46,7 +53,7 @@ class informedSettingsController extends Controller
             return response()->json(['error'=>$validator->errors()->all()]);
         }     
         	
-		$data = ['minAmount' =>  $formData['min'], 'maxAmount' =>  $formData['max'], 'strategy_id' =>  $formData['strategy']];
+		$data = ['account_id' =>  $formData['acc'],'minAmount' =>  $formData['min'], 'maxAmount' =>  $formData['max'], 'strategy_id' =>  $formData['strategy']];
 		$created = informed_settings::insert($data);		 
         
         if($created)
@@ -73,14 +80,16 @@ class informedSettingsController extends Controller
             'id' => $request->get('id'),
             'strategy' => $request->get('strategy'),            
             'min' => $request->get('min'),
-            'max' => $request->get('max')
+            'max' => $request->get('max'),
+            'acc' =>$request->get('acc') 
         ];  			
         $rules = [
                 'id'    => 'required',
                 'strategy' => 'required',
                 
-                'min'    => ['required','numeric',new PriceRange($request->get('id'))],
-                'max'    => ['required','numeric','min:'.(int)$request->get('min'),new PriceRange($request->get('id'))],                      
+                'min'    => ['required','numeric',new PriceRange($request->get('id'),$request->get('acc'))],
+                'max'    => ['required','numeric','min:'.(int)$request->get('min'),new PriceRange($request->get('id'),$request->get('acc'))],   
+                'acc' =>'required'                   
         ];
         
 
@@ -95,6 +104,7 @@ class informedSettingsController extends Controller
         $strategy = $formData['strategy'];
         $min =  $formData['min'];
         $max =  $formData['max'];
+        $account_id =  $formData['acc'];
         
         try{
         $obj = informed_settings::find($id);
@@ -102,6 +112,7 @@ class informedSettingsController extends Controller
         $obj->strategy_id = $strategy;
         $obj->minAmount = $min;
         $obj->maxAmount = $max;
+        $obj->account_id = $account_id;
 
         $obj->save();
             return "success";

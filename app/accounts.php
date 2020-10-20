@@ -16,5 +16,5 @@ class accounts extends Model
      *
      * @var array
      */
-    protected $fillable = ['store','username','password','lagTime','manager_id','scaccount_id','informed_id','maxListingBuffer','quantity'];
+    protected $fillable = ['store','username','password','lagTime','manager_id','scaccount_id','informed_id','infaccount_id','maxListingBuffer','quantity'];
 }

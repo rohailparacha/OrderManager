@@ -16,10 +16,12 @@ class PriceRange implements Rule
      * @return void
      */
     protected $id; 
-    public function __construct($id)
+    protected $acc; 
+    public function __construct($id, $acc)
     {
         //
         $this->id = $id; 
+        $this->acc = $acc; 
     }
 
     /**
@@ -33,10 +35,11 @@ class PriceRange implements Rule
     {
         //
         $id = $this->id;
+        $acc = $this->acc; 
         if(empty($id))
-            $ord = DB::select( DB::raw("SELECT * FROM `informed_settings` WHERE ".$value." between minAmount and maxAmount") );
+            $ord = DB::select( DB::raw("SELECT * FROM `informed_settings` WHERE ".$value." between minAmount and maxAmount and account_id =".$acc) );
         else
-            $ord = DB::select( DB::raw("SELECT * FROM `informed_settings` WHERE ".$value." between minAmount and maxAmount and id != ".$id) );
+            $ord = DB::select( DB::raw("SELECT * FROM `informed_settings` WHERE ".$value." between minAmount and maxAmount and account_id =".$acc." and id != ".$id) );
         if(count($ord)>0)
             return false;
         else

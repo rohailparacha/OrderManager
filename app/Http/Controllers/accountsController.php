@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\User;
 use App\orders;
+use App\informed_accounts;
 use App\order_details;
 use App\accounts;
 use App\sc_accounts;
@@ -22,7 +23,8 @@ class accountsController extends Controller
         $accounts = accounts::
         leftJoin('sc_accounts','accounts.scaccount_id','=','sc_accounts.id')
         ->leftJoin('users','accounts.manager_id','=','users.id')
-        ->select(['accounts.*','sc_accounts.name','users.name As manager'])->paginate(50);   
+        ->leftJoin('informed_accounts','accounts.infaccount_id','=','informed_accounts.id')
+        ->select(['accounts.*','sc_accounts.name','users.name As manager','informed_accounts.name as informed_name'])->paginate(50);   
 
         $managers = User::where('role',2)->get();    
         return view('accounts.index',compact('accounts','managers'));
@@ -32,7 +34,8 @@ class accountsController extends Controller
     {
         $managers = User::where('role',2)->get(); 
         $scaccounts = sc_accounts::all();
-        return view ('accounts.create',compact('managers','scaccounts'));
+        $accounts = informed_accounts::all();
+        return view ('accounts.create',compact('managers','scaccounts','accounts'));
     }
 
     public function edit($id)
@@ -41,7 +44,8 @@ class accountsController extends Controller
         $account = accounts::select()->where('id',$id)->get()->first();
         $managers = User::where('role',2)->get(); 
         $scaccounts = sc_accounts::all();
-        return view ('accounts.edit',compact('account','managers','scaccounts'));
+        $accounts = informed_accounts::all();
+        return view ('accounts.edit',compact('account','managers','scaccounts','accounts'));
     }
 
     public function update(Request $request)
@@ -51,6 +55,7 @@ class accountsController extends Controller
             'username' => $request->username,
             'password'    => $request->password,
             'scaccount'    => $request->scaccount,
+            'infaccount'=>$request->infaccount,
             'informed' => $request->informed
         ];
 
@@ -59,6 +64,7 @@ class accountsController extends Controller
             'username' => 'required',
             'password' => 'required',
             'scaccount' => 'required',
+            'infaccount'=> 'required|not_in:0',
             'informed' => 'required'        
         ];
 
@@ -79,8 +85,9 @@ class accountsController extends Controller
         $maxListing = $request->maxListing;
         $informed = $request->informed;
         $scaccount = $request->scaccount;
+        $infaccount  = $request->infaccount;
       
-        $account = accounts::where('id', $id)->update(['store'=>$store, 'username'=>$username, 'password'=>$password, 'manager_id'=>$manager, 'lagTime'=>$lag ,'scaccount_id'=>$scaccount, 'informed_id'=>$informed,'quantity'=>$qty, 'maxListingBuffer' => $maxListing]);
+        $account = accounts::where('id', $id)->update(['store'=>$store, 'username'=>$username, 'password'=>$password, 'manager_id'=>$manager, 'lagTime'=>$lag ,'scaccount_id'=>$scaccount, 'informed_id'=>$informed,'quantity'=>$qty, 'maxListingBuffer' => $maxListing, 'infaccount_id'=>$infaccount]);
 
         if($account)
         {
@@ -114,6 +121,7 @@ class accountsController extends Controller
             'username' => $request->username,
             'password'    => $request->password,
             'scaccount'    => $request->scaccount,
+            'infaccount'=>$request->infaccount,
             'informed' => $request->informed
         ];
 
@@ -122,7 +130,9 @@ class accountsController extends Controller
             'username' => 'required|unique:accounts',
             'password' => 'required',
             'scaccount' => 'required',
-            'informed' => 'required'       
+            'infaccount'=> 'required|not_in:0',
+            'informed' => 'required'     
+              
     ];
 
         $validator = Validator::make($input,$rules);
@@ -141,8 +151,9 @@ class accountsController extends Controller
         $scaccount = $request->scaccount;
         $qty = $request->quantity; 
         $maxListing = $request->maxListing;
+        $infaccount = $request->infaccount;
         
-        $account = accounts::insert(['store'=>$store, 'username'=>$username, 'password'=>$password, 'manager_id'=>$manager, 'lagTime'=>$lag,'scaccount_id'=>$scaccount, 'informed_id'=>$informed, 'quantity'=>$qty, 'maxListingBuffer' => $maxListing]);
+        $account = accounts::insert(['store'=>$store, 'username'=>$username, 'password'=>$password, 'manager_id'=>$manager, 'lagTime'=>$lag,'scaccount_id'=>$scaccount, 'informed_id'=>$informed, 'quantity'=>$qty, 'maxListingBuffer' => $maxListing, 'infaccount_id'=>$infaccount]);
 
         if($account)
         {

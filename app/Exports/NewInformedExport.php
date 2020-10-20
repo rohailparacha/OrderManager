@@ -52,7 +52,7 @@ class NewInformedExport implements FromCollection,WithHeadings,ShouldAutoSize
             if(empty($product))
                 continue;
 
-            $strategy = $this->getStrategy($product->lowestPrice);
+            $strategy = $this->getStrategy($product->lowestPrice, $product->account);
             if($strategy == 0 )
                 continue; 
 
@@ -89,9 +89,10 @@ class NewInformedExport implements FromCollection,WithHeadings,ShouldAutoSize
     }
 
 
-    public function getStrategy($price)
+    public function getStrategy($price, $account)
     {
-        $ord = DB::select( DB::raw("SELECT * FROM `informed_settings` WHERE ".$price." between minAmount and maxAmount limit 1") );
+        $accId = accounts::where('store',$account)->get()->first();
+        $ord = DB::select( DB::raw("SELECT * FROM `informed_settings` WHERE account_id = ".$accId->infaccount_id." and ".$price." between minAmount and maxAmount limit 1") );
 
         if(!empty($ord) && count($ord)>0)            
             return $ord[0]->strategy_id; 

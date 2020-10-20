@@ -11,5 +11,5 @@ class informed_settings extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['minAmount','maxAmount','strategy_id'];
+    protected $fillable = ['account_id','minAmount','maxAmount','strategy_id'];
 }

@@ -24,16 +24,12 @@ $(document).ready(function(){
         
         var link     = $(e.relatedTarget),
         id = link.data("id"),
-        strategy = link.data("strategy"),
-        min = link.data('min'),   
-        max = link.data('max');
-        acc = link.data('acc');
+        name = link.data("name"),
+        token = link.data('token');
         $(".print-error-msg").hide();
         $('#catId').val(id);
-        $('#strategyTbx').val(strategy);
-        $('#minAmountTbx').val(min);
-        $('#maxAmountTbx').val(max);
-        $('#accountTbx').val(acc);
+        $('#nameTbx').val(name);
+        $('#tokenTbx').val(token);      
         $('#addTitle').hide();
         $('#modal-que-save').hide();  
         $('#editTitle').show();
@@ -45,19 +41,16 @@ $(document).ready(function(){
 
         $('#modal-que-save').on('click',function(event){ 
            
-            var strategy = $('#strategyTbx').val();
-            var min = $('#minAmountTbx').val();
-            var max = $('#maxAmountTbx').val();
-            var acc = $('#accountTbx').val();
+            var name = $('#nameTbx').val();
+            var token = $('#tokenTbx').val();
+            
             $.ajax({
                 
             type: 'post',
-            url: '/addInfCode',
+            url: '/addInfAccount',
             data: {
-            'strategy': strategy,
-            'min' : min,
-            'max':max,
-            'acc':acc
+            'name': name,
+            'token' : token
             },
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -88,20 +81,17 @@ $(document).ready(function(){
         $('#modal-que-edit').on('click',function(event){ 
            
            var id = $('#catId').val();
-           var strategy = $('#strategyTbx').val();
-            var min = $('#minAmountTbx').val();
-            var max = $('#maxAmountTbx').val();
-            var acc = $('#accountTbx').val();
+           var name = $('#nameTbx').val();
+            var token = $('#tokenTbx').val();
+
            $.ajax({
                
            type: 'post',
-           url: '/editInfCode',
+           url: '/editInfAcount',
            data: {
-           'strategy': strategy,
+           'name': name,
            'id': id,
-           'min' : min,
-           'max':max,
-           'acc' :acc
+           'token' : token
            },
            headers: {
                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -134,10 +124,10 @@ $(document).ready(function(){
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-8">
-                                <h3 class="mb-0">{{ __('Informed Settings') }}</h3>
+                                <h3 class="mb-0">{{ __('Informed Accounts') }}</h3>
                             </div>
                             <div class="col-4 text-right">
-                                <input type="button" id="btnAddCat" class="btn btn-sm btn-primary" value="Add Setting"/>                                    
+                                <input type="button" id="btnAddCat" class="btn btn-sm btn-primary" value="Add Account"/>                                    
                             </div>    
                         </div>
                     </div>
@@ -158,31 +148,29 @@ $(document).ready(function(){
                             <thead class="thead-light">
                                 <tr>
                                     <th scope="col">{{ __('Serial') }}</th>
-                                    <th scope="col">{{ __('Name') }}</th>
-                                    <th scope="col">{{ __('ID') }}</th>    
-                                    <th scope="col">{{ __('Price Range') }}</th>                                                                        
+                                    <th scope="col">{{ __('Name') }}</th>    
+                                    <th scope="col">{{ __('Token') }}</th>                                                                        
                                     <th scope="col"></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($settings as $setting)
+                                @foreach ($accounts as $account)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $setting->name }}</td>
-                                        <td>{{ $setting->strategy_id }}</td>
-                                        <td>${{ $setting->minAmount }} - ${{ $setting->maxAmount }}</td>                                        
+                                        <td>{{ $account->name }}</td>
+                                        <td>{{ $account->token }}</td>                                        
                                         <td class="text-right">
                                             <div class="dropdown">
                                                 <a class="btn btn-sm btn-icon-only text-light" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">                                    
-                                                        <form action="{{ route('infCodeDelete', $setting->id) }}" method="post">
+                                                        <form action="{{ route('infAccCodeDelete', $account->id) }}" method="post">
                                                             @csrf
                                                             @method('delete')                                                                                                                                                         
-                                                            <a class="dropdown-item"  data-toggle="modal" data-target="#addCat" data-acc ="{{$setting->account_id}}" data-min= "{{$setting->minAmount}}" data-max="{{$setting->maxAmount}}" data-strategy="{{$setting->strategy_id}}" data-id="{{$setting->id}}" id="btnEditCat" href="#">{{ __('Edit') }}</a>
+                                                            <a class="dropdown-item"  data-toggle="modal" data-target="#addCat" data-name= "{{$account->name}}" data-token="{{$account->token}}" data-id="{{$account->id}}" id="btnEditCat" href="#">{{ __('Edit') }}</a>
                                                             @if(auth()->user()->role==1|| auth()->user()->role==2)
-                                                            <button type="button" class="dropdown-item" onclick="confirm('{{ __("Are you sure you want to delete this setting?") }}') ? this.parentElement.submit() : ''">
+                                                            <button type="button" class="dropdown-item" onclick="confirm('{{ __("Are you sure you want to delete this account?") }}') ? this.parentElement.submit() : ''">
                                                                 {{ __('Delete') }}
                                                             </button>
                                                             @endif
@@ -198,7 +186,7 @@ $(document).ready(function(){
                     </div>
                     <div class="card-footer py-4">
                         <nav class="d-flex justify-content-end" aria-label="...">
-                            {{ $settings->links() }}
+                            {{ $accounts->links() }}
                         </nav>
                     </div>
                 </div>
@@ -213,15 +201,15 @@ $(document).ready(function(){
       @lang('Some fields are incorrect or missing below:')
        </div>
        <div class="alert alert-success" id="addSuccess" style="display:none">
-               @lang('Setting Added Successfully')
+               @lang('Account Added Successfully')
        </div>   
        <div class="alert alert-success" id="editSuccess" style="display:none">
-               @lang('Setting Updated Successfully')
+               @lang('Account Updated Successfully')
        </div>   
         <div class="modal-content">
             <div class="modal-header">
-            <h4 class="modal-title" id="addTitle">@lang('Add Setting')</h4>
-            <h4 class="modal-title" id="editTitle">@lang('Update Setting')</h4>
+            <h4 class="modal-title" id="addTitle">@lang('Add Account')</h4>
+            <h4 class="modal-title" id="editTitle">@lang('Update Account')</h4>
              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
               
          <br/>
@@ -236,13 +224,13 @@ $(document).ready(function(){
 
 <div class="row clearfix">
        <div class="col-sm-3 form-control-label">
-           <label for="email_address_2">@lang('Strategy ID:')</label>
+           <label for="email_address_2">@lang('Name:')</label>
        </div>
        <div class="col-sm-9">
            <div class="form-group">
                <div class="form-line">
                    <div class="form-line">
-                       <input type="text" class="form-control" id="strategyTbx" name="category" >                                        
+                       <input type="text" class="form-control" id="nameTbx" name="category" >                                        
                    </div>
                     <div class="errorMsg">{!!$errors->survey_question->first('category');!!}</div>
                </div>
@@ -254,13 +242,13 @@ $(document).ready(function(){
 
 <div class="row clearfix">
        <div class="col-sm-3 form-control-label">
-           <label for="email_address_2">@lang('Min Amount:')</label>
+           <label for="email_address_2">@lang('Token:')</label>
        </div>
        <div class="col-sm-9">
            <div class="form-group">
                <div class="form-line">
                    <div class="form-line">
-                       <input type="text" class="form-control" id="minAmountTbx" name="category" >                                        
+                       <input type="text" class="form-control" id="tokenTbx" name="category" >                                        
                    </div>
                     <div class="errorMsg">{!!$errors->survey_question->first('category');!!}</div>
                </div>
@@ -269,49 +257,12 @@ $(document).ready(function(){
 </div>
 
 <br/><br/>
-<div class="row clearfix">
-       <div class="col-sm-3 form-control-label">
-           <label for="email_address_2">@lang('Max Amount:')</label>
-       </div>
-       <div class="col-sm-9">
-           <div class="form-group">
-               <div class="form-line">
-                   <div class="form-line">
-                       <input type="text" class="form-control" id="maxAmountTbx" name="category" >                                        
-                   </div>
-                    <div class="errorMsg">{!!$errors->survey_question->first('category');!!}</div>
-               </div>
-           </div>
-       </div>
-</div>
-<br/><br/>
-<div class="row clearfix">
-       <div class="col-sm-3 form-control-label">
-           <label for="email_address_2">@lang('Select Informed Account:')</label>
-       </div>
-       <div class="col-sm-9">
-           <div class="form-group">
-               <div class="form-line">
-                   <div class="form-line">
-                    <select class="form-control" id="accountTbx" style="">                                
-                        <option value=0>Select Type</option>
-                        @foreach($accounts as $account)
-                        <option value={{$account->id}}>{{$account->name}}</option>
-                        @endforeach
-                    </select>  
-                   </div>
-                    <div class="errorMsg">{!!$errors->survey_question->first('category');!!}</div>
-               </div>
-           </div>
-       </div>
-</div>
-
        
    </form>
       </div>
        <div class="modal-footer">
-        <button type="button" class="btn btn-primary" id="modal-que-save">@lang('Add Setting')</button>
-        <button type="button" class="btn btn-primary" id="modal-que-edit">@lang('Edit Setting')</button>
+        <button type="button" class="btn btn-primary" id="modal-que-save">@lang('Add Account')</button>
+        <button type="button" class="btn btn-primary" id="modal-que-edit">@lang('Edit Account')</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">@lang('Close')</button>                            
            </div>
         </div><!-- /.modal-content -->

@@ -459,12 +459,20 @@ class productsController extends Controller
         $import = new ProductsImport;
         
         Excel::import($import, $filename);
-        $collection = $import->data;
+        $collection = $import->data;                
+        
+        //replaced by new method 
+
+        $url = URL::to('/repricing/imports/').trim($filename, '.');
+        
+        $id = new_logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress','action'=>'Adding Products','upload_link'=> $url]);
+
+        //now send to Informed 
+        NewRepricing::dispatch($collection, $id, 'new');               
+        
+       //Repricing::dispatch($collection, $status,3);
                 
-        $status = 'new';
-        Repricing::dispatch($collection, $status,3);
-                
-        Session::flash('success_msg', 'Import in progress. Check logs for details');
+        Session::flash('success_msg', 'Products Import in progress. Check logs for details');
         return redirect()->route('products');
 
     }
@@ -599,10 +607,11 @@ class productsController extends Controller
         Excel::import($import, $filename,'imports');
         $collection = $import->data;
         $url = URL::to('/repricing/imports/').trim($filename, '.');
+       
         $id = new_logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress','action'=>'Repricing','upload_link'=> $url]);
 
         //now send to Informed 
-        NewRepricing::dispatch($collection, $id);       
+        NewRepricing::dispatch($collection, $id,'old');       
         
         //$cnt = $this->updateManualPricing($collection);
 

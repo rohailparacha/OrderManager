@@ -44,12 +44,18 @@ class NewRepricing implements ShouldQueue
      */
     public $collection;
     public $tmpArray;
+    public $type; 
     public $id;
+    public $originalCollection;
+
+    public $infToken; 
     
-    public function __construct($collection, $id)
+    public function __construct($collection, $id, $type)
     {
         $this->collection = $collection; 
         $this->id = $id; 
+        $this->type= $type;
+        $this->originalCollection= $collection;
     }
 
     /**
@@ -58,23 +64,107 @@ class NewRepricing implements ShouldQueue
      * @return void
      */
     public function handle()
-    {                        
+    {                            
+        $accounts = accounts::leftJoin('informed_accounts','accounts.infaccount_id','informed_accounts.id')->get();
         
-        //send to informed
-        $this->submitFeed();
+        if(empty($this->originalCollection))
+        {
+            new_logs::where('id',$this->id)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Failed']);    
+            return;                   
+        }
 
+        foreach($accounts as $account)
+        {
+            $response = array();
+            $collection = $this->originalCollection;
+            $this->infToken = $account->token; 
+            foreach($collection as $key => $col)
+            {
+                if($this->type=='old')
+                {
+                    $prod = products::where('asin',$col['asin'])->get()->first();
+                    if(empty($prod))
+                        continue; 
+                    if($prod->account==$account->store)
+                        $response[]=$col;
+                }
+                else
+                {
+                    if($col['store']==$account->store)
+                        $response[]=$col;
+                }
+                
+            }   
+            $this->collection = $response;
+            
+            $this->submitFeed();
+        }
+        
+        sleep(3600);
+        foreach($accounts as $account)
+        {
+            $response = array();
+            $collection = $this->originalCollection;
+            $this->infToken = $account->token; 
+            foreach($collection as $key => $col)
+            {
+                if($this->type=='old')
+                {
+                    $prod = products::where('asin',$col['asin'])->get()->first();
+                    if(empty($prod))
+                        continue; 
+                    if($prod->account==$account->store)
+                        $response[]=$col;
+                }
+                else
+                {
+                    if($col['store']==$account->store)
+                        $response[]=$col;
+                }
+                
+            }   
+            $this->collection = $response;
+
+            $this->exportRequest();
+        }
+
+        $this->createFile();
+       
+    }
+
+    public function saveImage($sku, $url)
+    {
+        try
+        {
+            $filename = basename($url);
+            $extension =  File::extension($url);
+            Image::make($url)->save(public_path('images/amazon/' . $sku.'.jpg'));
+        }
+        catch(\Exception $ex)
+        {
+
+        }
     }
 
     public function submitFeed()
     {   
         $collection = $this->collection;
 
+        $type = $this->type;
+        
+        
         foreach($collection as $col)
         {
             if(is_numeric($col['lowestPrice']))             
             {
-                $update = products::where('asin',$col['asin'])->update(['lowestPrice'=>$col['lowestPrice']]);
-                $this->tmpArray[]= $col['asin'];
+                if($this->type=='old')
+                    $update = products::where('asin',$col['asin'])->update(['lowestPrice'=>$col['lowestPrice']]);
+                else 
+                {
+                    $insert = products::insert(['asin'=>$col['asin'],'lowestPrice'=>$col['lowestPrice'], 'upc'=>$col['id'], 'title'=>$col['title'], 'image'=>$col['image1'], 'account'=>$col['store'], 'image2'=>$col['image2'], 'brand'=>$col['brand'], 'description'=>$col['description'],'type'=>$col['type']]);
+                     $this->saveImage($col['asin'],$col['image1']);
+                }
+                                    
             }
         }
 
@@ -86,7 +176,7 @@ class NewRepricing implements ShouldQueue
         
         $endPoint ='https://api.informed.co/v1/feed';
 
-        $key= env('INFORMED_TOKEN', '');
+        $key= $this->infToken;
         try{
                         
             $promise = $client->requestAsync('POST', $endPoint,
@@ -125,7 +215,7 @@ class NewRepricing implements ShouldQueue
         $client = new client();
 
         $endPoint ='https://api.informed.co/v1/feed/submissions/'.$id;
-        $key= env('INFORMED_TOKEN', '');
+        $key= $this->infToken;
         try{
             $promise = $client->requestAsync('GET', $endPoint,
             [
@@ -150,8 +240,7 @@ class NewRepricing implements ShouldQueue
            
            if($status=='Completed' || $status== 'CompletedWithErrors')
            {
-                //sleep(3600);
-                $this->exportRequest();
+                
            }
            else
            { 
@@ -174,7 +263,7 @@ class NewRepricing implements ShouldQueue
         $client = new client();
 
         $endPoint ='https://api.informed.co/v1/export';
-        $key= env('INFORMED_TOKEN', '');
+        $key= $this->infToken;
         try{
             $promise = $client->requestAsync('POST', $endPoint,
             [
@@ -215,7 +304,7 @@ class NewRepricing implements ShouldQueue
         $client = new client();
 
         $endPoint ='https://api.informed.co/v1/export/requests/'.$id;
-        $key= env('INFORMED_TOKEN', '');
+        $key= $this->infToken;
         try{
             $promise = $client->requestAsync('GET', $endPoint,
             [
@@ -265,7 +354,7 @@ class NewRepricing implements ShouldQueue
         $client = new client();
 
         $endPoint ='https://api.informed.co/v1/export/downloadlink/'.$id;
-        $key= env('INFORMED_TOKEN', '');
+        $key= $this->infToken;
         try{
             $promise = $client->requestAsync('GET', $endPoint,
             [
@@ -351,7 +440,18 @@ class NewRepricing implements ShouldQueue
 
     public function updateDatabase($data)
     {
-        $arr = $this->tmpArray;
+
+        $arr = array(); 
+        $collection = $this->collection; 
+        
+        foreach($collection as $col)
+        {
+            if(is_numeric($col['lowestPrice']))             
+            {                 
+                $arr[]= $col['asin'];
+            }
+        }
+        
 
         foreach($data as $product)
         {
@@ -365,10 +465,13 @@ class NewRepricing implements ShouldQueue
         
                     }
             }                        
-        }
-
-        $this->createFile();
+        }        
        
+    }
+
+    public function failed()
+    {
+        new_logs::where('id',$this->id)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Failed']);  
     }
 
     public function createFile()
@@ -379,7 +482,6 @@ class NewRepricing implements ShouldQueue
         Excel::store(new NewSellerActiveExport($this->collection), $filename,'exports');   
 
         $url = URL::to('/repricing/exports/')."/".$filename;
-
 
         $id = new_logs::where('id',$this->id)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Completed','export_link'=> $url]);
     }

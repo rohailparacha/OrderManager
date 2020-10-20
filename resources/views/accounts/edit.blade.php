@@ -111,6 +111,20 @@
                                     @endif
                                 </div>          
 
+                                <div class="form-group{{ $errors->has('infaccount') ? ' has-danger' : '' }}">
+                                <label class="form-control-label" for="input-role">{{ __('Select Informed Account:') }}</label>
+                                        <select class="form-control" name="infaccount" style="">                                
+                                                    <option value=0>Select Account</option>
+                                                    @foreach($accounts as $acc)
+                                                    <option value={{$acc->id}} {{$acc->id==$account->infaccount_id?'selected':''}}>{{$acc->name}}</option>    
+                                                    @endforeach                                                                                                  
+                                        </select>                                    
+                                    
+                                        @error('infaccount')
+                                            <div class="error" style="color:red;">{{ $message }}</div>
+                                         @enderror
+                                </div>
+
                                 <div class="form-group{{ $errors->has('manager') ? ' has-danger' : '' }}">
                                 <label class="form-control-label" for="input-role">{{ __('Select Manager:') }}</label>
                                         <select class="form-control" name="manager" style="">                                

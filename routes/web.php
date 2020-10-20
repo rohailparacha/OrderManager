@@ -253,6 +253,12 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::post('/editInfCode', 'informedSettingsController@editSetting')->middleware('admin');
 	Route::delete('/infCodeDelete/{id}','informedSettingsController@delSetting')->name('infCodeDelete')->middleware('admin');
 
+	//Multiple Informed Accounts	
+	Route::get('/informedAccounts', 'informedAccountsController@accounts')->name('informedaccounts')->middleware('admin');
+	Route::post('/addInfAccount', 'informedAccountsController@addAccount')->middleware('admin');
+	Route::post('/editInfAcount', 'informedAccountsController@editAccount')->middleware('admin');
+	Route::delete('/infAccCodeDelete/{id}','informedAccountsController@delAccount')->name('infAccCodeDelete')->middleware('admin');
+
 	//Keepa Routes
 	Route::get('keepa','keepaController@index')->middleware('admin');
 	Route::post('getkeepa','keepaController@getResponse')->middleware('admin');
