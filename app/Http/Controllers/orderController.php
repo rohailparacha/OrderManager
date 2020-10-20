@@ -740,7 +740,8 @@ class orderController extends Controller
                 }
         }     
         $flags= flags::all();
-        return view('orders.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
+        $accounts = settings::where('listCheck',true)->get();
+        return view('orders.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','accounts'));
     }
 
     public function filterLookup(Request $request)
@@ -967,7 +968,8 @@ class orderController extends Controller
                 }
         }     
         $flags= flags::all();
-        return view('orders.flagged',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
+        $accounts = settings::where('listCheck',true)->get();
+        return view('orders.flagged',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','accounts'));
     }
 
     public function filterExpensive(Request $request)
@@ -1395,7 +1397,8 @@ class orderController extends Controller
                 }
                 $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
                 $flags= flags::all();
-                return view('orders.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','search','route'));
+                $accounts = settings::where('listCheck',true)->get();
+                return view('orders.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','search','route','accounts'));
             
         }
 
@@ -3531,6 +3534,187 @@ class orderController extends Controller
         return redirect()->route($route);        
     }
 
+    public function accTransfer($id, $account)
+    {
+        $setting = settings::where('id',$account)->get()->first();
+        $name = $setting->name; 
+        $endPoint = env(strtoupper($setting->name).'_TOKEN', '');
+        
+        $flag = flags::where('name',$name)->get()->first(); 
+
+        $flagId = $flag->id;                     
+
+        $order = orders::where('id',$id)->get()->first();
+        
+        $details = order_details::where('order_id',$order->id)->selectRaw("*, SUM(quantity) as total_quantity")->groupBy('SKU')->get();
+        
+        if(count($details)==1)
+        {
+            $orders= orders::where('id',$id)->update(['flag'=>$flagId]);
+
+            $tempOrder = array();
+
+            $tempOrder["itemLink"] = "https://www.amazon.com/gp/offer-listing/".$details[0]->SKU;
+            
+            $tempOrder["ASIN"] = $details[0]->SKU;        
+            
+            $tempOrder["qty"] =   $order->quantity;
+            $tempOrder["date"] =    $order->date;
+            $tempOrder["dueShip"] =    $order->dueShip;
+            $tempOrder["country"] =    $order->country;
+            $dt = Carbon::now();
+            $tempOrder['uploadDate'] = $dt->format('m/d/Y');                    
+            
+            
+            $product = products::where('asin',$details[0]->SKU)->get()->first();
+        
+           
+            $tempOrder["maxPrice"] =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$setting->maxPrice/100) *  $order->quantity;        
+            
+            $tempOrder["maxPrice"] = number_format((float) $tempOrder["maxPrice"], 2, '.', '');
+    
+            $tempOrder["itemPrice"] = empty($product->lowestPrice)?0:$product->lowestPrice;
+            
+            $tempOrder["itemPrice"] = number_format((float) $tempOrder["itemPrice"], 2, '.', '');
+    
+            $tempOrder["totalPrice"] =empty($product->lowestPrice)?0:$product->lowestPrice *  $order->quantity;    
+            
+            $tempOrder["totalPrice"] = number_format((float) $tempOrder["totalPrice"], 2, '.', '');
+    
+            $tempOrder["discountPayment"] = empty($product->lowestPrice)?0:$product->lowestPrice *  $order->quantity * (1- $setting->discount/100);
+            
+            $tempOrder["discountPayment"] = number_format((float) $tempOrder["discountPayment"], 2, '.', '');
+            
+            
+            $tempOrder["discountFactor"] = $setting->discount;
+            $tempOrder["maxFactor"] = $setting->maxPrice;
+    
+            $tempOrder["name"] =  $order->buyerName;
+            
+            $tempOrder["street1"] = $order->address1;
+            
+            $tempOrder["street2"] = $order->address2;
+            
+            $tempOrder["city"] =  $order->city;
+            
+            $tempOrder["state"] =  $order->state;
+            
+            $tempOrder["zipCode"] =$order->postalCode;
+            
+            $tempOrder["phone"] =  $order->phone;
+            
+            $tempOrder["storeName"] = $order->storeName;
+    
+            $tempOrder["referenceNumber"] =  $order->sellOrderId;
+                   
+            $fulfillmentOrders[]=$tempOrder;
+    
+            $sendOrders['data'] = $fulfillmentOrders;
+            
+            $endPoint = env(strtoupper($setting->name).'_TOKEN', '');
+
+            $this->sendToGoogle($endPoint, $sendOrders);
+
+            Session::flash('success_msg', __('Order '.$order->sellOrderId.' Moved To '. $setting->name.' Successfully'));
+        }    
+        
+        else
+            Session::flash('error_msg', __('Order cannot be moved since it has more than 1 type of sku in details'));
+
+        return redirect()->back();        
+    }
+
+    public function accTransferRoute($route, $id, $account)
+    {
+        $setting = settings::where('id',$account)->get()->first();
+        $name = $setting->name; 
+        $endPoint = env(strtoupper($setting->name).'_TOKEN', '');
+        
+        $flag = flags::where('name',$name)->get()->first(); 
+
+        $flagId = $flag->id;                     
+
+        $order = orders::where('id',$id)->get()->first();
+        
+        $details = order_details::where('order_id',$order->id)->selectRaw("*, SUM(quantity) as total_quantity")->groupBy('SKU')->get();
+        
+        if(count($details)==1)
+        {
+            $orders= orders::where('id',$id)->update(['flag'=>$flagId]);
+            
+            $tempOrder = array();
+
+            $tempOrder["itemLink"] = "https://www.amazon.com/gp/offer-listing/".$details[0]->SKU;
+            
+            $tempOrder["ASIN"] = $details[0]->SKU;        
+            
+            $tempOrder["qty"] =   $order->quantity;
+            $tempOrder["date"] =    $order->date;
+            $tempOrder["dueShip"] =    $order->dueShip;
+            $tempOrder["country"] =    $order->country;
+            $dt = Carbon::now();
+            $tempOrder['uploadDate'] = $dt->format('m/d/Y');                    
+            
+            
+            $product = products::where('asin',$details[0]->SKU)->get()->first();
+        
+           
+            $tempOrder["maxPrice"] =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$setting->maxPrice/100) *  $order->quantity;        
+            
+            $tempOrder["maxPrice"] = number_format((float) $tempOrder["maxPrice"], 2, '.', '');
+    
+            $tempOrder["itemPrice"] = empty($product->lowestPrice)?0:$product->lowestPrice;
+            
+            $tempOrder["itemPrice"] = number_format((float) $tempOrder["itemPrice"], 2, '.', '');
+    
+            $tempOrder["totalPrice"] =empty($product->lowestPrice)?0:$product->lowestPrice *  $order->quantity;    
+            
+            $tempOrder["totalPrice"] = number_format((float) $tempOrder["totalPrice"], 2, '.', '');
+    
+            $tempOrder["discountPayment"] = empty($product->lowestPrice)?0:$product->lowestPrice *  $order->quantity * (1- $setting->discount/100);
+            
+            $tempOrder["discountPayment"] = number_format((float) $tempOrder["discountPayment"], 2, '.', '');
+            
+            
+            $tempOrder["discountFactor"] = $setting->discount;
+            $tempOrder["maxFactor"] = $setting->maxPrice;
+    
+            $tempOrder["name"] =  $order->buyerName;
+            
+            $tempOrder["street1"] = $order->address1;
+            
+            $tempOrder["street2"] = $order->address2;
+            
+            $tempOrder["city"] =  $order->city;
+            
+            $tempOrder["state"] =  $order->state;
+            
+            $tempOrder["zipCode"] =$order->postalCode;
+            
+            $tempOrder["phone"] =  $order->phone;
+            
+            $tempOrder["storeName"] = $order->storeName;
+    
+            $tempOrder["referenceNumber"] =  $order->sellOrderId;
+                   
+            $fulfillmentOrders[]=$tempOrder;
+    
+            $sendOrders['data'] = $fulfillmentOrders;
+            
+            $endPoint = env(strtoupper($setting->name).'_TOKEN', '');
+
+            $this->sendToGoogle($endPoint, $sendOrders);
+
+            Session::flash('success_msg', __('Order '.$order->sellOrderId.' Moved To '. $setting->name.' Successfully'));
+        }    
+        
+        else
+            Session::flash('error_msg', __('Order cannot be moved since it has more than 1 type of sku in details'));
+
+        return redirect()->route($route);        
+    }
+    
+
   public static function getIranTime($date)
     {
         
@@ -3658,7 +3842,8 @@ class orderController extends Controller
         }
             
         $flags = flags::all(); 
-        return view('orders.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice'));
+        $accounts = settings::where('listCheck',true)->get();
+        return view('orders.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts'));
     }
 
     public function lookup()
@@ -3811,7 +3996,8 @@ class orderController extends Controller
         }
             
         $flags = flags::all(); 
-        return view('orders.flagged',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice'));
+        $accounts = settings::where('listCheck',true)->get();
+        return view('orders.flagged',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts'));
     }
 
     public function newOrdersExpensive()

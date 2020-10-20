@@ -663,6 +663,7 @@ class orderFulfillmentController extends Controller
         $qtyrangecheck = false;
         $dailyamtcheck = false;
         $dailyordercheck = false;
+        $showinlist = false;
         $priority = 0;
         $maxDailyOrder = 0; 
         $maxDailyAmount =0;
@@ -692,6 +693,9 @@ class orderFulfillmentController extends Controller
         
         if(!empty($request->pricecheck))
             $pricecheck = true;
+
+        if(!empty($request->showinlist))
+            $showinlist = true;  
         
         if(!empty($request->dailyamtcheck))
             $dailyamtcheck = true;
@@ -749,10 +753,10 @@ class orderFulfillmentController extends Controller
         if(empty($settings))
             settings::insert(['minAmount'=>$minAmount,'maxAmount'=>$maxAmount,
             'quantityRangeCheck'=>$qtyrangecheck,'minQty'=>$minQty,'maxQty'=>$maxQty,
-            'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice ,'maxDailyOrder'=>$maxDailyOrder, 'maxDailyAmount'=>$maxDailyAmount,'dailyAmountCheck'=>$dailyamtcheck, 'dailyOrderCheck'=>$dailyordercheck, 'name'=>'cindy','priority'=>$priority,'enabled'=>$enabled]);
+            'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice ,'maxDailyOrder'=>$maxDailyOrder, 'maxDailyAmount'=>$maxDailyAmount,'dailyAmountCheck'=>$dailyamtcheck, 'dailyOrderCheck'=>$dailyordercheck, 'name'=>'cindy','priority'=>$priority,'enabled'=>$enabled,'listCheck'=>$showinlist]);
         else
             settings::where('name','cindy')->where('id',$settings->id)->update(['minAmount'=>$minAmount,'maxAmount'=>$maxAmount,
-            'quantityRangeCheck'=>$qtyrangecheck,'minQty'=>$minQty,'maxQty'=>$maxQty,'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice,'maxDailyOrder'=>$maxDailyOrder, 'maxDailyAmount'=>$maxDailyAmount,'dailyAmountCheck'=>$dailyamtcheck, 'dailyOrderCheck'=>$dailyordercheck, 'name'=>'cindy','priority'=>$priority,'enabled'=>$enabled]);
+            'quantityRangeCheck'=>$qtyrangecheck,'minQty'=>$minQty,'maxQty'=>$maxQty,'amountCheck'=>$pricecheck,'stores'=>json_encode($stores),'storesCheck'=>$storecheck, 'discount'=>$discount, 'maxPrice'=>$maxPrice,'maxDailyOrder'=>$maxDailyOrder, 'maxDailyAmount'=>$maxDailyAmount,'dailyAmountCheck'=>$dailyamtcheck, 'dailyOrderCheck'=>$dailyordercheck, 'name'=>'cindy','priority'=>$priority,'enabled'=>$enabled,'listCheck'=>$showinlist]);
 
         Session::flash('success_msg', __('Settings successfully updated'));
         return redirect()->route('orderFulfillmentSetting');

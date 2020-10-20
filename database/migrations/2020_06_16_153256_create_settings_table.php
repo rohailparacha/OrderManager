@@ -19,7 +19,7 @@ class CreateSettingsTable extends Migration
             $table->integer('minAmount')->default(0);
             $table->integer('maxAmount')->default(1000);
             $table->boolean('amountCheck')->default(false);
-
+            $table->boolean('listCheck')->default(false);
             $table->integer('minQty')->default(0);
             $table->integer('maxQty')->default(1000);
             $table->boolean('quantityRangeCheck')->default(false);

@@ -85,6 +85,8 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('getAmzDetails','orderController@getAmazonDetails')->middleware('admin');
 	Route::get('orderFlag/{id}/{flag}','orderController@orderFlag')->middleware('admin');
 	Route::get('orderFlag/{route}/{id}/{flag}','orderController@orderFlagRoute')->middleware('admin');
+	Route::get('accTransfer/{id}/{account}','orderController@accTransfer')->middleware('admin');
+	Route::get('accTransfer/{route}/{id}/{account}','orderController@accTransferRoute')->middleware('admin');
 	Route::any('orderFilter','orderController@filter')->middleware('admin');
 	Route::any('orderFilterFlagged','orderController@filterFlagged')->middleware('admin');
 	Route::any('orderFilterExpensive','orderController@filterExpensive')->middleware('admin');

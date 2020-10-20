@@ -119,7 +119,10 @@ $( function() {
                                 <input type="text" readonly id="switch" name="switch" class="btn btn-success"  style="float:right;" value="Enable"/>
                                 </div>
                             </div>
-                        
+                            <div class="checkbox disabled">
+                               <label><input type="checkbox" value="show" name="showinlist"{{!empty($settings->listCheck) && $settings->listCheck==true?'checked':''}}>  Show in auto assign list</label>
+                            </div>
+                            <br/><br/>
                             
                                 <div style="padding-right:3%;">
                                 <p id="price">                                      

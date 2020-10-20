@@ -270,6 +270,22 @@ catch{
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
+                                                    @foreach($accounts as $account)
+                                                    @if(empty($route))
+                                                    <a class="dropdown-item" href="/accTransfer/{{$order->id}}/{{$account->id}}">{{$account->name}}</a>
+                                                    @else
+                                                    <a class="dropdown-item" href="/accTransfer/{{$route}}/{{$order->id}}/{{$account->id}}">{{$account->name}}</a>
+                                                    @endif
+                                                    @endforeach                                                   
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-right" width="3%" style="padding:0px!important">
+                                            <div class="dropdown">
+                                                <a class="btn btn-sm btn-icon-only text-light" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
                                                     @foreach($flags as $flag)
                                                          @if(empty($route))
                                                     <a class="dropdown-item" href="/orderFlag/{{$order->id}}/{{$flag->id}}">{{$flag->name}}</a>
