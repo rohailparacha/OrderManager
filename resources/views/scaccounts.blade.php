@@ -164,6 +164,12 @@ $(document).ready(function(){
     });
 </script>
     <div class="container-fluid mt--7">
+        @if(Session::has('error_msg'))
+        <div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>{{Session::get('error_msg')}}</div>
+        @endif
+        @if(Session::has('success_msg'))
+        <div class="alert alert-success"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>{{Session::get('success_msg')}}</div>
+        @endif
         <div class="row">
             <div class="col">
                 <div class="card shadow">

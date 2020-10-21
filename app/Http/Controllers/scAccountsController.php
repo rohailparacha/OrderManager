@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\sc_accounts;
+use App\accounts;
 use Illuminate\Http\Request;
 use Validator; 
 use Session;
@@ -63,8 +64,17 @@ class scAccountsController extends Controller
     }
     public function delAccount($acc_id)
     {
+        $accounts = accounts::where('scaccount_id',$acc_id)->get()->count(); 
+
+        if($accounts>0)
+        {
+            Session::flash('error_msg', __("Account cannot be deleted as it is assigned to any store. First detach it from store in marketplaces."));
+            return redirect()->route('scaccounts');
+        }
+        
         sc_accounts::where('id','=',$acc_id)->delete();        
-        return redirect()->route('scaccounts')->withStatus(__('Account successfully deleted.'));
+        Session::flash('success_msg', __("Account successfully deleted."));
+        return redirect()->route('scaccounts');
     }
 
    
