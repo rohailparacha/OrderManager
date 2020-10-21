@@ -151,6 +151,7 @@ class ReportExport implements FromCollection,WithHeadings,ShouldAutoSize
                 "Store Name"=>$order->storeName,
                 "Buyer Name"=>$order->buyerName,
                 "Sell Order ID"=>$order->sellOrderId,
+                "Quantity"=>$order->quantity,
                 "Sell Total"=> number_format((float)$order->totalAmount +(float)$order->shippingPrice , 2, '.', ''),
                 "Purchase Order ID"=>$order->poNumber,
                 "Purchase Total"=> number_format((float)$order->poTotalAmount, 2, '.', ''),
@@ -167,7 +168,7 @@ class ReportExport implements FromCollection,WithHeadings,ShouldAutoSize
     public function headings(): array
     {
         return [
-            'Date','Marketplace','Store Name','Buyer Name','Sell Order ID','Sell Total','Purchase Order ID','Purchase Total','Carrier Name','Tracking Number','Status'
+            'Date','Marketplace','Store Name','Buyer Name','Sell Order ID','Quantity','Sell Total','Purchase Order ID','Purchase Total','Carrier Name','Tracking Number','Status'
         ];
     }
 

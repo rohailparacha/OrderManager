@@ -51,6 +51,7 @@
                                 <tr>
                                     <th scope="col">{{ __('Date') }}</th>
                                     <th scope="col">{{ __('Marketplace') }}</th>
+                                    <th scope="col">{{ __('Account') }}</th>
                                     <th scope="col">{{ __('Store Name') }}</th>
                                     <th scope="col">{{ __('Buyer Name') }}</th>
                                     <th scope="col">{{ __('Sell Order Id') }}</th>
@@ -70,6 +71,7 @@
                                             <tr>
                                                 <td>{{ $provider::getIranTime(date_format(date_create($detail->order->date), 'm/d/Y H:i:s')) }}</td>
                                                 <td>{{ $detail->order->marketplace }}</td>
+                                                <td>{{ $detail->order->storeName }}</td>
                                                 <td>{{ $detail->asin->account }}</td>
                                                 <td>{{ $detail->order->buyerName }}</td>
                                                 <td>{{ $detail->order->sellOrderId }}</td>

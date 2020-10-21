@@ -219,11 +219,10 @@ catch{
                                     <th scope="col" width="8%">{{ __('Qty') }}</th>                                   
                                     <th scope="col" width="10%">{{ __('Total Purchase Amount') }}</th>
                                      <th scope="col" width="10%">{{ __('Total Amount') }}</th>
-                                    <th scope="col" width="11%">{{ __('Net') }}</th>
-                                    <th scope="col" width="11%">{{ __('Flag') }}</th>
+                                    <th scope="col" width="11%">{{ __('Net') }}</th>                                    
                                     <th scope="col" width="8%">{{ __('Action') }}</th>
-                                    <th scope="col" width="3%"></th>
-                                    <th scope="col" width="3%"></th>
+                                    <th scope="col" width="8%">Sheet</th>
+                                    <th scope="col" width="8%">Flag</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -249,21 +248,7 @@ catch{
                                         @endif
                                         {{ number_format((((float)$order->totalAmount +(float)$order->shippingPrice) *0.85) - (float)$order->lowestPrice , 2, '.', '') }}                                        
                                         </td>
-                                        <td width="11%">
-                                        @if($order->flag==0)
-                                        <span></span>
-                                        @else                                        
-                                        @foreach($flags as $flag)
-                                        @if($flag->id == $order->flag)
-                                            @if(strtolower(trim($flag->color))=='yellow')
-                                            <p style="padding: 8px 4px 8px 4px;background-color:{{$flag->color}};color:black;width:100px;text-align: center;font-weight: bold;font-size: 14px;">{{$flag->name}}</p>
-                                            @else
-                                            <p style="padding: 8px 4px 8px 4px;background-color:{{$flag->color}};color:white;width:100px;text-align: center;font-weight: bold;font-size: 14px;">{{$flag->name}}</p>
-                                            @endif
-                                        @endif
-                                        @endforeach             
-                                        @endif                           
-                                        </td>
+                                        
                                         
                                         <td width="8%"><a href="orderDetails/{{$order->id}}" class="btn btn-primary btn-sm">Details</a></td>
                                         <td class="text-right" width="3%" style="padding:0px!important">

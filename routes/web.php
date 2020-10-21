@@ -116,6 +116,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('/secondaryproducts', 'productsController@secondaryProducts')->name('secondaryproducts')->middleware('admin');
 
 	Route::post('/upload', 'productsController@uploadSubmit');
+	Route::post('/deleteProducts', 'productsController@deleteProducts');
 	Route::post('/uploadwm', 'productsController@uploadWmFile');
 	Route::post('/manualReprice', 'productsController@manualReprice');
 
@@ -128,6 +129,9 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('deleteProduct/{id}','productsController@deleteProduct')->middleware('admin');
 	Route::get('deleteSecondaryProduct/{id}','productsController@deleteSecondaryProduct')->middleware('admin');
 	Route::get('/template', 'productsController@getTemplate');
+	Route::get('/repTemplate', 'productsController@getRepTemplate');
+	Route::get('/addTemplate', 'productsController@getAddTemplate');
+	Route::get('/delTemplate', 'productsController@getDelTemplate');
 	Route::get('/wmtemplate', 'productsController@getWMTemplate');
 
 	Route::get('repricing','productsController@repricing');

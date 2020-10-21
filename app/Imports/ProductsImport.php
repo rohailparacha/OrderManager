@@ -67,18 +67,21 @@ class ProductsImport implements ToCollection
                 $store = $row[$storeIndex];       
                 $id = $row[$idIndex];     
                 $type = $row[$typeIndex];                       
-
+                
                 if(empty($asin) || empty($title)|| empty($brand)|| empty($description)|| empty($image1)|| empty($type)|| empty($lowestPrice)|| empty($store)|| empty($id))
+                {
                     continue;
+                }
+                    
                 
-                $count = products::where('asin',$asin)->get()->count();
+                $count1 = products::where('asin',$asin)->get()->count();
                 
-                if($count>0)
+                if($count1>0)
                     continue; 
 
-                $count = blacklist::where('sku',$asin)->get()->count();
+                $count2 = blacklist::where('sku',$asin)->get()->count();
                 
-                if($count>0)
+                if($count2>0)
                     continue; 
 
                 $dataArray[]= ['asin'=>$asin, 'title'=>$title, 'brand'=>$brand, 'description'=>$description, 'image1'=>$image1, 'image2'=>$image2, 'lowestPrice'=>$lowestPrice, 'store'=>$store, 'id'=>$id, 'type'=>$type ];

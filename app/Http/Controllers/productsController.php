@@ -30,6 +30,7 @@ use App\Imports\ProductsImport;
 use App\Imports\NewProductsImport;
 use App\Exports\ProductsExport;
 use App\Imports\PricesImport;
+use App\Imports\DeleteProducts;
 use App\Imports\WMProductsImport;
 use App\Exports\AsinsExport;
 use App\Exports\SellerActiveExport;
@@ -123,6 +124,25 @@ class productsController extends Controller
     {
         //PDF file is stored under project/public/download/info.pdf
         $file="./templates/template.csv";
+        return Response::download($file);
+    }
+
+    public function getRepTemplate()
+    {
+        //PDF file is stored under project/public/download/info.pdf
+        $file="./templates/repricing_template.csv";
+        return Response::download($file);
+    }
+    public function getAddTemplate()
+    {
+        //PDF file is stored under project/public/download/info.pdf
+        $file="./templates/add_template.csv";
+        return Response::download($file);
+    }
+    public function getDelTemplate()
+    {
+        //PDF file is stored under project/public/download/info.pdf
+        $file="./templates/delete_template.csv";
         return Response::download($file);
     }
 
@@ -437,9 +457,11 @@ class productsController extends Controller
             $extension = $file->getClientOriginalExtension();
             $check=in_array($extension,$allowedfileExtension);
             
+            $check=in_array($extension,$allowedfileExtension);
+            
             if($check)
             {                
-                $filename = $request->file->store('imports');   
+                $filename = $request->file->storeAs('.', \Str::random(40) . '.' . $file->getClientOriginalExtension(),['disk' => 'imports']);   
                            
                 Session::flash('success_msg', __('File Uploaded Successfully'));
             }
@@ -458,11 +480,8 @@ class productsController extends Controller
         }
         $import = new ProductsImport;
         
-        Excel::import($import, $filename);
-        $collection = $import->data;                
-        
-        //replaced by new method 
-
+        Excel::import($import, $filename,'imports');
+        $collection = $import->data;
         $url = URL::to('/repricing/imports/').trim($filename, '.');
         
         $id = new_logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress','action'=>'Adding Products','upload_link'=> $url]);
@@ -476,6 +495,75 @@ class productsController extends Controller
         return redirect()->route('products');
 
     }
+
+    public function deleteProducts(Request $request)
+    {
+        $input = [
+            'file' => $request->file           
+        ];
+
+        $rules = [
+            'file'    => 'required'  
+        ];
+
+        $validator = Validator::make($input,$rules);
+
+        if($validator->fails())
+        {
+            Session::flash('error_msg', __('File is required'));
+            return redirect()->route('products');
+        }
+
+        if($request->hasFile('file'))
+        {
+        
+            $allowedfileExtension=['csv','xls','xlsx'];
+        
+            $file = $request->file('file');
+          
+            $filename = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $check=in_array($extension,$allowedfileExtension);
+            
+            $check=in_array($extension,$allowedfileExtension);
+            
+            if($check)
+            {                
+                $filename = $request->file->storeAs('.', \Str::random(40) . '.' . $file->getClientOriginalExtension(),['disk' => 'imports']);   
+                           
+                Session::flash('success_msg', __('File Uploaded Successfully'));
+            }
+
+           else
+             {
+                Session::flash('error_msg', __('Invalid File Extension'));
+                return redirect()->route('products');
+             }
+            
+
+        }
+        else
+        {
+            
+        }
+        $import = new DeleteProducts;
+        
+        Excel::import($import, $filename,'imports');
+        $collection = $import->data;
+        $url = URL::to('/repricing/imports/').trim($filename, '.');
+        
+        $id = new_logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress','action'=>'Deleting Products','upload_link'=> $url]);
+
+        //now send to Informed 
+        NewRepricing::dispatch($collection, $id, 'delete');               
+        
+       //Repricing::dispatch($collection, $status,3);
+                
+        Session::flash('success_msg', 'Deletion in progress. Check logs for details');
+        return redirect()->route('products');
+
+    }
+
     public function uploadWmFile(Request $request)
     {
         $input = [

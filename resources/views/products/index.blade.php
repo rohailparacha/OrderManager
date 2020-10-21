@@ -190,26 +190,40 @@ catch{
                         </div>
 
                         <div class="row align-items-center pt-5 pb-3" >
-                            <div class="col-6">
+                            <div class="col-4">
                             <form class="form-inline" action="/manualReprice" method="post" enctype="multipart/form-data" style="float:left;">
                             {{ csrf_field() }}
                                 <div class="form-group">
-                                    <input type="file" class="form-control" name="file" />                
+                                    <input type="file" class="form-control" name="file"  style="width:250px!important"/>                
                             
-                                    <input type="submit" class="btn btn-primary" value="Manual Reprice" style="margin-left:10px;"/>
+                                    <input type="submit" class="btn btn-primary" value="Repricing" style="margin-left:10px;"/>
                                    
                                 </div>
                             
                             </form>
                             </div>  
 
-                            <div class="col-6" style="float:right; ">
+                            <div class="col-4" style="float:right; ">
                             <form class="form-inline" action="/upload" method="post" enctype="multipart/form-data" style="float:right;">
                             {{ csrf_field() }}
                                 <div class="form-group">
-                                    <input type="file" class="form-control" name="file" />                
+                                    <input type="file" class="form-control" name="file" style="width:225px!important"/>                
                             
-                                    <input type="submit" class="btn btn-primary" value="Import" style="margin-left:10px;"/>
+                                    <input type="submit" class="btn btn-primary" value="Add Products" style="margin-left:10px;"/>
+                                   
+                                </div>
+                            
+                            </form>
+                            
+                            </div> 
+
+                            <div class="col-4" style="float:right; ">
+                            <form class="form-inline" action="/deleteProducts" method="post" enctype="multipart/form-data" style="float:right;">
+                            {{ csrf_field() }}
+                                <div class="form-group">
+                                    <input type="file" class="form-control" name="file" style="width:225px!important" />                
+                            
+                                    <input type="submit" class="btn btn-primary" value="Delete Products" style="margin-left:10px;"/>
                                    
                                 </div>
                             
@@ -220,7 +234,9 @@ catch{
                         </div>
 
                         <div class="row align-items-center" style="padding-top:2%;">                            
-                                          
+                        <a href="./repTemplate" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:10px; margin-bottom:20px; ">Repricing Template</a>   
+                        <a href="./addTemplate" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:10px; margin-bottom:20px; ">Add Products Template</a>   
+                        <a href="./delTemplate" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:10px; margin-bottom:20px; ">Delete Products Template</a>            
                         </div>
                     </div>
                    
@@ -422,7 +438,7 @@ catch{
                                         <td width="20%">
                                             {{$product->isPrimary}}
                                         </td>                                        
-                                        <td width="8%"  class="specifictd">{{ $product->{'30days'} }}</td>                                        
+                                        <td width="8%"  class="specifictd"><a href="./productReport/orders?asin={{$product->asin}}&status=sold">{{ $product->{'30days'} }}</a></td>                                        
                                         <td width="8%" class="specifictd">{{ number_format((float)$product->price, 2, '.', '') }}</td>                                        
                                         <td width="9%" class="specifictd">
                                         <a href="https://www.walmart.com/ip/{{ $product->wmid }}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a>

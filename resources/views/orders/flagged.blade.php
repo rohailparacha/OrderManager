@@ -222,7 +222,8 @@ catch{
                                     <th scope="col" width="11%">{{ __('Net') }}</th>
                                     <th scope="col" width="11%">{{ __('Flag') }}</th>
                                     <th scope="col" width="8%">{{ __('Action') }}</th>
-                                    <th scope="col" width="3%"></th>
+                                    <th scope="col" width="7%">Sheet</th>
+                                    <th scope="col" width="7%">Flag</th>
                                 </tr>
                             </thead>
                             <tbody>

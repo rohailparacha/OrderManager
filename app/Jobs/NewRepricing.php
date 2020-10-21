@@ -63,8 +63,36 @@ class NewRepricing implements ShouldQueue
      *
      * @return void
      */
+
+    public function deleteProduct($asin)
+    {            
+        $sc_id =  products::where('asin',$asin)->get()->first();
+        
+        $temp = products::where('id','=',$sc_id->id)->delete(); 
+
+        try{
+            $file1 = public_path('images/amazon/' . $sc_id->asin.'.jpg');            
+            $files = array($file1);
+            File::delete($files);
+        }
+        catch(\Exception $ex)
+        {
+
+        }  
+    }
+
     public function handle()
-    {                            
+    {                          
+
+        if($this->type=='delete')
+        {
+            foreach($this->originalCollection as $product)
+            {
+                $this->deleteProduct($product['asin']);
+            }
+            new_logs::where('id',$this->id)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Completed']); 
+            return;
+        }
         $accounts = accounts::leftJoin('informed_accounts','accounts.infaccount_id','informed_accounts.id')->get();
         
         if(empty($this->originalCollection))
@@ -161,7 +189,7 @@ class NewRepricing implements ShouldQueue
                     $update = products::where('asin',$col['asin'])->update(['lowestPrice'=>$col['lowestPrice']]);
                 else 
                 {
-                    $insert = products::insert(['asin'=>$col['asin'],'lowestPrice'=>$col['lowestPrice'], 'upc'=>$col['id'], 'title'=>$col['title'], 'image'=>$col['image1'], 'account'=>$col['store'], 'image2'=>$col['image2'], 'brand'=>$col['brand'], 'description'=>$col['description'],'type'=>$col['type']]);
+                    $insert = products::insert(['asin'=>$col['asin'],'lowestPrice'=>$col['lowestPrice'], 'upc'=>$col['id'], 'title'=>$col['title'], 'image'=>$col['image1'], 'account'=>$col['store'], 'image2'=>$col['image2'], 'brand'=>$col['brand'], 'description'=>$col['description'],'type'=>$col['type'],'created_at' => Carbon::now()->toDateString()]);
                      $this->saveImage($col['asin'],$col['image1']);
                 }
                                     

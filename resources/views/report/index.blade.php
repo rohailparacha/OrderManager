@@ -169,6 +169,7 @@ window.location = url;
                                     <th scope="col">{{ __('Store Name') }}</th>
                                     <th scope="col">{{ __('Buyer Name') }}</th>
                                     <th scope="col">{{ __('Sell Order Id') }}</th>
+                                    <th scope="col">{{ __('Qty') }}</th>
                                     <th scope="col">{{ __('Sell Total') }}</th>
                                     <th scope="col">{{ __('Purchase Account') }}</th>
                                     <th scope="col">{{ __('Purchase Order ID') }}</th>
@@ -187,7 +188,8 @@ window.location = url;
                                         <td>{{ $order->marketplace }}</td>
                                         <td>{{ $order->storeName }}</td>
                                         <td>{{ $order->buyerName }}</td>
-                                        <td>{{ $order->sellOrderId }}</td>                                                                                                                        
+                                        <td>{{ $order->sellOrderId }}</td> 
+                                        <td>{{ $order->quantity }}</td>                                                                                                                        
                                         <td>{{ number_format((float)$order->totalAmount +(float)$order->shippingPrice , 2, '.', '') }}</td>
                                         <td>
                                         @foreach($accounts as $account)
