@@ -4,6 +4,7 @@ use App\carriers;
 use App\walmart_products;
 use App\orders;
 use App\categories; 
+use App\flags;
 use App\conversions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -173,23 +174,42 @@ Route::post('jonathan2_update', function(Request $request) {
     $success=0;
     $records = $request->data;
 
+    $flagNum = flags::where('name','Jonathan Cancelled')->get()->first(); 
+
     foreach($records as $record)
     {        
         if(empty(trim($record['poNumber'])))
             continue;
 
-        $insert = orders::where('sellOrderId',$record['sellOrderId'])
-        ->whereNull('poNumber')
-        ->update([
-        'poTotalAmount'=>$record['poTotalAmount'],
-        'poNumber'=>$record['poNumber'],        
-        'afpoNumber'=>$record['afpoNumber'],
-        'trackingLink'=>$record['trackingLink'],
-        'account_id'=>'Jonathan2',        
-        'status'=>'processing',
-        'itemId'=>$record['itemId']
-        ]);
-
+        if(trim(strtolower($record['status']))=='cancelled')
+        {
+            $insert = orders::where('sellOrderId',$record['sellOrderId'])
+            ->whereNull('poNumber')
+            ->update([
+            'poTotalAmount'=>$record['poTotalAmount'],
+            'poNumber'=>$record['poNumber'],        
+            'afpoNumber'=>$record['afpoNumber'],
+            'trackingLink'=>$record['trackingLink'],        
+            'account_id'=>'Jonathan2',   
+            'flag'=> $flagNum->id,
+            'status'=>'processing',
+            'itemId'=>$record['itemId']
+            ]);
+        }
+        else
+        {
+            $insert = orders::where('sellOrderId',$record['sellOrderId'])
+            ->whereNull('poNumber')
+            ->update([
+            'poTotalAmount'=>$record['poTotalAmount'],
+            'poNumber'=>$record['poNumber'],        
+            'afpoNumber'=>$record['afpoNumber'],
+            'trackingLink'=>$record['trackingLink'],        
+            'account_id'=>'Jonathan2',        
+            'status'=>'processing',
+            'itemId'=>$record['itemId']
+            ]);
+        }
 
         if($insert)
             $success++;
