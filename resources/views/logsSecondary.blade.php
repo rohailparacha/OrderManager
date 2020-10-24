@@ -70,6 +70,7 @@ table {
                                     <th scope="col" width="15%">{{ __('End Date') }}</th>
                                     <th scope="col" width="15%">{{ __('Original File') }}</th>
                                     <th scope="col" width="15%">{{ __('Final File') }}</th>
+                                    <th scope="col" width="15%">{{ __('Duplicate ASINs File') }}</th>
                                     <th scope="col" width="15%">{{ __('Type') }}</th>     
                                     <th scope="col" width="15%">{{ __('Status') }}</th>                                                                                                      
                                 </tr>
@@ -82,8 +83,15 @@ table {
                                         <td width="10%"><a href={{ $log->upload_link }}>Download</a></td>
                                         <td width="10%">
                                         @if(!empty($log->export_link))
-                                        <a href={{ $log->export_link }}>Download</a></td>                                        
+                                        <a href={{ $log->export_link }}>Download</a>                                        
                                         @endif
+                                        </td>
+                                        <td width="10%">
+                                        @if(!empty($log->dup_link))
+                                        <a href={{ $log->dup_link }}>Download</a>                                        
+                                        @endif
+                                        </td>
+                                        
                                         <td width="10%">{{ $log->action }}</td> 
                                         <td width="10%">{{ $log->status }}</td>                                           
                                     </tr>

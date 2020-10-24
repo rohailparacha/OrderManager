@@ -14,10 +14,13 @@ class ProductsImport implements ToCollection
 {
     public $data;
     public $rows;
+    public $collection;
+
     public function collection(Collection $rows)
     {
         $this->rows = $rows;
         $dataArray = array(); 
+        $collectionArray = array(); 
         $asinIndex = $this->getIndex('asin');
         $titleIndex = $this->getIndex('title');
         $brandIndex = $this->getIndex('brand');
@@ -73,11 +76,13 @@ class ProductsImport implements ToCollection
                     continue;
                 }
                     
+                $collectionArray[]= ['asin'=>$asin, 'title'=>$title, 'brand'=>$brand, 'description'=>$description, 'image1'=>$image1, 'image2'=>$image2, 'lowestPrice'=>$lowestPrice, 'store'=>$store, 'id'=>$id, 'type'=>$type ];
                 
                 $count1 = products::where('asin',$asin)->get()->count();
                 
                 if($count1>0)
-                    continue; 
+                    continue;                 
+                    
 
                 $count2 = blacklist::where('sku',$asin)->get()->count();
                 
@@ -90,6 +95,7 @@ class ProductsImport implements ToCollection
         }
         
         $this->data = collect($dataArray);
+        $this->collection = collect($collectionArray);
     }
 
     public function getIndex($key)
@@ -105,4 +111,6 @@ class ProductsImport implements ToCollection
 
         return -1;
     }
+
+    
 }

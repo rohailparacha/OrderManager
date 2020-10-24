@@ -29,6 +29,7 @@ use Image;
 use App\Imports\ProductsImport;
 use App\Imports\NewProductsImport;
 use App\Exports\ProductsExport;
+use App\Exports\DuplicateAsinExport;
 use App\Imports\PricesImport;
 use App\Imports\DeleteProducts;
 use App\Imports\WMProductsImport;
@@ -482,10 +483,18 @@ class productsController extends Controller
         
         Excel::import($import, $filename,'imports');
         $collection = $import->data;
-        $url = URL::to('/repricing/imports/').trim($filename, '.');
-        
-        $id = new_logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress','action'=>'Adding Products','upload_link'=> $url]);
+        $orig = $import->collection;         
 
+        $url = URL::to('/repricing/imports/').trim($filename, '.');
+
+        $filename = date("d-m-Y")."-".time()."-duplicate-asins.csv";
+        
+        Excel::store(new DuplicateAsinExport($orig), $filename,'exports');   
+
+        $dup = URL::to('/repricing/exports/')."/".$filename;
+        
+        $id = new_logs::insertGetId(['date_started'=>date('Y-m-d H:i:s'),'status'=>'In Progress','action'=>'Adding Products','upload_link'=> $url, 'dup_link'=> $dup]);
+        
         //now send to Informed 
         NewRepricing::dispatch($collection, $id, 'new');               
         

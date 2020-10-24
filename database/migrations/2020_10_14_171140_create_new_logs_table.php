@@ -19,6 +19,7 @@ class CreateNewLogsTable extends Migration
             $table->timestamp('date_completed')->nullable();
             $table->string('upload_link')->nullable();
             $table->string('export_link')->nullable();
+            $table->string('dup_link')->nullable();
             $table->string('action')->nullable();
             $table->enum('status',['Failed','Completed','In Progress']);
         });

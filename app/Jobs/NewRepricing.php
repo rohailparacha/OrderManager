@@ -19,6 +19,7 @@ use App\blacklist;
 use App\order_details; 
 use App\Exports\NewInformedExport;
 use App\Exports\NewSellerActiveExport;
+use App\Exports\DuplicateAsinExport;
 use App\amazon_settings; 
 use App\log_batches;
 use App\Jobs\Repricing;
@@ -81,6 +82,8 @@ class NewRepricing implements ShouldQueue
         }  
     }
 
+   
+
     public function handle()
     {                          
 
@@ -93,13 +96,15 @@ class NewRepricing implements ShouldQueue
             new_logs::where('id',$this->id)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Completed']); 
             return;
         }
+        
+    
         $accounts = accounts::leftJoin('informed_accounts','accounts.infaccount_id','informed_accounts.id')->get();
         
         if(empty($this->originalCollection))
         {
             new_logs::where('id',$this->id)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Failed']);    
             return;                   
-        }
+        }        
 
         foreach($accounts as $account)
         {
@@ -507,7 +512,7 @@ class NewRepricing implements ShouldQueue
 
         $filename = date("d-m-Y")."-".time()."-selleractive-export.csv";
         
-        Excel::store(new NewSellerActiveExport($this->collection), $filename,'exports');   
+        Excel::store(new NewSellerActiveExport($this->originalCollection), $filename,'exports');   
 
         $url = URL::to('/repricing/exports/')."/".$filename;
 

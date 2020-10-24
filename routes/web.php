@@ -35,6 +35,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('newOrdersFlagged','orderController@newOrdersFlagged')->name('newOrdersFlagged')->middleware('admin');
 	Route::get('newOrdersExpensive','orderController@newOrdersExpensive')->name('newOrdersExpensive')->middleware('admin');
 	Route::get('processedOrders','orderController@processedOrders')->name('processedOrders')->middleware('admin');
+	Route::get('dueDateComing','orderController@dueComing')->name('dueComing')->middleware('admin');	
 	Route::get('cancelledOrders','orderController@cancelledOrders')->name('cancelledOrders')->middleware('admin');
 	Route::get('shippedOrders','orderController@shippedOrders')->name('shippedOrders')->middleware('admin');
 	Route::get('conversions','orderController@conversions')->name('conversions')->middleware('admin');
@@ -427,6 +428,47 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('jonathan2LabelDelete/{route}/{id}','jonathan2ReturnsController@labelDeleteRoute');
 	Route::delete('/jonathan2DeleteReturn/{route}/{id}','jonathan2ReturnsController@deleteReturnRoute')->middleware('admin');
 
+
+	//yaballe auto fulfillment settings
+	Route::get('/yaballeSetting', 'yaballeController@index')->name('yaballeSetting');
+	Route::post('/yaballeStoreSettings', 'yaballeController@storeSettings')->name('yaballeStoreSettings');
+	Route::any('/yaballeOrderFulfillmentExport', 'yaballeController@export')->name('yaballeOrderFulfillmentExport');
+	Route::delete('yaballeDeleteCancelled/{id}','yaballeController@deleteCancelled')->name('yaballeDeleteCancelled')->middleware('admin');	
+	Route::delete('yaballeDeleteConversion/{id}','yaballeController@deleteConversion')->name('yaballeDeleteConversion')->middleware('admin');	
+	Route::any('/yaballeOrderCancelledExport', 'yaballeController@orderCancelledExport')->name('yaballeOrderCancelledExport');
+	Route::post('yaballeUpdateBCE','yaballeController@updateBCE')->name('yaballeUpdateBCE');
+
+	//yaballe orders
+	Route::post('yaballeProcess','yaballeController@autoFulfillProcess')->name('yaballeProcess')->middleware('admin');	
+	Route::get('yaballeconversions','yaballeController@autofulfillconversions')->name('yaballebce')->middleware('admin');	
+	Route::get('yaballeProcessed','yaballeController@autofulfillProcessed')->name('yaballeprocessed')->middleware('admin');	
+	Route::get('yaballeCancel','yaballeController@autofulfillCancel')->name('yaballecancel')->middleware('admin');		
+	Route::get('yaballe','yaballeController@autoFulfill')->name('yaballenew')->middleware('admin');	
+	Route::any('yaballeexport','yaballeController@yaballeexport')->name('yaballeexport')->middleware('admin');	
+	Route::any('yaballeOrderExport','yaballeController@yaballeOrderExport')->name('yaballeOrderExport')->middleware('admin');
+	Route::any('yaballeFilter','yaballeController@autoFulfillFilter')->middleware('admin');
+	Route::any('yaballesearch','yaballeController@search')->name('yaballesearch');
+
+
+	//yaballe Returns
+
+	Route::get('/yaballeReturnPending', 'yaballeReturnsController@index')->name('yaballereturn')->middleware('admin');
+	Route::get('/yaballeRefundPending', 'yaballeReturnsController@refunds')->name('yaballerefund')->middleware('admin');
+	Route::get('/yaballeCompletedReturns', 'yaballeReturnsController@completed')->name('yaballecompleted')->middleware('admin');
+	Route::post('/yaballeAddreturn', 'yaballeReturnsController@addReturn')->middleware('admin');
+	Route::post('/yaballeEditreturn', 'yaballeReturnsController@editReturn')->middleware('admin');
+	Route::delete('/yaballeDeleteReturn/{id}','yaballeReturnsController@deleteReturn')->name('yaballeDeleteReturn')->middleware('admin');
+	Route::post('yaballeReturnsupload','yaballeReturnsController@uploadSubmit');
+	Route::post('yaballeUploadLabel','yaballeReturnsController@uploadLabel');
+	Route::get('yaballeUpdateStatus','yaballeReturnsController@updateStatus');
+	Route::get('yaballeLabelPrint/{id}','yaballeReturnsController@labelPrint');
+	Route::get('yaballeLabelDelete/{id}','yaballeReturnsController@labelDelete');
+	Route::any('yaballeReturnFilter','yaballeReturnsController@returnFilter')->middleware('admin');
+	Route::any('yaballeRefundFilter','yaballeReturnsController@refundFilter')->middleware('admin');
+	Route::any('yaballeCompletedFilter','yaballeReturnsController@completedFilter')->middleware('admin');
+	Route::get('yaballeLabelDelete/{route}/{id}','yaballeReturnsController@labelDeleteRoute');
+	Route::delete('/yaballeDeleteReturn/{route}/{id}','yaballeReturnsController@deleteReturnRoute')->middleware('admin');
+	
 	//order flags
 	Route::get('/flags', 'flagsController@flags')->name('flags')->middleware('admin');
 	Route::post('/addFlag', 'flagsController@addFlag')->middleware('admin');
@@ -439,5 +481,9 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::post('/addReason', 'reasonsController@addReason')->middleware('admin');
 	Route::post('/editReason', 'reasonsController@editReason')->middleware('admin');
 	Route::delete('/ReasonDelete/{id}','reasonsController@delReason')->name('reasonDelete')->middleware('admin');
+
+	//Autofulfillment Manager
+	Route::get('/afManager', 'AutoFulfillmentController@index')->name('afManager');
+	Route::post('/afStoreSettings', 'AutoFulfillmentController@storeSettings')->name('afStoreSettings');
 });
 

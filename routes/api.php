@@ -200,6 +200,39 @@ Route::post('jonathan2_update', function(Request $request) {
     ],201);
 });
 
+Route::post('yaballe_update', function(Request $request) {
+    
+    $success=0;
+    $records = $request->data;
+
+    foreach($records as $record)
+    {        
+        if(empty(trim($record['poNumber'])))
+            continue;
+
+        $insert = orders::where('sellOrderId',$record['sellOrderId'])
+        ->whereNull('poNumber')
+        ->update([
+        'poTotalAmount'=>$record['poTotalAmount'],
+        'poNumber'=>$record['poNumber'],        
+        'afpoNumber'=>$record['afpoNumber'],
+        'trackingLink'=>$record['trackingLink'],
+        'account_id'=>'Yaballe',        
+        'status'=>'processing',
+        'itemId'=>$record['itemId']
+        ]);
+
+
+        if($insert)
+            $success++;
+    }
+
+    return response()->json([
+        'count' => $success
+    ],201);
+});
+
+
 Route::post('walmart_product', function(Request $request) {
     
     $success=0;

@@ -89,6 +89,14 @@
                                 </a>
                             </li>
                             @endif
+
+                            <li class="nav-item">
+                            <a class="nav-link" href="{{ route('dueComing') }}">
+                                {{ __('Due Date Coming Soon') }}
+                            </a>
+                            </li>
+
+
                             @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(3,json_decode(auth()->user()->assigned_pages))))                       
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('shippedOrders') }}">
@@ -181,6 +189,8 @@
                 </li>
                 
                 @endif
+
+                @if(\App\settings::where('name','Cindy')->get()->first()->sidebarCheck)
                 <li class="nav-item">
                     <a class="nav-link active" href="#cindy" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
                         <i class="fa fa-sort text-primary" ></i>
@@ -230,7 +240,8 @@
                         </ul>
                     </div>
                 </li>
-
+                @endif
+                @if(\App\settings::where('name','Vaughn')->get()->first()->sidebarCheck)
                 <li class="nav-item">
                     <a class="nav-link active" href="#vaughn" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
                         <i class="fa fa-sort text-primary" ></i>
@@ -279,7 +290,8 @@
                         </ul>
                     </div>
                 </li>
-
+                @endif
+                @if(\App\settings::where('name','Jonathan')->get()->first()->sidebarCheck)
                 <li class="nav-item">
                     <a class="nav-link active" href="#jonathan" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
                         <i class="fa fa-sort text-primary" ></i>
@@ -330,7 +342,8 @@
                         </ul>
                     </div>
                 </li>
-
+                @endif
+                @if(\App\settings::where('name','Jonathan2')->get()->first()->sidebarCheck)
                 <li class="nav-item">
                     <a class="nav-link active" href="#jonathan2" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
                         <i class="fa fa-sort text-primary" ></i>
@@ -381,7 +394,59 @@
                         </ul>
                     </div>
                 </li>
+                @endif
+                @if(\App\settings::where('name','Yaballe')->get()->first()->sidebarCheck)
+                <li class="nav-item">
+                    <a class="nav-link active" href="#yaballe" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                        <i class="fa fa-sort text-primary" ></i>
+                        <span class="nav-link-text text-primary" >{{ __('Yaballe') }}</span>
+                    </a>
 
+                    <div class="collapse show" id="yaballe">
+                        <ul class="nav nav-sm flex-column">                            
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('yaballenew') }}">
+                                    {{ __('New Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('yaballeprocessed') }}">
+                                    {{ __('Processed Orders') }}
+                                </a>
+                            </li>
+                        
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('yaballecancel') }}">
+                                    {{ __('Cancel Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('yaballereturn') }}">
+                                    {{ __('Return Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('yaballerefund') }}">
+                                    {{ __('Refund Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('yaballecompleted') }}">
+                                    {{ __('Completed Returns') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('yaballeSetting') }}">
+                                    {{ __('Yaballe - Order Fulfillment Setting') }}
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+                @endif
                 <li class="nav-item">
                     <a class="nav-link active" href="#users" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
                         <i class="fa fa-users text-primary" ></i>
@@ -547,6 +612,12 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('reasons') }}">
                                     {{ __('Blacklist Reasons') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('afManager') }}">
+                                    {{ __('Auto-Fulfillment Manager') }}
                                 </a>
                             </li>
                             
