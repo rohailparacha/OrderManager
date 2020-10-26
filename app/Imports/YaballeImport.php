@@ -33,8 +33,7 @@ class YaballeImport implements ToCollection
 
             if(empty($row[$carrier])|| empty($row[$tracking]))
             {
-                $update = orders::where('sellOrderId',explode('.',$row[$sellOrderId])[0])
-                ->whereNull('poNumber')
+                $update = orders::where('sellOrderId',explode('.',$row[$sellOrderId])[0])                
                 ->where('status','!=','shipped')
                 ->update([
                 'poTotalAmount'=>$row[$poAmount],
@@ -57,8 +56,7 @@ class YaballeImport implements ToCollection
                 if(empty($carrierId))
                     continue;
 
-                $update = orders::where('sellOrderId',explode('.',$row[$sellOrderId])[0])
-                ->whereNull('poNumber')
+                $update = orders::where('sellOrderId',explode('.',$row[$sellOrderId])[0])                
                 ->where('status','!=','shipped')
                 ->update([
                 'poTotalAmount'=>$row[$poAmount],

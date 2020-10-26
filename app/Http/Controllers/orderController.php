@@ -622,6 +622,12 @@ class orderController extends Controller
     public function filter(Request $request)
     {
         $val = flags::where('name','Expensive')->get()->first(); 
+        $storeFilter = '';
+        $marketFilter = '';
+        $stateFilter = '';
+        $amountFilter = '';
+        $sourceFilter = '';
+
         if($request->has('storeFilter'))
             $storeFilter = $request->get('storeFilter');
         if($request->has('marketFilter'))
@@ -634,10 +640,17 @@ class orderController extends Controller
             $sourceFilter = $request->get('sourceFilter');
         
 
+        if(!empty($amountFilter))
+        {
+            $minAmount = trim(explode('-',$amountFilter)[0]);
+            $maxAmount = trim(explode('-',$amountFilter)[1]);            
+        }
+        else
+        {
+            $maxAmount = ceil(orders::where('status','unshipped')->max('totalAmount'));
+            $minAmount = 0; 
+        }
 
-        $minAmount = trim(explode('-',$amountFilter)[0]);
-        $maxAmount = trim(explode('-',$amountFilter)[1]);
-            
         $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
         ->leftJoin('products','order_details.SKU','=','products.asin')
         ->leftJoin('ebay_products','order_details.SKU','=','ebay_products.sku')
@@ -670,9 +683,13 @@ class orderController extends Controller
                 $orders = $orders->whereNotNull('ebay_products.sku');                                
         }
 
-        $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',$minAmount);
-        $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$maxAmount);
+        if(!empty($amountFilter))
+        {
+            $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',$minAmount);
+            $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$maxAmount);
 
+        }
+        
         if(!empty($stateFilter)&& $stateFilter !='0')
         {           
             $orders = $orders->where('state',$stateFilter);
@@ -705,7 +722,20 @@ class orderController extends Controller
             
             ->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
         
-        $orders = $orders->appends('storeFilter',$storeFilter)->appends('stateFilter',$stateFilter)->appends('marketFilter',$marketFilter)->appends('amountFilter',$amountFilter)->appends('sourceFilter',$sourceFilter);
+        if(!empty($storeFilter))
+            $orders = $orders->appends('storeFilter',$storeFilter);
+
+        if(!empty($stateFilter))
+            $orders = $orders->appends('stateFilter',$stateFilter);  
+            
+        if(!empty($marketFilter))
+            $orders = $orders->appends('marketFilter',$marketFilter);
+
+        if(!empty($amountFilter))
+            $orders = $orders->appends('amountFilter',$amountFilter);
+        
+        if(!empty($sourceFilter))
+            $orders = $orders->appends('sourceFilter',$sourceFilter);  
 
         
         $stores = accounts::select(['id','store'])->get();
@@ -2958,7 +2988,7 @@ class orderController extends Controller
                     {
                         $jonathanOrder = $tempOrder;
                         
-                        $jonathanOrder["maxPrice"] =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$jonathanSetting->maxPrice/100) * $temp['quantity']; 
+                        $jonathanOrder["maxPrice"] =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$jonathanSetting->maxPrice/100); 
                         
                         $jonathanOrder["discountPayment"] = empty($product->lowestPrice)?0:$product->lowestPrice * $temp['quantity'] * (1- $jonathanSetting->discount/100);
                         
@@ -2973,7 +3003,7 @@ class orderController extends Controller
                     {
                         $jonathan2Order = $tempOrder;
                         
-                        $jonathan2Order["maxPrice"] =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$jonathan2Setting->maxPrice/100) * $temp['quantity']; 
+                        $jonathan2Order["maxPrice"] =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$jonathan2Setting->maxPrice/100); 
                         
                         $jonathan2Order["discountPayment"] = empty($product->lowestPrice)?0:$product->lowestPrice * $temp['quantity'] * (1- $jonathan2Setting->discount/100);
                         
@@ -3668,7 +3698,7 @@ class orderController extends Controller
             $product = products::where('asin',$details[0]->SKU)->get()->first();
         
            
-            $tempOrder["maxPrice"] =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$setting->maxPrice/100) *  $order->quantity;        
+            $tempOrder["maxPrice"] =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$setting->maxPrice/100) ;
             
             $tempOrder["maxPrice"] = number_format((float) $tempOrder["maxPrice"], 2, '.', '');
     
@@ -3758,7 +3788,7 @@ class orderController extends Controller
             $product = products::where('asin',$details[0]->SKU)->get()->first();
         
            
-            $tempOrder["maxPrice"] =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$setting->maxPrice/100) *  $order->quantity;        
+            $tempOrder["maxPrice"] =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$setting->maxPrice/100) ; 
             
             $tempOrder["maxPrice"] = number_format((float) $tempOrder["maxPrice"], 2, '.', '');
     

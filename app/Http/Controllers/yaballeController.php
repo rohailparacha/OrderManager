@@ -122,7 +122,7 @@ class yaballeController extends Controller
 
     public function yaballeOrderExport(Request $request)
     {        
-        $filename = date("d-m-Y")."-".time()."-autofulfill-orders.xlsx";
+        $filename = date("d-m-Y")."-".time()."-autofulfill-orders.csv";
         return Excel::download(new YaballeOrdersExport(), $filename);
     }
 

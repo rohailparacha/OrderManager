@@ -237,8 +237,13 @@ catch{
                                         <td width="9%">{{ $order->buyerName }}</td>
                                         <td width="9%">{{ $order->source }}</td>
                                         <td width="9%">{{ $order->state }}</td>
-                                        <td width="8%">{{ $order->quantity }}</td>
-                                        <td width="10%">{{number_format((float)$order->lowestPrice , 2, '.', '')}}</td>
+                                        <td width="8%">{{ $order->quantity }}</td>                                        
+                                        @if($order->lowestPrice == 0)
+                                        <td width="10%" style="color:red;">
+                                        @else
+                                        <td width="10%">
+                                        @endif
+                                        {{number_format((float)$order->lowestPrice , 2, '.', '')}}</td>
                                          
                                         <td width="10%">{{ number_format((float)$order->totalAmount +(float)$order->shippingPrice , 2, '.', '') }}</td>
                                         

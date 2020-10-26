@@ -96,7 +96,13 @@ table {
                                         <td width="12%">{{ $order->poNumber }}</td>
                                         <td width="10%">{{ $order->buyerName }}</td>
                                         <td width="7%">{{ $order->quantity }}</td>
-                                        <td width="7%">{{ \Carbon\Carbon::now()->diffInDays( \Carbon\Carbon::parse($order->dueShip)->format('Y-m-d'),false ) }} days</td>                                       
+                                        
+                                        @if(\Carbon\Carbon::now()->diffInDays( \Carbon\Carbon::parse($order->dueShip)->format('Y-m-d'),false )<2)
+                                        <td width="7%" style="color:red;">
+                                        @else
+                                        <td width="7%">
+                                        @endif
+                                        {{ \Carbon\Carbon::now()->diffInDays( \Carbon\Carbon::parse($order->dueShip)->format('Y-m-d'),false ) }} days</td>                                       
                                         <td width="9%">{{ number_format((float)$order->totalAmount +(float)$order->shippingPrice , 2, '.', '') }}</td>
                                         <td width="9%">{{ number_format((float)$order->poTotalAmount, 2, '.', '') }}</td>
                                         <td width="9%"><a href="orderDetails/{{$order->id}}" class="btn btn-primary btn-sm">Details</a></td>

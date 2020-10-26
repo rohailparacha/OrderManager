@@ -3,12 +3,13 @@
 namespace App\Exports;
 use App\orders;
 use App\order_details;
+use App\settings;
+use App\products;
 use App\accounts;
 use App\ebay_products;
 use App\flags;
 use DB;
 use App\states;
-use App\products;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -37,6 +38,7 @@ class YaballeOrdersExport implements WithColumnFormatting,FromCollection,WithHea
         else
             $orders = $orders->where('status','unshipped')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->get();
         
+        $setting = settings::where('name','yaballe')->get()->first(); 
         
         foreach($orders as $order)
         {                                  
@@ -44,7 +46,17 @@ class YaballeOrdersExport implements WithColumnFormatting,FromCollection,WithHea
 
             if(count($order_details)>1)
                 continue;
+
             
+            $product = products::where('asin',$order_details[0]->SKU)->get()->first(); 
+
+            if(empty($product)) 
+                continue; 
+            
+            
+            $max_price =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$setting->maxPrice/100) * $order->quantity;
+            $price =   empty($product->lowestPrice)?0:$product->lowestPrice * $order->quantity;
+
             $temp = array();
             $temp =  [                
                 "transaction_id"=> $order->sellOrderId,
@@ -55,15 +67,13 @@ class YaballeOrdersExport implements WithColumnFormatting,FromCollection,WithHea
                 "state"=> $order->state,
                 "phone" => $order->phone,
                 "zip_code"=> $order->postalCode,
-                "source_price" => number_format((float)$order->totalAmount , 2, '.', ''),
-                "max_price" => number_format((float)$order->totalAmount , 2, '.', ''),                
-                "quantity" => $order->quantity                             
+                "source_price" => number_format((float)$price , 2, '.', ''),
+                "max_price" => number_format((float)$max_price , 2, '.', ''),    
+                "SKU"=>$order_details[0]->SKU,            
+                "quantity" =>  $order->quantity                            
             ];
 
-            foreach($order_details as $detail)
-            {                
-                $temp["SKU"] = $detail->SKU;                            
-            }
+            
 
             $dataArray[]= $temp;
         }
