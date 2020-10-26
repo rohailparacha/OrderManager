@@ -50,12 +50,12 @@
                             <thead class="thead-light">
                                 <tr>
                                     <th scope="col">{{ __('Date') }}</th>
-                                    <th scope="col">{{ __('Marketplace') }}</th>
-                                    <th scope="col">{{ __('Account') }}</th>
+                                    <th scope="col">{{ __('Marketplace') }}</th>                        
                                     <th scope="col">{{ __('Store Name') }}</th>
                                     <th scope="col">{{ __('Buyer Name') }}</th>
                                     <th scope="col">{{ __('Sell Order Id') }}</th>
                                     <th scope="col">{{ __('Purchase Order Id') }}</th>
+                                    <th scope="col">{{ __('Account Name') }}</th>
                                     <th scope="col">{{ __('Purchase Total') }}</th>
                                     <th scope="col">{{ __('Carrier Name') }}</th>
                                     <th scope="col">{{ __('Tracking Number') }}</th>
@@ -71,11 +71,20 @@
                                             <tr>
                                                 <td>{{ $provider::getIranTime(date_format(date_create($detail->order->date), 'm/d/Y H:i:s')) }}</td>
                                                 <td>{{ $detail->order->marketplace }}</td>
-                                                <td>{{ $detail->order->storeName }}</td>
-                                                <td>{{ $detail->asin->account }}</td>
+                                                <td>{{ $detail->order->storeName }}</td>                                                
                                                 <td>{{ $detail->order->buyerName }}</td>
                                                 <td>{{ $detail->order->sellOrderId }}</td>
                                                 <td>{{ $detail->order->poNumber }}</td>
+                                                <td>
+                                                @foreach($accounts as $account)
+                                                    @if($account->id == $detail->order->account_id)
+                                                        {{$account->email}}
+                                                    @endif 
+                                                @endforeach
+                                                @if(!is_numeric($detail->order->account_id))
+                                                {{$detail->order->account_id}}
+                                                @endif
+                                                </td>
                                                 <td>{{ number_format((float)$detail->order->poTotalAmount, 2, '.', '') }}</td>
                                                 <td>
                                                     @if(!is_null($detail->order->carrierName))

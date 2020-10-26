@@ -93,7 +93,13 @@ table {
                                         <td width="11%">{{ $order->marketplace }}</td>
                                         <td width="12%">{{ $order->storeName }}</td>
                                         <td width="13%">{{ $order->sellOrderId }}</td>
-                                        <td width="12%">{{ $order->poNumber }}</td>
+                                        <td width="12%">
+                                        @if(!empty($order->trackingLink))
+                                        <a  target="_blank" href={{$order->trackingLink}}>{{ $order->poNumber }}</a>
+                                        @else
+                                        {{ $order->poNumber }}
+                                        @endif
+                                        </td>
                                         <td width="10%">{{ $order->buyerName }}</td>
                                         <td width="7%">{{ $order->quantity }}</td>
                                         

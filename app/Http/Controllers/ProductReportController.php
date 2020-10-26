@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\products;
+use App\gmail_accounts;
 use DataTables;
 use Carbon\Carbon;
 use App\orders;
@@ -196,7 +197,7 @@ class ProductReportController extends Controller
             // $cancelled  = cancelled_orders::pluck('order_id');
             // $order_details = order_details::with(['order'])->whereIn('order_id', $cancelled)->where(['SKU' => $request->asin])->paginate(10);
         }
-
+        $accounts = gmail_accounts::all(); 
         if($order_details)
         {
             $carriers = carriers::all(); 
@@ -207,7 +208,7 @@ class ProductReportController extends Controller
             }
 
             // return $order_details;
-            return view('report.orders',['order_details' => $order_details,'carrierArr' => $carrierArr]);
+            return view('report.orders',['order_details' => $order_details,'carrierArr' => $carrierArr,'accounts'=>$accounts]);
         }else{
             return 'No orders found';
         }
