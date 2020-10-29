@@ -18,6 +18,7 @@ class CreateOrdersTable extends Migration
             $table->string('orderId')->unique();
             $table->unsignedBigInteger('account_id');
             $table->date('date'); 
+            $table->date('assignDate')->nullable();
             $table->date('dueShip')->nullable(); 
             $table->date('dueDelivery')->nullable(); 
             $table->date('of_bce_created_at')->nullable();

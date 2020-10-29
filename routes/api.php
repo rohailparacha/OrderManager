@@ -83,7 +83,7 @@ Route::post('autofulfill_update', function(Request $request) {
         if(empty(trim($record['poNumber'])))
             continue;
 
-        $insert = orders::where('sellOrderId',$record['sellOrderId'])
+        $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])
         ->whereNull('poNumber')
         ->update([
         'poTotalAmount'=>$record['poTotalAmount'],
@@ -115,7 +115,7 @@ Route::post('vaughn_update', function(Request $request) {
         if(empty(trim($record['poNumber'])))
             continue;
 
-        $insert = orders::where('sellOrderId',$record['sellOrderId'])
+        $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])
         ->whereNull('poNumber')
         ->update([
         'poTotalAmount'=>floatval($record['poTotalAmount']),
@@ -147,7 +147,7 @@ Route::post('jonathan_update', function(Request $request) {
         if(empty(trim($record['poNumber'])))
             continue;
 
-        $insert = orders::where('sellOrderId',$record['sellOrderId'])
+        $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])
         ->whereNull('poNumber')
         ->update([
         'poTotalAmount'=>$record['poTotalAmount'],
@@ -183,7 +183,7 @@ Route::post('jonathan2_update', function(Request $request) {
 
         if(trim(strtolower($record['status']))=='cancelled')
         {
-            $insert = orders::where('sellOrderId',$record['sellOrderId'])
+            $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])
             ->whereNull('poNumber')
             ->update([
             'poTotalAmount'=>$record['poTotalAmount'],
@@ -198,7 +198,7 @@ Route::post('jonathan2_update', function(Request $request) {
         }
         else
         {
-            $insert = orders::where('sellOrderId',$record['sellOrderId'])
+            $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])
             ->whereNull('poNumber')
             ->update([
             'poTotalAmount'=>$record['poTotalAmount'],
@@ -230,7 +230,7 @@ Route::post('yaballe_update', function(Request $request) {
         if(empty(trim($record['poNumber'])))
             continue;
 
-        $insert = orders::where('sellOrderId',$record['sellOrderId'])
+        $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])
         ->whereNull('poNumber')
         ->update([
         'poTotalAmount'=>$record['poTotalAmount'],

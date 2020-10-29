@@ -32,6 +32,66 @@ table {
 
 $(document).ready(function(){
    
+
+
+    $('#checkPass').on('show.bs.modal', function(e) {        
+        $('#error').text();
+        var link     = $(e.relatedTarget),
+        id = link.data("id"),
+        account = link.data('account');
+        
+        $('#idTbx').val(id);
+        $('#accountTbx').val(account);
+});
+
+$('#modal-confirm-password').on('click',function(event){            
+           var pass = $('#passTbx').val();           
+           var id = $('#idTbx').val();      
+           var account = $('#accountTbx').val();           
+         
+           $.ajax({
+               
+           type: 'post',
+           url: '/checkAssignPass',
+           data: {
+           'password': pass,
+           'id' : id,
+           'account': account
+           },
+           headers: {
+               'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+           },
+           success: function (data) {
+           console.log(data);
+           if (data == 'success') {
+               $('#checkPass').modal('hide');
+               $('#error').hide();  
+               document.location.reload();                       
+           } 
+           else if(data== 'failure')
+           {
+            $('#error').text('Password is incorrect');                
+            $('#error').show();
+           }
+               
+           else if(data== 'deleteIssue')
+           {
+            $('#error').text('API returned error');                  
+            $('#error').show();
+           }
+            else if(data== 'dbIssue')
+            {
+                $('#error').text('Issue while updating data in local db');                   
+                $('#error').show();
+            }
+           },
+           
+           error: function(XMLHttpRequest, textStatus, errorThrown) {                
+               $('#error').show();
+           }        
+       });
+       })
+
 $( function() {
     debugger;
     var price = <?php echo json_encode($maxPrice); ?>;
@@ -276,13 +336,17 @@ catch{
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
-                                                    @foreach($accounts as $account)
-                                                    @if(empty($route))
-                                                    <a class="dropdown-item" href="/accTransfer/{{$order->id}}/{{$account->id}}">{{$account->name}}</a>
-                                                    @else
-                                                    <a class="dropdown-item" href="/accTransfer/{{$route}}/{{$order->id}}/{{$account->id}}">{{$account->name}}</a>
-                                                    @endif
-                                                    @endforeach                                                   
+                                                    @foreach($accounts as $account)       
+                                                        @if($order->itemcount>1 || $order->lowestPrice==0)                                            
+                                                            <a class="dropdown-item btnTransfer"  data-toggle="modal" data-target="#checkPass"  data-id={{$order->id}} data-account={{$account->id}} href="#">{{$account->name}}</a>
+                                                        @else
+                                                            @if(empty($route))
+                                                            <a class="dropdown-item" href="/accTransfer/{{$order->id}}/{{$account->id}}">{{$account->name}}</a>
+                                                            @else
+                                                            <a class="dropdown-item" href="/accTransfer/{{$route}}/{{$order->id}}/{{$account->id}}">{{$account->name}}</a>
+                                                            @endif
+                                                        @endif
+                                                    @endforeach                                                     
                                                 </div>
                                             </div>
                                         </td>
@@ -328,7 +392,61 @@ catch{
                 </div>
             </div>
         </div>
-            
+
+<!-- Confirm Admin Password -->
+<div class="modal fade" tabindex="-1" role="dialog" id="checkPass">     
+      
+      <div class="modal-dialog" role="document">
+      <div class="alert alert-danger" id="error" style="display:none">
+            Admin Password Is Incorrect
+       </div>
+       
+     
+        <div class="modal-content">
+            <div class="modal-header">
+            <h4 class="modal-title" id="addTitle">@lang('Confirm password to continue with order transfer:')</h4>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              
+         <br/>
+           </div>
+        <div class="modal-body">
+            <input type="hidden" value="" id="idTbx" />
+            <input type="hidden" value="" id="accountTbx" />
+   <form class="form-horizontal" method="post" >
+{{csrf_field()}}
+
+
+
+<div class="row clearfix">
+       <div class="col-sm-3 form-control-label">
+           <label for="email_address_2">@lang('Password:')</label>
+       </div>
+       <div class="col-sm-9">
+           <div class="form-group">
+               <div class="form-line">
+                   <div class="form-line">
+                       <input type="text" class="form-control" id="passTbx" name="category" >                                        
+                   </div>
+                    <div class="errorMsg">{!!$errors->survey_question->first('category');!!}</div>
+               </div>
+           </div>
+       </div>
+</div>
+
+
+
+
+       
+   </form>
+      </div>
+       <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="modal-confirm-password">@lang('Confirm Password')</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">@lang('Close')</button>                            
+           </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+</div>
+<!-- Confirm Admin Password -->
         @include('layouts.footers.auth')
     </div>
 @endsection

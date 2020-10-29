@@ -6,7 +6,7 @@
 <style>
 td,th {
   white-space: normal !important; 
-  word-wrap: break-word;
+  
   padding-left:1rem!important;
   padding-right:1rem!important;  
 }
@@ -28,10 +28,19 @@ table {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.0/jquery-ui.min.js"></script>
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
 <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 <script>
 
 $(document).ready(function(){
-   
+    $(function() {
+  $('input[name="daterange"]').daterangepicker({
+    opens: 'left'
+  }, function(start, end, label) {
+    console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
+  });
+});
 $( function() {
     debugger;
     var price = <?php echo json_encode($maxPrice); ?>;
@@ -59,13 +68,14 @@ try{
     var stateFilter = "<?php echo empty($stateFilter)?"":$stateFilter; ?>";
     var amountFilter = "<?php echo $minAmount; ?>"+" - "+"<?php echo $maxAmount; ?>";    
     var sourceFilter ="<?php echo empty($sourceFilter)?"":$sourceFilter; ?>";
-
+    var daterange = "<?php echo $dateRange; ?>";
 var query = {                
                 storeFilter:storeFilter,
                 marketFilter:marketFilter,
                 stateFilter:stateFilter,
                 amountFilter:amountFilter,
-                sourceFilter:sourceFilter
+                sourceFilter:sourceFilter,
+                daterange:daterange
             }
 
 
@@ -146,7 +156,7 @@ catch{
 
                             <div class="row" style="margin-left:0px!important;">
                         <div class="col-12 text-center" id="filters">
-                        <form action="autoFulfillFilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
+                        <form action="yaballeFilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
                             @csrf
                             <div style="width:100%; padding-bottom:2%;">
                                 <div class="form-group">
@@ -159,7 +169,9 @@ catch{
                                     <option value="3" {{ isset($marketFilter) && $marketFilter=="3"?"selected":"" }}>Walmart</option>                                                                        
                                 </select>
                             </div>
-
+                            <div style="padding-right: 1%; float:right; width=170px; ">                                
+                                    <input class="form-control" type="text" name="daterange" value="{{$dateRange ?? ''}}" />
+                                </div>
 
 
                             <div style="padding-right:1%;">
@@ -218,6 +230,7 @@ catch{
                             <thead class="thead-light">
                                 <tr>
                                     <th scope="col" width="9%">{{ __('Date') }}</th>
+                                    <th scope="col" width="9%">{{ __('Assign Date') }}</th>
                                     <th scope="col" width="9%">{{ __('Marketplace') }}</th>
                                     <th scope="col" width="9%">{{ __('Store Name') }}</th>
                                     <th scope="col" width="9%">{{ __('Sell Order Id') }}</th>
@@ -237,7 +250,12 @@ catch{
                                 @foreach ($orders as $order)
                                     <tr>
                                     
-                                        <td width="9%">{{ $provider::getIranTime(date_format(date_create($order->date), 'm/d/Y H:i:s')) }}</td>                                       
+                                        <td width="9%">{{ $provider::getIranTime(date_format(date_create($order->date), 'm/d/Y H:i:s')) }}</td>
+                                        <td width="9%">
+                                        @if(!empty($order->assignDate))
+                                        {{ $provider::getIranTime(date_format(date_create($order->assignDate), 'm/d/Y H:i:s')) }}
+                                        @endif
+                                        </td>                                                                          
                                         <td width="9%">{{ $order->marketplace }}</td>
                                         <td width="9%">{{ $order->storeName }}</td>
                                         <td width="9%">{{ $order->sellOrderId }}</td>

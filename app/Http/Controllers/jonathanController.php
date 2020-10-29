@@ -113,9 +113,10 @@ class jonathanController extends Controller
         $stateFilter = $request->stateFilter;
         $amountFilter = $request->amountFilter; 
         $sourceFilter = $request->sourceFilter; 
+        $daterange = $request->daterange; 
 
         $filename = date("d-m-Y")."-".time()."-autofulfill-orders.xlsx";
-        return Excel::download(new JonathanExport($storeFilter,$marketFilter,$stateFilter,$amountFilter,$sourceFilter), $filename);
+        return Excel::download(new JonathanExport($storeFilter,$marketFilter,$stateFilter,$amountFilter,$sourceFilter, $daterange,  $daterange), $filename);
     }
 
 
@@ -211,7 +212,13 @@ class jonathanController extends Controller
         if($request->has('sourceFilter'))
             $sourceFilter = $request->get('sourceFilter');
         //now show orders
+        if($request->has('daterange'))
+        $dateRange = $request->get('daterange');  
 
+        $startDate = explode('-',$dateRange)[0];
+            $from = date("Y-m-d", strtotime($startDate));  
+        $endDate = explode('-',$dateRange)[1];
+            $to = date("Y-m-d", strtotime($endDate)); 
 
         $minAmount = trim(explode('-',$amountFilter)[0]);
         $maxAmount = trim(explode('-',$amountFilter)[1]);
@@ -248,7 +255,11 @@ class jonathanController extends Controller
                 $orders = $orders->whereNotNull('ebay_products.sku');                                
         }
 
-
+        if(!empty($startDate)&& !empty($endDate))
+        {
+            $orders = $orders->whereBetween('assignDate', [$from.' 00:00:00', $to.' 23:59:59']);
+        }
+    
         
         $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',$minAmount);
         $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$maxAmount);
@@ -259,7 +270,7 @@ class jonathanController extends Controller
         }
                 
         if(auth()->user()->role==1)
-            $orders = $orders->where('flag','9')->where('status','unshipped')->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
+            $orders = $orders->where('flag','9')->where('status','unshipped')->orderBy('assignDate', 'ASC')->groupby('orders.id')->paginate(100);
         elseif(auth()->user()->role==2)
         {
             $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
@@ -270,11 +281,11 @@ class jonathanController extends Controller
                     $strArray[]= $str->store;
                 }
                 
-                $orders = $orders->where('flag','9')->where('status','unshipped')->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
+                $orders = $orders->where('flag','9')->where('status','unshipped')->whereIn('storeName',$strArray)->orderBy('assignDate', 'ASC')->paginate(100);
         }
             
         else
-            $orders = $orders->where('flag','9')->where('status','unshipped')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
+            $orders = $orders->where('flag','9')->where('status','unshipped')->where('uid',auth()->user()->id)->orderBy('assignDate', 'ASC')->groupby('orders.id')->paginate(100);
         
         $orders = $orders->appends('storeFilter',$storeFilter)->appends('stateFilter',$stateFilter)->appends('marketFilter',$marketFilter)->appends('amountFilter',$amountFilter)->appends('sourceFilter',$sourceFilter);
 
@@ -322,7 +333,10 @@ class jonathanController extends Controller
                 }
         }     
         $flags= flags::all();
-        return view('jonathan.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
+
+       
+        
+        return view('jonathan.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','dateRange'));
     }
 
     public function getTotalShipping($id)
@@ -350,7 +364,7 @@ class jonathanController extends Controller
     {  
             if(auth()->user()->role==1)
             {
-                $orders = orders::select()->where('status','unshipped')->orderBy('date', 'ASC')->where('flag','9')->paginate(100);
+                $orders = orders::select()->where('status','unshipped')->orderBy('assignDate', 'ASC')->where('flag','9')->paginate(100);
             }
     
             elseif(auth()->user()->role==2)
@@ -364,7 +378,7 @@ class jonathanController extends Controller
                     $strArray[]= $str->store;
                 }
                 
-                $orders = orders::select()->where('status','unshipped')->whereIn('storeName',$strArray)->where('flag','9')->orderBy('date', 'ASC')->paginate(100);
+                $orders = orders::select()->where('status','unshipped')->whereIn('storeName',$strArray)->where('flag','9')->orderBy('assignDate', 'ASC')->paginate(100);
                 
             }
         
@@ -374,7 +388,7 @@ class jonathanController extends Controller
                 ->where('status','unshipped')
                 ->where('flag','9')
                 ->where('uid',auth()->user()->id)
-                ->orderBy('date', 'ASC')
+                ->orderBy('assignDate', 'ASC')
                 ->paginate(100);
             }
 
@@ -421,7 +435,15 @@ class jonathanController extends Controller
                 }
         }
         $flags= flags::all();
-        return view('jonathan.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice'));
+
+        $startDate = orders::where('status','unshipped')->where('flag','9')->min('assignDate');
+        $endDate = orders::where('status','unshipped')->where('flag','9')->max('assignDate');
+
+        $from = date("m/d/Y", strtotime($startDate));  
+        $to = date("m/d/Y", strtotime($endDate));  
+        $dateRange = $from .' - ' .$to;
+
+        return view('jonathan.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','dateRange'));
     }
 
 
@@ -780,7 +802,7 @@ class jonathanController extends Controller
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
                 })                
-                ->orderBy('date', 'ASC')->paginate(100);
+                ->orderBy('assignDate', 'ASC')->paginate(100);
             }
     
             elseif(auth()->user()->role==2)
@@ -799,7 +821,7 @@ class jonathanController extends Controller
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
                 })                
-                ->orderBy('date', 'ASC')->paginate(100);
+                ->orderBy('assignDate', 'ASC')->paginate(100);
                 
             }
 
@@ -810,7 +832,7 @@ class jonathanController extends Controller
                 $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                 $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
             })                
-            ->orderBy('date', 'ASC')->paginate(100);
+            ->orderBy('assignDate', 'ASC')->paginate(100);
             }
 
 
@@ -860,7 +882,13 @@ class jonathanController extends Controller
                 }
                 $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
                 $flags= flags::all();
-                return view('jonathan.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','search','route'));
+                $startDate = orders::where('status','unshipped')->where('flag','9')->min('assignDate');
+                $endDate = orders::where('status','unshipped')->where('flag','9')->max('assignDate');
+
+                $from = date("m/d/Y", strtotime($startDate));  
+                $to = date("m/d/Y", strtotime($endDate));  
+                $dateRange = $from .' - ' .$to;
+                return view('jonathan.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','search','route','dateRange'));
             
         }
 

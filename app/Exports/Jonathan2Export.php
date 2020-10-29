@@ -21,15 +21,17 @@ class Jonathan2Export implements WithColumnFormatting,FromCollection,WithHeading
     protected $stateFilter; 
     protected $amountFilter; 
     protected $sourceFilter; 
+    protected $daterange;
 
 
-    public function __construct($storeFilter,$marketFilter,$stateFilter, $amountFilter, $sourceFilter)
+    public function __construct($storeFilter,$marketFilter,$stateFilter, $amountFilter, $sourceFilter, $daterange)
     {
         $this->storeFilter = $storeFilter;
         $this->marketFilter = $marketFilter;
         $this->stateFilter = $stateFilter;
         $this->amountFilter = $amountFilter;
         $this->sourceFilter = $sourceFilter;
+        $this->daterange = $daterange; 
     }
 
     public function collection()
@@ -40,6 +42,12 @@ class Jonathan2Export implements WithColumnFormatting,FromCollection,WithHeading
         $stateFilter = $this->stateFilter;
         $amountFilter = $this->amountFilter;
         $sourceFilter = $this->sourceFilter;
+        $dateRange =  $this->daterange;  
+
+        $startDate = explode('-',$dateRange)[0];
+            $from = date("Y-m-d", strtotime($startDate));  
+        $endDate = explode('-',$dateRange)[1];
+            $to = date("Y-m-d", strtotime($endDate)); 
 
         $minAmount = trim(explode('-',$amountFilter)[0]);
         $maxAmount = trim(explode('-',$amountFilter)[1]);
@@ -80,6 +88,10 @@ class Jonathan2Export implements WithColumnFormatting,FromCollection,WithHeading
                 $orders = $orders->whereNotNull('ebay_products.sku');                                
         }
 
+        if(!empty($startDate)&& !empty($endDate))
+        {
+            $orders = $orders->whereBetween('assignDate', [$from.' 00:00:00', $to.' 23:59:59']);
+        }
 
         
         if(!empty($stateFilter)&& $stateFilter !='0')

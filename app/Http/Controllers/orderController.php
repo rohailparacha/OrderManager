@@ -748,6 +748,7 @@ class orderController extends Controller
         {
             
             $order->shippingPrice = $this->getTotalShipping($order->id);
+            $order->itemcount = $this->getCount($order->id);
             
 
             $sources = array();
@@ -976,7 +977,7 @@ class orderController extends Controller
         {
             
             $order->shippingPrice = $this->getTotalShipping($order->id);
-            
+            $order->itemcount = $this->getCount($order->id);
 
             $sources = array();
                 $order_details = order_details::where('order_id',$order->id)->get(); 
@@ -1406,6 +1407,7 @@ class orderController extends Controller
                 foreach($orders as $order)
                 {
                     $order->shippingPrice = $this->getTotalShipping($order->id);
+                    $order->itemcount = $this->getCount($order->id);
                     $sources = array();
                         $order_details = order_details::where('order_id',$order->id)->get(); 
                         if(empty($order_details))
@@ -2593,6 +2595,8 @@ class orderController extends Controller
             return "failure";
         
     }
+
+    
     public function checkResetPass(Request $request)
     {
         $password = $request->password; 
@@ -2601,6 +2605,25 @@ class orderController extends Controller
         if($password=='umair')            
         {
             $this->reset($id);
+            return "success";
+        }
+
+        else
+            return "failure";
+        
+    }
+
+    public function checkAssignPass(Request $request)
+    {
+        $password = $request->password; 
+        
+        $id = $request->id;
+        
+        $account = $request->account;
+
+        if($password=='umair')            
+        {
+            $this->accTransfer($id, $account);            
             return "success";
         }
 
@@ -3677,15 +3700,20 @@ class orderController extends Controller
         
         $details = order_details::where('order_id',$order->id)->selectRaw("*, SUM(quantity) as total_quantity")->groupBy('SKU')->get();
         
-        if(count($details)==1)
-        {
-            $orders= orders::where('id',$id)->update(['flag'=>$flagId]);
-
-            $tempOrder = array();
-
-            $tempOrder["itemLink"] = "https://www.amazon.com/gp/offer-listing/".$details[0]->SKU;
+        $dt = Carbon::now();            
+                
+        $orders= orders::where('id',$id)->update(['flag'=>$flagId, 'assignDate'=>$dt]);
             
-            $tempOrder["ASIN"] = $details[0]->SKU;        
+        $counter=0;
+        foreach($details as $det)
+        {
+            $counter++;
+        
+            $tempOrder = array();
+            
+            $tempOrder["itemLink"] = "https://www.amazon.com/gp/offer-listing/".$det->SKU;
+        
+            $tempOrder["ASIN"] = $det->SKU;        
             
             $tempOrder["qty"] =   $order->quantity;
             $tempOrder["date"] =    $order->date;
@@ -3693,11 +3721,10 @@ class orderController extends Controller
             $tempOrder["country"] =    $order->country;
             $dt = Carbon::now();
             $tempOrder['uploadDate'] = $dt->format('m/d/Y');                    
-            
-            
-            $product = products::where('asin',$details[0]->SKU)->get()->first();
+
+            $product = products::where('asin',$det->SKU)->get()->first();
         
-           
+            
             $tempOrder["maxPrice"] =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$setting->maxPrice/100) ;
             
             $tempOrder["maxPrice"] = number_format((float) $tempOrder["maxPrice"], 2, '.', '');
@@ -3734,22 +3761,19 @@ class orderController extends Controller
             
             $tempOrder["storeName"] = $order->storeName;
     
-            $tempOrder["referenceNumber"] =  $order->sellOrderId;
-                   
+            $tempOrder["referenceNumber"] =  $order->sellOrderId."--".$counter;
+                    
             $fulfillmentOrders[]=$tempOrder;
-    
-            $sendOrders['data'] = $fulfillmentOrders;
-            
-            $endPoint = env(strtoupper($setting->name).'_TOKEN', '');
+        }                
 
-            $this->sendToGoogle($endPoint, $sendOrders);
-
-            Session::flash('success_msg', __('Order '.$order->sellOrderId.' Moved To '. $setting->name.' Successfully'));
-        }    
+        $sendOrders['data'] = $fulfillmentOrders;
         
-        else
-            Session::flash('error_msg', __('Order cannot be moved since it has more than 1 type of sku in details'));
+        $endPoint = env(strtoupper($setting->name).'_TOKEN', '');
 
+        $this->sendToGoogle($endPoint, $sendOrders);
+
+        Session::flash('success_msg', __('Order '.$order->sellOrderId.' Moved To '. $setting->name.' Successfully'));
+    
         return redirect()->back();        
     }
 
@@ -3767,15 +3791,20 @@ class orderController extends Controller
         
         $details = order_details::where('order_id',$order->id)->selectRaw("*, SUM(quantity) as total_quantity")->groupBy('SKU')->get();
         
-        if(count($details)==1)
+        $dt = Carbon::now();            
+                
+        $orders= orders::where('id',$id)->update(['flag'=>$flagId, 'assignDate'=>$dt]);
+            
+        $counter=0;
+        foreach($details as $det)
         {
-            $orders= orders::where('id',$id)->update(['flag'=>$flagId]);
-            
+            $counter++;
+        
             $tempOrder = array();
-
-            $tempOrder["itemLink"] = "https://www.amazon.com/gp/offer-listing/".$details[0]->SKU;
             
-            $tempOrder["ASIN"] = $details[0]->SKU;        
+            $tempOrder["itemLink"] = "https://www.amazon.com/gp/offer-listing/".$det->SKU;
+        
+            $tempOrder["ASIN"] = $det->SKU;        
             
             $tempOrder["qty"] =   $order->quantity;
             $tempOrder["date"] =    $order->date;
@@ -3783,12 +3812,11 @@ class orderController extends Controller
             $tempOrder["country"] =    $order->country;
             $dt = Carbon::now();
             $tempOrder['uploadDate'] = $dt->format('m/d/Y');                    
-            
-            
-            $product = products::where('asin',$details[0]->SKU)->get()->first();
+
+            $product = products::where('asin',$det->SKU)->get()->first();
         
-           
-            $tempOrder["maxPrice"] =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$setting->maxPrice/100) ; 
+            
+            $tempOrder["maxPrice"] =  empty($product->lowestPrice)?0:$product->lowestPrice * (1 +$setting->maxPrice/100) ;
             
             $tempOrder["maxPrice"] = number_format((float) $tempOrder["maxPrice"], 2, '.', '');
     
@@ -3824,22 +3852,19 @@ class orderController extends Controller
             
             $tempOrder["storeName"] = $order->storeName;
     
-            $tempOrder["referenceNumber"] =  $order->sellOrderId;
-                   
+            $tempOrder["referenceNumber"] =  $order->sellOrderId."--".$counter;
+                    
             $fulfillmentOrders[]=$tempOrder;
-    
-            $sendOrders['data'] = $fulfillmentOrders;
-            
-            $endPoint = env(strtoupper($setting->name).'_TOKEN', '');
+        }        
 
-            $this->sendToGoogle($endPoint, $sendOrders);
-
-            Session::flash('success_msg', __('Order '.$order->sellOrderId.' Moved To '. $setting->name.' Successfully'));
-        }    
+        $sendOrders['data'] = $fulfillmentOrders;
         
-        else
-            Session::flash('error_msg', __('Order cannot be moved since it has more than 1 type of sku in details'));
+        $endPoint = env(strtoupper($setting->name).'_TOKEN', '');
 
+        $this->sendToGoogle($endPoint, $sendOrders);
+
+        Session::flash('success_msg', __('Order '.$order->sellOrderId.' Moved To '. $setting->name.' Successfully'));
+    
         return redirect()->route($route);        
     }
     
@@ -3880,6 +3905,12 @@ class orderController extends Controller
 
         return redirect()->back();
 
+    }
+    
+    public function getCount($id)
+    {
+        $details = order_details::where('order_id',$id)->selectRaw("*, SUM(quantity) as total_quantity")->groupBy('SKU')->get();
+        return count($details);
     }
 
     public function newOrders()
@@ -3939,6 +3970,7 @@ class orderController extends Controller
         foreach($orders as $order)
         {
             $order->shippingPrice = $this->getTotalShipping($order->id);
+            $order->itemcount = $this->getCount($order->id);
             $sources = array();
                 $order_details = order_details::where('order_id',$order->id)->get(); 
                 if(empty($order_details))
@@ -4093,6 +4125,7 @@ class orderController extends Controller
         {
             
             $order->shippingPrice = $this->getTotalShipping($order->id);
+            $order->itemcount = $this->getCount($order->id);
             $sources = array();
                 $order_details = order_details::where('order_id',$order->id)->get(); 
                 if(empty($order_details))
