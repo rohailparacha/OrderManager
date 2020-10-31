@@ -202,7 +202,7 @@ catch{
                             @csrf
                             <div style="width:100%; padding-bottom:2%;">
                                 <div class="form-group">
-                                <input type="hidden" value="multi" name="price2">
+                                <input type="hidden" value="price2" name="page">
                                 <div style="padding-right:1%;">
                                 <select class="form-control" name="marketFilter" style="margin-right:0%;width:180px;">
                                     <option value="0">Marketplaces</option>

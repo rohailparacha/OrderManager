@@ -981,6 +981,8 @@ $statecheck = $settings->statesCheck;
    
     public function filter(Request $request)
     {        
+        $price1 = order_settings::get()->first()->price1; 
+        $price2 = order_settings::get()->first()->price2; 
 
         $storeFilter = '';
         $marketFilter = '';
@@ -1189,7 +1191,7 @@ $statecheck = $settings->statesCheck;
         $accounts = settings::where('listCheck',true)->get();
         
         $settings = settings::where('name','jonathan')->get()->first();    
-$statecheck = $settings->statesCheck;
+        $statecheck = $settings->statesCheck;
         $disabledStates = json_decode($settings->states);
 
         return view("orders.$page",compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','accounts','route','statecheck','disabledStates'));
@@ -1197,6 +1199,9 @@ $statecheck = $settings->statesCheck;
 
     public function search(Request $request)
     {        
+        $price1 = order_settings::get()->first()->price1; 
+        $price2 = order_settings::get()->first()->price2; 
+        
         $query = $request->searchQuery;
         $route = $request->route; 
         

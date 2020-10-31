@@ -13,6 +13,13 @@
 input[type="checkbox"][readonly] {
   pointer-events: none;
 }
+
+.multiselect.dropdown-toggle.btn.btn-default {
+    margin-right: 5px;
+    min-width: 400px;
+    max-width: 400px;
+    overflow: hidden;
+}
 </style>
 <script>
 $(document).ready(function() {
@@ -95,7 +102,7 @@ $('#pages').multiselect({
                                 <div class="col-sm-6 form-group">
                                     <div class="i-checks">
                                         <label class="control-label"> 
-                                        <select class="form-control" name="states[]" id="pages"  multiple="multiple">                                                                                    
+                                        <select class="form-control" name="states[]" id="pages"  multiple="multiple" style="width:1000px!important">                                                                                    
                                             @foreach($states as $state)
                                                     <option value={{$state->code}} {{ isset($state->code) && in_array($state->code, json_decode($settings->states))?"selected":"" }}>{{$state->code}} - {{$state->name}}</option>
                                             @endforeach                                                                                                                                   
