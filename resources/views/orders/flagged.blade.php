@@ -119,6 +119,7 @@ try{
     var stateFilter = "<?php echo empty($stateFilter)?"":$stateFilter; ?>";
     var amountFilter = "<?php echo $minAmount; ?>"+" - "+"<?php echo $maxAmount; ?>";    
     var sourceFilter ="<?php echo empty($sourceFilter)?"":$sourceFilter; ?>";
+    var flagFilter ="<?php echo empty($flagFilter)?"":$flagFilter; ?>";
 
 var query = {                
                 storeFilter:storeFilter,
@@ -126,6 +127,7 @@ var query = {
                 stateFilter:stateFilter,
                 amountFilter:amountFilter,
                 sourceFilter:sourceFilter,
+                flagFilter:flagFilter,
                 route:'flagged'
             }
 
@@ -228,6 +230,15 @@ catch{
                                     <option value="0">State Name</option>
                                     @foreach($states as $state)
                                         <option value='{{$state->code}}' {{ isset($stateFilter) && $state->code == $stateFilter?"selected":"" }}>{{$state->name}} - {{$state->code}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div style="padding-right:1%;">
+                                <select class="form-control" name="flagFilter" style="margin-right:0%;width:180px;">
+                                    <option value="0">Select Flag</option>
+                                    @foreach($flags as $flag)
+                                        <option value='{{$flag->id}}' {{ isset($flagFilter) && $flag->id == $flagFilter?"selected":"" }}>{{$flag->name}}</option>
                                     @endforeach
                                 </select>
                             </div>

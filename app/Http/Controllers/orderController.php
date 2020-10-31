@@ -404,10 +404,13 @@ class orderController extends Controller
         $stateFilter = $request->stateFilter;
         $amountFilter = $request->amountFilter; 
         $sourceFilter = $request->sourceFilter; 
+        $flagFilter = $request->flagFilter; 
+        if(empty($flagFilter))
+            $flagFilter='';
         $route = $request->route;
 
         $filename = date("d-m-Y")."-".time()."-orders.xlsx";
-        return Excel::download(new OrdersExport($storeFilter,$marketFilter,$stateFilter,$amountFilter,$sourceFilter, $route), $filename);
+        return Excel::download(new OrdersExport($storeFilter,$marketFilter,$stateFilter,$amountFilter,$sourceFilter,$flagFilter, $route), $filename);
     }
 
   
@@ -898,6 +901,8 @@ class orderController extends Controller
             $amountFilter = $request->get('amountFilter');
         if($request->has('sourceFilter'))
             $sourceFilter = $request->get('sourceFilter');
+        if($request->has('flagFilter'))
+            $flagFilter = $request->get('flagFilter');
         
 
 
@@ -936,12 +941,18 @@ class orderController extends Controller
                 $orders = $orders->whereNotNull('ebay_products.sku');                                
         }
 
+
         $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',$minAmount);
         $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$maxAmount);
 
         if(!empty($stateFilter)&& $stateFilter !='0')
         {           
             $orders = $orders->where('state',$stateFilter);
+        }
+
+        if(!empty($flagFilter)&& $flagFilter !='0')
+        {           
+            $orders = $orders->where('flag',$flagFilter);
         }
                 
         if(auth()->user()->role==1)
@@ -970,7 +981,7 @@ class orderController extends Controller
             ->groupBy('orders.id')            
             ->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
         
-        $orders = $orders->appends('storeFilter',$storeFilter)->appends('stateFilter',$stateFilter)->appends('marketFilter',$marketFilter)->appends('amountFilter',$amountFilter)->appends('sourceFilter',$sourceFilter);
+        $orders = $orders->appends('storeFilter',$storeFilter)->appends('stateFilter',$stateFilter)->appends('marketFilter',$marketFilter)->appends('amountFilter',$amountFilter)->appends('sourceFilter',$sourceFilter)->appends('flagFilter',$flagFilter);
 
         
         $stores = accounts::select(['id','store'])->get();
@@ -1021,7 +1032,7 @@ class orderController extends Controller
         $settings = settings::where('name','jonathan')->get()->first();    
         $statecheck = $settings->statesCheck;
         $disabledStates = json_decode($settings->states);
-        return view('orders.flagged',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','accounts','route','statecheck','disabledStates'));
+        return view('orders.flagged',compact('flags','orders','flagFilter','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','accounts','route','statecheck','disabledStates'));
     }
 
     public function filterExpensive(Request $request)
@@ -1037,6 +1048,8 @@ class orderController extends Controller
             $amountFilter = $request->get('amountFilter');
         if($request->has('sourceFilter'))
             $sourceFilter = $request->get('sourceFilter');
+        if($request->has('flagFilter'))
+            $flagFilter = $request->get('flagFilter');
         
 
 
@@ -1082,6 +1095,13 @@ class orderController extends Controller
         {           
             $orders = $orders->where('state',$stateFilter);
         }
+
+        if(!empty($flagFilter)&& $flagFilter !='0')
+        {           
+            $orders = $orders->where('flag',$flagFilter);
+        }
+
+
                 
         if(auth()->user()->role==1)
             $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '17')->where('flag', '!=' , '10')
@@ -1115,7 +1135,7 @@ class orderController extends Controller
             ->where('flag','0')
             ->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
         
-        $orders = $orders->appends('storeFilter',$storeFilter)->appends('stateFilter',$stateFilter)->appends('marketFilter',$marketFilter)->appends('amountFilter',$amountFilter)->appends('sourceFilter',$sourceFilter);
+        $orders = $orders->appends('storeFilter',$storeFilter)->appends('stateFilter',$stateFilter)->appends('marketFilter',$marketFilter)->appends('amountFilter',$amountFilter)->appends('sourceFilter',$sourceFilter)->appends('flagFilter',$flagFilter);
 
         
         $stores = accounts::select(['id','store'])->get();
@@ -1161,7 +1181,7 @@ class orderController extends Controller
                 }
         }     
         $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get(); 
-        return view('orders.expensive',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
+        return view('orders.expensive',compact('flags','orders','flagFilter','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
     }
 
     public function assignFilter(Request $request)

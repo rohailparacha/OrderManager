@@ -24,16 +24,18 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
     protected $stateFilter; 
     protected $amountFilter; 
     protected $sourceFilter; 
+    protected $flagFilter;
     protected $route; 
 
 
-    public function __construct($storeFilter,$marketFilter,$stateFilter, $amountFilter, $sourceFilter, $route)
+    public function __construct($storeFilter,$marketFilter,$stateFilter, $amountFilter, $sourceFilter,$flagFilter, $route)
     {
         $this->storeFilter = $storeFilter;
         $this->marketFilter = $marketFilter;
         $this->stateFilter = $stateFilter;
         $this->amountFilter = $amountFilter;
         $this->sourceFilter = $sourceFilter;
+        $this->flagFilter = $flagFilter;
         $this->route = $route; 
     }
 
@@ -45,6 +47,7 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
         $stateFilter = $this->stateFilter;
         $amountFilter = $this->amountFilter;
         $sourceFilter = $this->sourceFilter;
+        $flagFilter = $this->flagFilter;
         $route = $this->route; 
 
         $minAmount = trim(explode('-',$amountFilter)[0]);
@@ -66,7 +69,14 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
         if($route == 'new')
             $orders = $orders->where('flag','0');
         elseif($route=='flagged')
+        {
             $orders = $orders->where('flag','!=','0');
+            if(!empty($flagFilter)&& $flagFilter !='0')
+            {           
+                $orders = $orders->where('flag',$flagFilter);
+            }
+        }
+            
         elseif($route =='multi')
             $orders = $orders->having(DB::raw("COUNT(DISTINCT order_details.SKU)"),'>','1');
         elseif($route=='price1')
