@@ -332,11 +332,11 @@ class jonathanController extends Controller
                         $order->source = 'Mix';
                 }
         }     
-        $flags= flags::all();
+        $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();
 
        
-        
-        return view('jonathan.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','dateRange'));
+        $route = 'jonathannew';
+        return view('jonathan.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','dateRange','route'));        
     }
 
     public function getTotalShipping($id)
@@ -434,7 +434,7 @@ class jonathanController extends Controller
                         $order->source = 'Mix';
                 }
         }
-        $flags= flags::all();
+        $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();
 
         $startDate = orders::where('status','unshipped')->where('flag','9')->min('assignDate');
         $endDate = orders::where('status','unshipped')->where('flag','9')->max('assignDate');
@@ -679,6 +679,13 @@ class jonathanController extends Controller
         
     }
 
+    public function stateSettings()
+    {
+        $states = states::all();  
+        $settings = settings::where('name','jonathan')->get()->first();    
+        return view('orders.stateSettings',compact('settings','states'));
+    }
+
     public function storeSettings(Request $request)
     {
         $pricecheck = false;
@@ -784,6 +791,32 @@ class jonathanController extends Controller
 
     }
 
+    public function storeStateSettings(Request $request){
+        $statecheck = false;
+        $states=array();
+
+        $switch = $request->switch; 
+        
+        if(!empty($request->states) && count($request->states)>0)
+            $states = $request->states;
+
+        if($switch=='Disable')
+            $enabled = 1;
+        else
+            $enabled = 0;
+        
+
+        $settings = settings::whereIn('name',['jonathan','jonathan2'])->get()->first();
+
+        if(empty($settings))
+            settings::insert(['states'=>json_encode($states),'statesCheck'=>$enabled]);
+        else
+            settings::whereIn('name',['jonathan','jonathan2'])->update(['states'=>json_encode($states),'statesCheck'=>$enabled]);
+
+        Session::flash('success_msg', __('Settings successfully updated'));
+        return redirect()->route('stateSettings');
+
+    }
     public function search(Request $request)
     {
         $query = $request->searchQuery;
@@ -881,7 +914,7 @@ class jonathanController extends Controller
                         }
                 }
                 $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-                $flags= flags::all();
+                $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();
                 $startDate = orders::where('status','unshipped')->where('flag','9')->min('assignDate');
                 $endDate = orders::where('status','unshipped')->where('flag','9')->max('assignDate');
 

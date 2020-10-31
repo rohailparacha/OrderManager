@@ -339,8 +339,9 @@ class yaballeController extends Controller
                         $order->source = 'Mix';
                 }
         }     
-        $flags= flags::all();
-        return view('yaballe.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','dateRange'));
+        $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
+        $route = 'yaballenew';
+        return view('yaballe.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','dateRange','route'));
     }
 
     public function getTotalShipping($id)
@@ -438,7 +439,7 @@ class yaballeController extends Controller
                         $order->source = 'Mix';
                 }
         }
-        $flags= flags::all();
+        $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
         $startDate = orders::where('status','unshipped')->where('flag','17')->min('assignDate');
         $endDate = orders::where('status','unshipped')->where('flag','17')->max('assignDate');
 
@@ -906,7 +907,7 @@ class yaballeController extends Controller
                         }
                 }
                 $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-                $flags= flags::all();
+                $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
                 $startDate = orders::where('status','unshipped')->where('flag','17')->min('assignDate');
                 $endDate = orders::where('status','unshipped')->where('flag','17')->max('assignDate');
 

@@ -165,7 +165,10 @@ class newOrdersController extends Controller
         $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get(); 
         
         $accounts = settings::where('listCheck',true)->get();
-        return view('orders.multi',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts'));
+        $settings = settings::where('name','jonathan')->get()->first();    
+        $statecheck = $settings->statesCheck;
+        $disabledStates = json_decode($settings->states);
+        return view('orders.multi',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts','statecheck','disabledStates'));
     }
 
     public function newOrdersZero()
@@ -263,7 +266,10 @@ class newOrdersController extends Controller
             
         $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
         $accounts = settings::where('listCheck',true)->get();
-        return view('orders.zero',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts'));
+        $settings = settings::where('name','jonathan')->get()->first();    
+$statecheck = $settings->statesCheck;
+        $disabledStates = json_decode($settings->states);
+        return view('orders.zero',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts','statecheck','disabledStates'));
     }
 
     public function newOrdersMovie()
@@ -361,7 +367,10 @@ class newOrdersController extends Controller
             
         $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
         $accounts = settings::where('listCheck',true)->get();
-        return view('orders.movie',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts'));
+        $settings = settings::where('name','jonathan')->get()->first();    
+$statecheck = $settings->statesCheck;
+        $disabledStates = json_decode($settings->states);
+        return view('orders.movie',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts','statecheck','disabledStates'));
     }
 
     public function newOrdersFood()
@@ -459,7 +468,10 @@ class newOrdersController extends Controller
             
         $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
         $accounts = settings::where('listCheck',true)->get();
-        return view('orders.food',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts'));
+        $settings = settings::where('name','jonathan')->get()->first();    
+$statecheck = $settings->statesCheck;
+        $disabledStates = json_decode($settings->states);
+        return view('orders.food',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts','statecheck','disabledStates'));
     }
 
     public function settings()
@@ -606,7 +618,10 @@ class newOrdersController extends Controller
             
         $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
         $accounts = settings::where('listCheck',true)->get();
-        return view('orders.price1',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts'));
+        $settings = settings::where('name','jonathan')->get()->first();    
+$statecheck = $settings->statesCheck;
+        $disabledStates = json_decode($settings->states);
+        return view('orders.price1',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts','statecheck','disabledStates'));
     }
     public function newOrdersPrice2()
     {              
@@ -708,8 +723,12 @@ class newOrdersController extends Controller
         }
             
         $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
-        $accounts = settings::where('listCheck',true)->get();
-        return view('orders.price2',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts'));
+        $accounts = settings::where('listCheck',true)->get();  
+        $settings = settings::where('name','jonathan')->get()->first();    
+$statecheck = $settings->statesCheck;
+        $disabledStates = json_decode($settings->states);
+
+        return view('orders.price2',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts','statecheck','disabledStates'));
     }
     public function newOrdersExpensive()
     {                      
@@ -808,7 +827,10 @@ class newOrdersController extends Controller
             
         $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
         $accounts = settings::where('listCheck',true)->get();
-        return view('orders.expensive',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts'));
+        $settings = settings::where('name','jonathan')->get()->first();    
+$statecheck = $settings->statesCheck;
+        $disabledStates = json_decode($settings->states);
+        return view('orders.expensive',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts','statecheck','disabledStates'));
     }
    
 
@@ -1166,9 +1188,11 @@ class newOrdersController extends Controller
         
         $accounts = settings::where('listCheck',true)->get();
         
-        
+        $settings = settings::where('name','jonathan')->get()->first();    
+$statecheck = $settings->statesCheck;
+        $disabledStates = json_decode($settings->states);
 
-        return view("orders.$page",compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','accounts','route'));
+        return view("orders.$page",compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','accounts','route','statecheck','disabledStates'));
     }
 
     public function search(Request $request)
@@ -1306,7 +1330,10 @@ class newOrdersController extends Controller
         $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
         $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get(); 
         $accounts = settings::where('listCheck',true)->get();
-        return view('orders.'.$page,compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','search','route','accounts'));
+        $settings = settings::where('name','jonathan')->get()->first();    
+$statecheck = $settings->statesCheck;
+        $disabledStates = json_decode($settings->states);
+        return view('orders.'.$page,compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','search','route','accounts','statecheck','disabledStates'));
             
         
     }

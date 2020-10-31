@@ -337,7 +337,7 @@ catch{
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
                                                     @foreach($accounts as $account)       
-                                                        @if($order->itemcount>1 || $order->lowestPrice==0)                                            
+                                                        @if($order->itemcount>1 || $order->lowestPrice==0 || (in_array($order->state,$disabledStates) && $statecheck && ($account->name=='jonathan' ||$account->name=='jonathan2')))                                       
                                                             <a class="dropdown-item btnTransfer"  data-toggle="modal" data-target="#checkPass"  data-id={{$order->id}} data-account={{$account->id}} href="#">{{$account->name}}</a>
                                                         @else
                                                             @if(empty($route))

@@ -598,6 +598,12 @@
                             </li>
 
                             <li class="nav-item">
+                            <a class="nav-link" href="{{ route('stateSettings') }}">
+                                {{ __('States Disable For Sheet') }}
+                            </a>
+                            </li>
+
+                            <li class="nav-item">
                                 <a class="nav-link" href="{{ route('carriers') }}">
                                    {{ __('Carriers') }}
                                 </a>

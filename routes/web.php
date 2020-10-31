@@ -372,6 +372,8 @@ Route::group(['middleware' => 'auth'], function () {
 	//jonathan auto fulfillment settings
 	Route::get('/jonathanSetting', 'jonathanController@index')->name('jonathanSetting');
 	Route::post('/jonathanStoreSettings', 'jonathanController@storeSettings')->name('jonathanStoreSettings');
+	Route::get('/stateSettings', 'jonathanController@stateSettings')->name('stateSettings');
+	Route::post('/storeStateSettings', 'jonathanController@storeStateSettings')->name('storeStateSettings');
 	Route::any('/jonathanOrderFulfillmentExport', 'jonathanController@export')->name('jonathanOrderFulfillmentExport');
 	Route::delete('jonathanDeleteCancelled/{id}','jonathanController@deleteCancelled')->name('jonathanDeleteCancelled')->middleware('admin');	
 	Route::delete('jonathanDeleteConversion/{id}','jonathanController@deleteConversion')->name('jonathanDeleteConversion')->middleware('admin');	

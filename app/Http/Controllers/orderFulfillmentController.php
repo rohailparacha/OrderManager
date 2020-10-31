@@ -332,8 +332,11 @@ class orderFulfillmentController extends Controller
                         $order->source = 'Mix';
                 }
         }     
-        $flags= flags::all();
-        return view('cindy.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','dateRange'));
+        $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();
+
+        $route = 'cindynew';
+        return view('cindy.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','dateRange','route'));        
+                
     }
 
     public function getTotalShipping($id)
@@ -431,7 +434,7 @@ class orderFulfillmentController extends Controller
                         $order->source = 'Mix';
                 }
         }
-        $flags= flags::all();
+        $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();
         $startDate = orders::where('status','unshipped')->where('flag','8')->min('assignDate');
         $endDate = orders::where('status','unshipped')->where('flag','8')->max('assignDate');
 
@@ -878,7 +881,7 @@ class orderFulfillmentController extends Controller
                         }
                 }
                 $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-                $flags= flags::all();
+                $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();
                 $startDate = orders::where('status','unshipped')->where('flag','8')->min('assignDate');
                 $endDate = orders::where('status','unshipped')->where('flag','8')->max('assignDate');
 

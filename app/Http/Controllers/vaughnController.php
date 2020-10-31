@@ -328,8 +328,11 @@ class vaughnController extends Controller
                 }
         }     
         
-        $flags= flags::all();
-        return view('vaughn.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','dateRange'));
+        $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();
+
+        $route = 'vaughnnew';
+        return view('vaughn.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','dateRange','route'));        
+        
     }
 
     public function getTotalShipping($id)
@@ -427,7 +430,7 @@ class vaughnController extends Controller
                         $order->source = 'Mix';
                 }
         }
-        $flags= flags::all();
+        $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();
         $startDate = orders::where('status','unshipped')->where('flag','10')->min('assignDate');
         $endDate = orders::where('status','unshipped')->where('flag','10')->max('assignDate');
 
@@ -874,7 +877,7 @@ class vaughnController extends Controller
                         }
                 }
                 $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-                $flags= flags::all();
+                $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();
                 $startDate = orders::where('status','unshipped')->where('flag','10')->min('assignDate');
                 $endDate = orders::where('status','unshipped')->where('flag','10')->max('assignDate');
 

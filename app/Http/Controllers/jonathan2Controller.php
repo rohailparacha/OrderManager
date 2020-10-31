@@ -336,8 +336,11 @@ class jonathan2Controller extends Controller
                         $order->source = 'Mix';
                 }
         }     
-        $flags= flags::all();
-        return view('jonathan2.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','dateRange'));
+        $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();
+
+        $route = 'jonathan2new';
+        return view('jonathan2.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','dateRange','route'));        
+                
     }
 
     public function getTotalShipping($id)
@@ -435,7 +438,7 @@ class jonathan2Controller extends Controller
                         $order->source = 'Mix';
                 }
         }
-            $flags= flags::all();
+            $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();
 
             $startDate = orders::where('status','unshipped')->where('flag','16')->min('assignDate');
             $endDate = orders::where('status','unshipped')->where('flag','16')->max('assignDate');
@@ -882,7 +885,7 @@ class jonathan2Controller extends Controller
                         }
                 }
                 $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-                $flags= flags::all();
+                $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();
 
                 $startDate = orders::where('status','unshipped')->where('flag','16')->min('assignDate');
                 $endDate = orders::where('status','unshipped')->where('flag','16')->max('assignDate');
