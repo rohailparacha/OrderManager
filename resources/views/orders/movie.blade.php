@@ -126,7 +126,7 @@ var query = {
                 stateFilter:stateFilter,
                 amountFilter:amountFilter,
                 sourceFilter:sourceFilter,
-                route:'expensive'
+                route:'movie'
             }
 
 
@@ -164,11 +164,24 @@ catch{
                 <div class="card shadow">
                     <div class="card-header border-0">
                         <div class="row align-items-center">
-                            <div class="col-6">
-                                <h3 class="mb-0">{{ __('New Orders - Price 1') }}</h3>
+                            <div class="col-4">
+                                <h3 class="mb-0">{{ __('New Orders - Movie') }}</h3>
                             </div>  
+                            <div class="col-6" style="padding-left:2%; margin-top:2%;">
+                            <form class="form-inline" action="/assignMovie" method="post" enctype="multipart/form-data" style="float:left;">
+                            {{ csrf_field() }}
+                                <div class="form-group">
+                                    <input type="file" class="form-control" name="file"  style="width:250px!important"/>                
                             
-                            <div class="col-6" style="text-align:right;">
+                                    <input type="submit" class="btn btn-primary" value="Assign Attributes" style="margin-left:10px;"/>
+                                   
+                                </div>
+                            
+                            </form>
+
+                            <a href="./orderTemplate" class="btn btn-primary btn-md" style="color:white;float:right;margin-left:10px; margin-bottom:20px; ">Template</a>   
+                            </div>
+                            <div class="col-2" style="text-align:right;">
                                 @if(!empty($search) && $search==1)
                                 <a href="{{ route($route) }}"class="btn btn-primary btn-md">Go Back</a>
                                 @endif
@@ -178,6 +191,8 @@ catch{
                             </div>                      
                                
                         </div>
+
+                       
                         <div class="row align-items-center" style="padding-top:2%;">                            
                             <div class="col-4 offset-md-8" style="text-align:right;">
                                 Showing {{$orders->toArray()['from']}} - {{$orders->toArray()['to']}} of {{$orders->toArray()['total']}} records
@@ -200,7 +215,7 @@ catch{
                         <div class="col-12 text-center" id="filters">
                         <form action="newFilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
                             @csrf
-                            <input type="hidden" value="multi" name="expensive">
+                            <input type="hidden" value="movie" name="page">
                             <div style="width:100%; padding-bottom:2%;">
                                 <div class="form-group">
                                     

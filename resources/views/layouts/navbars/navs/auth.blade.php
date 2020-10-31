@@ -94,6 +94,21 @@
             </div>
         </form>
 
+        @elseif(request()->route()->getName() =='newOrdersMultiItems'||request()->route()->getName()=='newOrdersPrice1'||request()->route()->getName()=='newOrdersPrice2'||request()->route()->getName()=='newOrdersZero'||request()->route()->getName()=='newOrdersMovie'||request()->route()->getName()=='newOrdersFood'||request()->route()->getName()=='newOrdersExpensive')
+        <form method="post" action="newSearch" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
+
+        @csrf
+            <div class="form-group mb-0">
+                <div class="input-group input-group-alternative">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    </div>
+                    <input class="form-control" placeholder="Search" name="searchQuery" id="searchQuery" type="text">
+                    <input class="form-control" name="route" type="hidden" value={{ request()->route()->getName()}}>
+                </div>
+            </div>
+        </form>
+
         @elseif(request()->route()->getName() =='yaballeprocessed'||request()->route()->getName()=='yaballenew'||request()->route()->getName()=='yaballebce'||request()->route()->getName()=='yaballereturn'||request()->route()->getName()=='yaballecancel'||request()->route()->getName()=='yaballerefund'||request()->route()->getName()=='yaballecompleted')
         <form method="post" action="yaballesearch" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
 

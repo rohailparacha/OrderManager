@@ -177,6 +177,17 @@ class orderController extends Controller
                         
                         
                         try{
+                            if($order->account_id=='Yaballe')
+                            {
+                                $trackingId = $order->trackingNumber; 
+                                
+                                $carrierId = carriers::where('id',$order->carrierName)->get()->first(); 
+
+                                if(empty($trackingId)|| empty($carrierId))
+                                    continue; 
+                                $carrier = $carrierId->name; 
+                            }
+                            else{
                             $baseUrl = "https://www.amazon.com/progress-tracker/package/ref=ppx_yo_dt_b_track_package?_encoding=UTF8";
                             
                              
@@ -295,16 +306,7 @@ class orderController extends Controller
                             }
                            
                          
-                            if($order->account_id=='Yaballe')
-                            {
-                                $trackingId = $order->trackingNumber; 
-                                
-                                $carrierId = carriers::where('id',$order->carrierName)->get()->first(); 
-
-                                if(empty($trackingId)|| empty($carrierId))
-                                    continue; 
-                                $carrier = $carrierId->name; 
-                            }
+                        }
 
                             if(empty(trim($trackingId)) && !empty(trim($carrier)) )
                                 continue;
@@ -781,9 +783,10 @@ class orderController extends Controller
                         $order->source = 'Mix';
                 }
         }     
-        $flags= flags::all();
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get(); 
         $accounts = settings::where('listCheck',true)->get();
-        return view('orders.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','accounts'));
+        $route = 'newOrders';
+        return view('orders.new',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','accounts','route'));
     }
 
     public function filterLookup(Request $request)
@@ -1009,9 +1012,10 @@ class orderController extends Controller
                         $order->source = 'Mix';
                 }
         }     
-        $flags= flags::all();
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get(); 
         $accounts = settings::where('listCheck',true)->get();
-        return view('orders.flagged',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','accounts'));
+        $route = 'newOrdersFlagged';
+        return view('orders.flagged',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice','accounts','route'));
     }
 
     public function filterExpensive(Request $request)
@@ -1150,7 +1154,7 @@ class orderController extends Controller
                         $order->source = 'Mix';
                 }
         }     
-        $flags= flags::all();
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get(); 
         return view('orders.expensive',compact('flags','orders','stateFilter','marketFilter','sourceFilter','storeFilter','amountFilter','stores','states','maxAmount','minAmount','maxPrice'));
     }
 
@@ -1279,7 +1283,7 @@ class orderController extends Controller
                         $order->source = 'Mix';
                 }
         } 
-        $flags = flags::all(); 
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
          
         return view('orders.assign',compact('flags','orders','users','stores','states','maxAmount','minAmount','maxPrice','stateFilter','marketFilter','storeFilter','amountFilter','sourceFilter'));
     }
@@ -1439,7 +1443,7 @@ class orderController extends Controller
                         }
                 }
                 $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-                $flags= flags::all();
+                $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get(); 
                 $accounts = settings::where('listCheck',true)->get();
                 return view('orders.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','search','route','accounts'));
             
@@ -3654,7 +3658,7 @@ class orderController extends Controller
                         $order->source = 'Mix';
                 }
         }
-        $flags = flags::all(); 
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
         return view('orders.assign',compact('flags','orders','users','stores','states','maxAmount','minAmount','maxPrice'));
     }
 
@@ -3682,7 +3686,7 @@ class orderController extends Controller
 
     public function orderFlagRoute($route, $id, $flag)
     {
-        $orders= orders::where('id',$id)->update(['flag'=>$flag]);
+        $orders= orders::where('id',$id)->update(['flag'=>$flag]);        
         return redirect()->route($route);        
     }
 
@@ -4002,10 +4006,12 @@ class orderController extends Controller
                 }
         }
             
-        $flags = flags::all(); 
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
         $accounts = settings::where('listCheck',true)->get();
         return view('orders.new',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts'));
     }
+
+   
 
     public function lookup()
     {  
@@ -4157,7 +4163,7 @@ class orderController extends Controller
                 }
         }
             
-        $flags = flags::all(); 
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
         $accounts = settings::where('listCheck',true)->get();
         return view('orders.flagged',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts'));
     }
@@ -4253,7 +4259,7 @@ class orderController extends Controller
                 }
         }
             
-        $flags = flags::all(); 
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
         return view('orders.expensive',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice'));
     }
 

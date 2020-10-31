@@ -126,7 +126,7 @@ var query = {
                 stateFilter:stateFilter,
                 amountFilter:amountFilter,
                 sourceFilter:sourceFilter,
-                route:'expensive'
+                route:'multi'
             }
 
 
@@ -165,7 +165,7 @@ catch{
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-6">
-                                <h3 class="mb-0">{{ __('New Orders - Price 1') }}</h3>
+                                <h3 class="mb-0">{{ __('New Orders - Multi Items') }}</h3>
                             </div>  
                             
                             <div class="col-6" style="text-align:right;">
@@ -200,7 +200,7 @@ catch{
                         <div class="col-12 text-center" id="filters">
                         <form action="newFilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
                             @csrf
-                            <input type="hidden" value="multi" name="expensive">
+                            <input type="hidden" value="multi" name="page">
                             <div style="width:100%; padding-bottom:2%;">
                                 <div class="form-group">
                                     
@@ -345,10 +345,10 @@ catch{
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
                                                     @foreach($flags as $flag)
                                                          @if(empty($route))
-                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/{{$flag->id}}">{{$flag->name}}</a>
-                                                    @else
-                                                    <a class="dropdown-item" href="/orderFlag/{{$route}}/{{$order->id}}/{{$flag->id}}">{{$flag->name}}</a>
-                                                    @endif
+                                                        <a class="dropdown-item" href="/orderFlag/{{$order->id}}/{{$flag->id}}">{{$flag->name}}</a>
+                                                        @else
+                                                        <a class="dropdown-item" href="/orderFlag/{{$route}}/{{$order->id}}/{{$flag->id}}">{{$flag->name}}</a>
+                                                        @endif
                                                     @endforeach
                                                    @if(empty($route))
                                                     <a class="dropdown-item" href="/orderFlag/{{$order->id}}/0">{{ __('Unflag') }}</a>

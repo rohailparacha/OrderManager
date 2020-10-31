@@ -32,8 +32,24 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::put('profile/password', ['as' => 'profile.password', 'uses' => 'ProfileController@password']);
 	Route::get('newOrders','orderController@newOrders')->name('newOrders')->middleware('admin');
 	Route::get('/reset/{id}','orderController@reset')->name('reset')->middleware('admin');
+	
+	// New Order Pages Routes
 	Route::get('newOrdersFlagged','orderController@newOrdersFlagged')->name('newOrdersFlagged')->middleware('admin');
-	Route::get('newOrdersExpensive','orderController@newOrdersExpensive')->name('newOrdersExpensive')->middleware('admin');
+	Route::get('newOrdersMultiItems','newOrdersController@newOrdersMultiItems')->name('newOrdersMultiItems')->middleware('admin');
+	Route::get('newOrdersPrice1','newOrdersController@newOrdersPrice1')->name('newOrdersPrice1')->middleware('admin');
+	Route::get('newOrdersPrice2','newOrdersController@newOrdersPrice2')->name('newOrdersPrice2')->middleware('admin');
+	Route::get('newOrdersZero','newOrdersController@newOrdersZero')->name('newOrdersZero')->middleware('admin');
+	Route::get('newOrdersMovie','newOrdersController@newOrdersMovie')->name('newOrdersMovie')->middleware('admin');
+	Route::get('newOrdersFood','newOrdersController@newOrdersFood')->name('newOrdersFood')->middleware('admin');
+	Route::get('newOrdersExpensive','newOrdersController@newOrdersExpensive')->name('newOrdersExpensive')->middleware('admin');
+	Route::post('/assignMovie', 'newOrdersController@assignMovie')->middleware('admin');
+	Route::post('/assignFood', 'newOrdersController@assignFood')->middleware('admin');	
+	Route::get('/pricingSettings', 'newOrdersController@settings')->name('pricingSettings')->middleware('admin');
+	Route::post('/pricingSettingsStore', 'newOrdersController@storeSettings')->name('pricingSettingsStore')->middleware('admin');
+	Route::get('/orderTemplate', 'newOrdersController@getTemplate')->middleware('admin');
+	Route::post('newFilter','newOrdersController@filter')->middleware('admin');	
+	Route::post('newSearch','newOrdersController@search')->middleware('admin');	
+
 	Route::get('processedOrders','orderController@processedOrders')->name('processedOrders')->middleware('admin');
 	Route::get('dueDateComing','orderController@dueComing')->name('dueComing')->middleware('admin');	
 	Route::get('cancelledOrders','orderController@cancelledOrders')->name('cancelledOrders')->middleware('admin');
@@ -121,6 +137,8 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::post('/deleteProducts', 'productsController@deleteProducts');
 	Route::post('/uploadwm', 'productsController@uploadWmFile');
 	Route::post('/manualReprice', 'productsController@manualReprice');
+
+
 
 	Route::any('productexport','productsController@export')->name('productexport')->middleware('admin');	
 	Route::any('secondaryproductexport','productsController@secondaryExport')->name('secondaryproductexport')->middleware('admin');	

@@ -81,6 +81,48 @@
                             </a>
                             </li>
 
+                            <li class="nav-item">
+                            <a class="nav-link" href="{{ route('newOrdersMultiItems') }}">
+                                {{ __('New Orders - Multi Item') }}
+                            </a>
+                            </li>
+
+                            <li class="nav-item">
+                            <a class="nav-link" href="{{ route('newOrdersZero') }}">
+                                {{ __('New Orders - Zero') }}
+                            </a>
+                            </li>
+
+                            <li class="nav-item">
+                            <a class="nav-link" href="{{ route('newOrdersPrice1') }}">
+                                {{ __('New Orders - Price 1') }}
+                            </a>
+                            </li>
+
+                            <li class="nav-item">
+                            <a class="nav-link" href="{{ route('newOrdersPrice2') }}">
+                                {{ __('New Orders - Price 2') }}
+                            </a>
+                            </li>
+
+                            <li class="nav-item">
+                            <a class="nav-link" href="{{ route('newOrdersExpensive') }}">
+                                {{ __('New Orders - Expensive') }}
+                            </a>
+                            </li>
+
+                            <li class="nav-item">
+                            <a class="nav-link" href="{{ route('newOrdersMovie') }}">
+                                {{ __('New Orders - Movie') }}
+                            </a>
+                            </li>
+                            
+                            <li class="nav-item">
+                            <a class="nav-link" href="{{ route('newOrdersFood') }}">
+                                {{ __('New Orders - Food') }}
+                            </a>
+                            </li>
+
                             @endif
                             @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(2,json_decode(auth()->user()->assigned_pages))))                       
                             <li class="nav-item">
@@ -548,6 +590,13 @@
                                 {{ __('Marketplace Accounts') }}
                             </a>
                             </li>
+
+                            <li class="nav-item">
+                            <a class="nav-link" href="{{ route('pricingSettings') }}">
+                                {{ __('New Order Price Settings') }}
+                            </a>
+                            </li>
+
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('carriers') }}">
                                    {{ __('Carriers') }}

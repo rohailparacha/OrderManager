@@ -126,7 +126,7 @@ var query = {
                 stateFilter:stateFilter,
                 amountFilter:amountFilter,
                 sourceFilter:sourceFilter,
-                route:'expensive'
+                route:'price1'
             }
 
 
@@ -200,7 +200,7 @@ catch{
                         <div class="col-12 text-center" id="filters">
                         <form action="newFilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
                             @csrf
-                            <input type="hidden" value="multi" name="expensive">
+                            <input type="hidden" value="multi" name="price1">
                             <div style="width:100%; padding-bottom:2%;">
                                 <div class="form-group">
                                     

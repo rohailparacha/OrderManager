@@ -67,6 +67,34 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
             $orders = $orders->where('flag','0');
         elseif($route=='flagged')
             $orders = $orders->where('flag','!=','0');
+        elseif($route =='multi')
+            $orders = $orders->having(DB::raw("COUNT(DISTINCT order_details.SKU)"),'>','1');
+        elseif($route=='price1')
+        {
+            $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',0)
+            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$price1);
+        }
+        elseif($route=='price2')
+        {
+            $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price1)
+            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$price2);
+        }
+        elseif($route=='expensive')
+        {
+            $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price2);
+        }
+        elseif($route=='zero')
+        {
+            $orders = $orders->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'0');
+        }
+        elseif($route=='food')
+        {
+            $orders = $orders->where('products.category','Food');
+        }
+        elseif($route=='movie')
+        {
+            $orders = $orders->where('products.category','Movie');
+        }
         
         if(!empty($storeFilter)&& $storeFilter !=0)
         {
