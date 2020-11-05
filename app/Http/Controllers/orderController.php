@@ -3922,7 +3922,7 @@ class orderController extends Controller
         ];
 
         $rules = [
-            'notes'    => 'max:50'
+            'notes'    => 'max:100'
         ];
 
         $validator = Validator::make($input,$rules);

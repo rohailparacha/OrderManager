@@ -14,12 +14,17 @@ use App\carriers;
 
 class UPSController extends Controller
 {
+    public function test()
+    {
+        $this->checkFedexTracking('','122816215025810');
+    }
     
     public function index(Request $request)
     {
             $success=0;
             $records = $request->data;
             $bceCarrier = carriers::where('name','UPS')->get()->first();
+            $fedexCarrier = carriers::where('name','Fedex')->get()->first();
           
             foreach($records as $record)
             {              
@@ -35,35 +40,91 @@ class UPSController extends Controller
                
                 if(!empty($record['tracking']))
                 {
-                    $flags = $this->checkTracking($order->id, $record['tracking']);                       
-                    if(count($flags)>0)
-                    {
-                        $update = orders::where('sellOrderId',$record['sellOrderId'])                    
-                        ->update([
-                        'upsTrackingNumber'=>$record['tracking'],         
-                        'carrierName'=>$bceCarrier->id,
-                        'isBCE'=>true,
-                        'upsFlags'=>json_encode($flags)
-                        ]);
-                        foreach($flags as $flag)
-                        {
-                            $issues.= $flag.' - ';
-                        }
                        
-                        $issues = trim(trim($issues),'-');
-                      
-                        $this->updateSheet($record['sellOrderId'], $issues);
+            
+                    if(strtolower(substr( $record['tracking'], 0, 2 )) === "1z")
+                    {
+                        $flags = $this->checkTracking($order->id, $record['tracking']); 
+                        if(count($flags)>0)
+                        {
+                            $update = orders::where('sellOrderId',$record['sellOrderId'])                    
+                            ->update([
+                            'upsTrackingNumber'=>$record['tracking'],         
+                            'carrierName'=>$bceCarrier->id,
+                            'isBCE'=>true,
+                            'upsFlags'=>json_encode($flags)
+                            ]);
+                            foreach($flags as $flag)
+                            {
+                                $issues.= $flag.' - ';
+                            }
+                           
+                            $issues = trim(trim($issues),'-');
+                            $this->updateSheet($record['sellOrderId'], $issues);
+                           
+                        }
+                        else
+                        {
+                            $update = orders::where('sellOrderId',$record['sellOrderId'])                    
+                            ->update([
+                            'upsTrackingNumber'=>$record['tracking'],         
+                            'carrierName'=>$bceCarrier->id,
+                            'isBCE'=>true,
+                            'upsFlags'=>''
+                            ]);
+
+                            $this->updateSheet($record['sellOrderId'], '');
+                        } 
+                       
                     }
+                        
                     else
                     {
-                        $update = orders::where('sellOrderId',$record['sellOrderId'])                    
-                        ->update([
-                        'upsTrackingNumber'=>$record['tracking'],         
-                        'carrierName'=>$bceCarrier->id,
-                        'isBCE'=>true,
-                        'upsFlags'=>''
-                        ]);
-                    }           
+                         
+                        try{
+                            $flags = $this->checkFedexTracking($order->id, $record['tracking']);  
+                        }
+                        catch(\Exception $ex)
+                        {
+                            
+                            $flags[]="Tracking Not Found";
+                        }
+                        
+                
+                        if(count($flags)>0)
+                        {
+                            
+                            $update = orders::where('sellOrderId',$record['sellOrderId'])                    
+                            ->update([
+                            'upsTrackingNumber'=>$record['tracking'],         
+                            'carrierName'=>$fedexCarrier->id,
+                            'isBCE'=>true,
+                            'upsFlags'=>json_encode($flags)
+                            ]);
+                            foreach($flags as $flag)
+                            {
+                                $issues.= $flag.' - ';
+                            }
+                           
+                            $issues = trim(trim($issues),'-');
+                          
+                            $this->updateSheet($record['sellOrderId'], $issues);
+                        }
+                        else
+                        {
+                            
+                            $update = orders::where('sellOrderId',$record['sellOrderId'])                    
+                            ->update([
+                            'upsTrackingNumber'=>$record['tracking'],         
+                            'carrierName'=>$fedexCarrier->id,
+                            'isBCE'=>true,
+                            'upsFlags'=>''
+                            ]);
+
+                            $this->updateSheet($record['sellOrderId'], '');
+                        } 
+                    }                                                                   
+
                     if($update)
                             $success++;                                
                 }
@@ -218,12 +279,13 @@ class UPSController extends Controller
         if(count($flags)>0)
             return $flags;
 
+    
         if($this->checkDuplicate($orderId,$trackingNumber))
             $flags[]='Duplicate';
 
         if($this->checkDate($orderId,$labelCreateDate))
             $flags[]='Label Print Date Issue';
-
+        
         if($this->checkAddress($orderId, $city, $state, $postalCode))
             $flags[]='Address Issue';
 
@@ -231,6 +293,99 @@ class UPSController extends Controller
             $flags[]='Status Issue';
         
 
+        return $flags; 
+    }
+
+    public function checkFedexTracking($orderId, $trackingNumber)
+    {
+        $flags = array(); 
+        $currentStatus = "";
+        $labelCreateDate = "";
+        $state="";
+        $city="";
+        $postalCode="";
+
+        $client = new \SoapClient(env('FEDEX_URL',''), array('trace' => 1));
+
+        $request['WebAuthenticationDetail'] = array(
+            'ParentCredential' => array(
+                'Key' => env('FEDEX_KEY',''), 
+                'Password' => env('FEDEX_PASSWORD','')
+            ),
+            'UserCredential' => array(
+                'Key' => env('FEDEX_KEY',''), 
+                'Password' => env('FEDEX_PASSWORD','')
+            )
+        );
+        
+        $request['ClientDetail'] = array(
+            'AccountNumber' => env('FEDEX_SHIPACCOUNT',''), 
+            'MeterNumber' => env('FEDEX_METER','')
+        );
+        $request['TransactionDetail'] = array('CustomerTransactionId' => '*** Track Request using PHP ***');
+        $request['Version'] = array(
+            'ServiceId' => 'trck', 
+            'Major' => '19', 
+            'Intermediate' => '0', 
+            'Minor' => '0'
+        );
+        $request['SelectionDetails'] = array(
+            'PackageIdentifier' => array(
+                
+                'Type' => 'TRACKING_NUMBER_OR_DOORTAG',
+                'Value' => $trackingNumber 
+            ),
+            
+            'ShipmentAccountNumber' => env('FEDEX_TRACKACCOUNT','') 
+        );
+        
+        
+        
+        try {
+            
+            $newLocation = $client->__setLocation(env('FEDEX_ENDPOINT',''));
+            
+            $response = $client ->track($request);
+        
+            if ($response -> HighestSeverity != 'FAILURE' && $response -> HighestSeverity != 'ERROR'){
+                if($response->HighestSeverity != 'SUCCESS'){
+                        $this->trackDetails($response->Notifications, '');                    
+                }else{
+                    if ($response->CompletedTrackDetails->HighestSeverity != 'SUCCESS'){
+                        $this->trackDetails($response->CompletedTrackDetails, '');                        
+                    }else{
+                        $this->trackDetails($response->CompletedTrackDetails->TrackDetails, '');                 
+                    }
+                }                
+            }else{
+                //error
+                $flags[]="Tracking Not Found";                
+            } 
+                        
+        } catch (SoapFault $exception) {
+            $flags[]="Tracking Not Found";
+        }
+        
+        if(count($flags)>0)
+            return $flags;
+        if(!empty($this->apidetails['city']))
+            $city = $this->apidetails['city']; 
+            
+        if(!empty($this->apidetails['state']))
+            $state = $this->apidetails['state'];
+
+        if(!empty($this->apidetails['status']))
+            $currentStatus = $this->apidetails['status'];
+                    
+        if($this->checkDuplicate($orderId,$trackingNumber))
+            $flags[]='Duplicate';
+
+        if($this->checkAddress($orderId, $city, $state, $postalCode))
+            $flags[]='Address Issue';
+
+        if(!($currentStatus=='AD' || $currentStatus=='IT' ||$currentStatus=='LO'||$currentStatus=='DL'||$currentStatus=='OD'||$currentStatus=='PU'||$currentStatus=='ED' || $currentStatus=='DP'|| $currentStatus=='AR'|| $currentStatus=='SF' || $currentStatus=='FD'))
+            $flags[]='Status Issue';
+            
         return $flags; 
     }
 
@@ -250,17 +405,20 @@ class UPSController extends Controller
 
     public function checkAddress($orderId, $city, $state, $postalCode)
     {
+        
         $order = orders::where('id',$orderId)->get()->first();
+        
+    
         if(empty($postalCode))
         {
-            if($order->state!=$state || $order->city != $city)
+            if(strtolower($order->state)!=strtolower($state) || strtolower($order->city) != strtolower($city))
                 return true; 
             else
                 return false; 
         }
         else
         {
-            if($order->state!=$state || $order->postalCode != $postalCode)
+            if(strtolower($order->state)!=strtolower($state) || strtolower($order->postalCode) != strtolower($postalCode))
                 return true; 
             else
                 return false; 
@@ -275,6 +433,35 @@ class UPSController extends Controller
             return true; 
         else
             return false; 
+    }
+
+    public function trackDetails($details, $spacer){
+        $response= array(); 	
+        foreach($details as $key => $value){
+            if ($key==='DestinationAddress')
+            {
+                $city = $value->City; 
+                $state = $value->StateOrProvinceCode;				
+                $this->apidetails['city'] = $city; 
+                $this->apidetails['state'] = $state;                 
+            }
+
+            if($key==='StatusDetail')
+            {
+                $this->apidetails['status'] = $value->Code; 
+            }
+    
+            if(is_array($value) || is_object($value)){
+                $newSpacer = $spacer. '&nbsp;&nbsp;&nbsp;&nbsp;';                
+                $this->trackDetails($value, $newSpacer);
+            }elseif(empty($value)){
+                
+            }else{
+                
+            }
+        }
+
+        
     }
     
   

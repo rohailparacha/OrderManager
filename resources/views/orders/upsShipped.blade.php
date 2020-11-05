@@ -176,7 +176,11 @@ catch{
                                         <td>{{ $order->state }}</td>
                                         <td>{{ $order->postalCode }}</td>
                                         <td>{{ $order->trackingNumber }}</td>
+                                        @if(strtolower(substr( $order->upsTrackingNumber, 0, 2 )) === "1z")
                                         <td><a target="_blank" href="https://www.ups.com/track?loc=en_US&tracknum={{ $order->upsTrackingNumber }}">{{ $order->upsTrackingNumber }}</a></td>                                                 
+                                        @else
+                                        <td><a target="_blank" href="https://www.fedex.com/apps/fedextrack/?action=track&trackingnumber={{ $order->upsTrackingNumber }}&cntry_code=us&locale=en_US">{{ $order->upsTrackingNumber }}</a></td>                                                 
+                                        @endif
                                         @if(empty($order->upsTrackingNumber))
                                         <td>UPS Tracking Missing</td>
                                                                             @elseif($order->status!='shipped')

@@ -1060,7 +1060,7 @@ td {
            <div class="form-group">
                <div class="form-line">
                    <div class="form-line">
-                    <textarea id="w3review" name="notestbx" rows="2" cols="50">{{$order->notes}}</textarea>                    
+                    <textarea id="w3review" name="notestbx" rows="5" cols="50">{{$order->notes}}</textarea>                    
                    </div>
                     <div class="errorMsg">{!!$errors->survey_question->first('Notes');!!}</div>
                </div>

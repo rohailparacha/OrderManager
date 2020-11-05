@@ -168,7 +168,7 @@ catch{
                                 <h3 class="mb-0">{{ __('New Orders - Food') }}</h3>
                             </div>  
                             <div class="col-6" style="padding-left:2%; margin-top:2%;">
-                            <form class="form-inline" action="/assignMovie" method="post" enctype="multipart/form-data" style="float:left;">
+                            <form class="form-inline" action="/assignFood" method="post" enctype="multipart/form-data" style="float:left;">
                             {{ csrf_field() }}
                                 <div class="form-group">
                                     <input type="file" class="form-control" name="file"  style="width:250px!important"/>                
