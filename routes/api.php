@@ -137,67 +137,40 @@ Route::post('vaughn_update', function(Request $request) {
     ],201);
 });
 
-Route::post('jonathan_update', function(Request $request) {
-    
-    $success=0;
-    $records = $request->data;
 
-    foreach($records as $record)
-    {        
-        if(empty(trim($record['poNumber'])))
-            continue;
-
-        $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])
-        ->where('status','!=','shipped')
-        ->update([
-        'poTotalAmount'=>$record['poTotalAmount'],
-        'poNumber'=>$record['poNumber'],        
-        'afpoNumber'=>$record['afpoNumber'],
-        'trackingLink'=>$record['trackingLink'],
-        'account_id'=>'Jonathan',        
-        'status'=>'processing',
-        'itemId'=>$record['itemId']
-        ]);
-
-
-        if($insert)
-            $success++;
-    }
-
-    return response()->json([
-        'count' => $success
-    ],201);
-});
 
 Route::post('jonathan2_update', function(Request $request) {
     
     $success=0;
-    $records = $request->data;
+    $recordsData = $request->data;
 
     $flagNum = flags::where('name','Jonathan Cancelled')->get()->first(); 
-
-    foreach($records as $record)
-    {        
-        if(empty(trim($record['poNumber'])))
-            continue;
-
+    
+    foreach($recordsData as $record)
+    {      
+        
         if(trim(strtolower($record['status']))=='cancelled')
         {
-            $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])
-            ->where('status','!=','shipped')            
+         
+            $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])            
             ->update([
-            'poTotalAmount'=>$record['poTotalAmount'],
-            'poNumber'=>$record['poNumber'],        
-            'afpoNumber'=>$record['afpoNumber'],
-            'trackingLink'=>$record['trackingLink'],        
-            'account_id'=>'Jonathan2',   
             'flag'=> $flagNum->id,
-            'status'=>'processing',
-            'itemId'=>$record['itemId']
             ]);
+            
         }
-        else
+        if(empty(trim($record['poNumber'])))
         {
+            if($insert)
+                $success++;
+            continue;
+        }
+            
+        
+        try{
+
+        if(empty(trim($record['trackingNumber'])) || empty(trim($record['carrier'])) )
+        {
+               
             $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])
             ->where('status','!=','shipped')
             ->update([
@@ -209,6 +182,41 @@ Route::post('jonathan2_update', function(Request $request) {
             'status'=>'processing',
             'itemId'=>$record['itemId']
             ]);
+            
+        }
+        else
+        {
+            
+        $carrier = carriers::where('name',$record['carrier'])->get()->first(); 
+                            
+        if(empty($carrier))
+        {
+            $carrier = carriers::where('alias','like','%'.$record['carrier'].'%')->get()->first(); 
+        }
+
+        if(empty($carrier))
+            continue; 
+               
+            $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])
+            ->where('status','!=','shipped')
+            ->update([
+            'poTotalAmount'=>$record['poTotalAmount'],
+            'poNumber'=>$record['poNumber'],        
+            'afpoNumber'=>$record['afpoNumber'],
+            'trackingNumber'=>$record['trackingNumber'], 
+            'carrierName'=>$carrier->id,        
+            'trackingLink'=>$record['trackingLink'],        
+            'account_id'=>'Jonathan2',        
+            'status'=>'processing',
+            'itemId'=>$record['itemId']
+            ]);
+            
+        }
+
+        }
+        catch(\Exception $ex)
+        {
+                
         }
 
         if($insert)
@@ -219,6 +227,101 @@ Route::post('jonathan2_update', function(Request $request) {
         'count' => $success
     ],201);
 });
+
+
+Route::post('jonathan_update', function(Request $request) {
+    
+    $success=0;
+    $recordsData = $request->data;
+
+    $flagNum = flags::where('name','Jonathan Cancelled')->get()->first(); 
+    
+    foreach($recordsData as $record)
+    {      
+        
+        if(trim(strtolower($record['status']))=='cancelled')
+        {
+         
+            $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])            
+            ->update([
+            'flag'=> $flagNum->id,
+            ]);
+            
+        }
+        if(empty(trim($record['poNumber'])))
+        {
+            if($insert)
+                $success++;
+            continue;
+        }
+            
+        
+        try{
+
+        if(empty(trim($record['trackingNumber'])) || empty(trim($record['carrier'])) )
+        {
+               
+            $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])
+            ->where('status','!=','shipped')
+            ->update([
+            'poTotalAmount'=>$record['poTotalAmount'],
+            'poNumber'=>$record['poNumber'],        
+            'afpoNumber'=>$record['afpoNumber'],
+            'trackingLink'=>$record['trackingLink'],        
+            'account_id'=>'Jonathan',        
+            'status'=>'processing',
+            'itemId'=>$record['itemId']
+            ]);
+            
+        }
+        else
+        {
+            
+        $carrier = carriers::where('name',$record['carrier'])->get()->first(); 
+                            
+        if(empty($carrier))
+        {
+            $carrier = carriers::where('alias','like','%'.$record['carrier'].'%')->get()->first(); 
+        }
+
+        if(empty($carrier))
+            continue; 
+            
+            
+            
+               
+            $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])
+            ->where('status','!=','shipped')
+            ->update([
+            'poTotalAmount'=>$record['poTotalAmount'],
+            'poNumber'=>$record['poNumber'],        
+            'afpoNumber'=>$record['afpoNumber'],
+            'trackingNumber'=>$record['trackingNumber'], 
+            'carrierName'=>$carrier->id,        
+            'trackingLink'=>$record['trackingLink'],        
+            'account_id'=>'Jonathan',        
+            'status'=>'processing',
+            'itemId'=>$record['itemId']
+            ]);
+            
+        }
+
+        }
+        catch(\Exception $ex)
+        {
+                
+        }
+
+        if($insert)
+            $success++;
+    }
+
+    return response()->json([
+        'count' => $success
+    ],201);
+});
+
+
 
 Route::post('yaballe_update', function(Request $request) {
     

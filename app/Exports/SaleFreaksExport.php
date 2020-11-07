@@ -5,38 +5,34 @@ use App\orders;
 use App\order_details;
 use App\accounts;
 use App\ebay_products;
+use App\flags;
 use DB;
 use App\states;
-use App\flags;
 use App\products;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 
-class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,ShouldAutoSize
+class SaleFreaksExport implements WithColumnFormatting,FromCollection,WithHeadings,ShouldAutoSize
 {
-    /**
-    * @return \Illuminate\Support\Collection
-    */
     protected $storeFilter; 
     protected $marketFilter; 
     protected $stateFilter; 
     protected $amountFilter; 
     protected $sourceFilter; 
-    protected $flagFilter;
-    protected $route; 
+    protected $daterange;
+    protected $flag; 
 
-
-    public function __construct($storeFilter,$marketFilter,$stateFilter, $amountFilter, $sourceFilter,$flagFilter, $route)
+    public function __construct($storeFilter,$marketFilter,$stateFilter, $amountFilter, $sourceFilter, $daterange, $flag)
     {
         $this->storeFilter = $storeFilter;
         $this->marketFilter = $marketFilter;
         $this->stateFilter = $stateFilter;
         $this->amountFilter = $amountFilter;
         $this->sourceFilter = $sourceFilter;
-        $this->flagFilter = $flagFilter;
-        $this->route = $route; 
+        $this->daterange = $daterange; 
+        $this->flag = $flag; 
     }
 
     public function collection()
@@ -47,81 +43,33 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
         $stateFilter = $this->stateFilter;
         $amountFilter = $this->amountFilter;
         $sourceFilter = $this->sourceFilter;
-        $flagFilter = $this->flagFilter;
-        $route = $this->route; 
+        $dateRange =  $this->daterange;  
+        $flag =  $this->flag;  
+
+        $startDate = explode('-',$dateRange)[0];
+            $from = date("Y-m-d", strtotime($startDate));  
+        $endDate = explode('-',$dateRange)[1];
+            $to = date("Y-m-d", strtotime($endDate)); 
 
         $minAmount = trim(explode('-',$amountFilter)[0]);
         $maxAmount = trim(explode('-',$amountFilter)[1]);
             
-        $val = flags::where('name','Expensive')->get()->first(); 
 
         $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
         ->leftJoin('products','order_details.SKU','=','products.asin')
-        ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag','!=','16')->where('flag','!=','17')
-        ->where('flag','!=','22')
-        ->where('flag','!=','23')
-        ->where('flag','!=','24')
-        ->where('flag','!=','25')
-        ->where('flag','!=','26')    
+        ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')          
         ->groupBy('orders.id')        
-        ->where('flag','!=','8')
-        ->where('flag','!=','9')
-        ->where('flag','!=','10')
-        ->where('flag','!=','16')
-        ->where('flag','!=','17')
-        ->where('flag','!=','22')
-        ->where('flag','!=','23')
-        ->where('flag','!=','24')
-        ->where('flag','!=','25')
-        ->where('flag','!=','26')
-        ;
+        ->where('flag',$flag);
         
-        if($route == 'new')
-            $orders = $orders->where('flag','0');
-        elseif($route=='flagged')
-        {
-            $orders = $orders->where('flag','!=','0');
-            if(!empty($flagFilter)&& $flagFilter !='0')
-            {           
-                $orders = $orders->where('flag',$flagFilter);
-            }
-        }
-            
-        elseif($route =='multi')
-            $orders = $orders->having(DB::raw("COUNT(DISTINCT order_details.SKU)"),'>','1');
-        elseif($route=='price1')
-        {
-            $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',0)
-            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$price1);
-        }
-        elseif($route=='price2')
-        {
-            $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price1)
-            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$price2);
-        }
-        elseif($route=='expensive')
-        {
-            $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price2);
-        }
-        elseif($route=='zero')
-        {
-            $orders = $orders->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'0');
-        }
-        elseif($route=='food')
-        {
-            $orders = $orders->where('products.category','Food');
-        }
-        elseif($route=='movie')
-        {
-            $orders = $orders->where('products.category','Movie');
-        }
+
+        $flagName  = flags::where('id',$flag)->get()->first()->name;
         
         if(!empty($storeFilter)&& $storeFilter !=0)
         {
             $storeName = accounts::select()->where('id',$storeFilter)->get()->first();
             $orders = $orders->where('storeName',$storeName->store);
         }
-        
+       
 
         if(!empty($marketFilter)&& $marketFilter !=0)
         {                            
@@ -141,17 +89,20 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
             elseif($sourceFilter==2)
                 $orders = $orders->whereNotNull('ebay_products.sku');                                
         }
+        if(!empty($startDate)&& !empty($endDate))
+        {
+            $orders = $orders->whereBetween('assignDate', [$from.' 00:00:00', $to.' 23:59:59']);
+        }
 
 
         
-        $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',$minAmount);
-        $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$maxAmount);
-
-
         if(!empty($stateFilter)&& $stateFilter !='0')
         {           
             $orders = $orders->where('state',$stateFilter);
         }
+
+        $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>=',$minAmount);
+        $orders = $orders->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$maxAmount);
                 
         if(auth()->user()->role==1|| auth()->user()->role==2)
             $orders = $orders->where('status','unshipped')->orderBy('date', 'ASC')->groupby('orders.id')->get();
@@ -167,8 +118,7 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
         $maxPrice = ceil(orders::where('status','unshipped')->max('totalAmount'));
         foreach($orders as $order)
         {        
-            $order->lowestPrice = $this->getLowestPrice($order->id);
-
+            
             $sources = array();
             
             $order_details = order_details::where('order_id',$order->id)->get(); 
@@ -202,13 +152,8 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
         }
 
         foreach($orders as $order)
-        {
-            $flagName  = flags::where('id',$order->flag)->get()->first();
-            if(empty($flagName))
-                $flagName= '';
-            else
-                $flagName = $flagName->name;
-
+        {          
+   
             $counter=0; 
             $order_details = order_details::where('order_id',$order->id)->get();
             $temp = array();
@@ -225,7 +170,6 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
                 "Purchase Price" => number_format((float)$order->lowestPrice , 2, '.', ''),
                 "Store Name" => $order->storeName,
                 "Flag" => $flagName,
-                
                              
             ];
 
@@ -288,11 +232,11 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
         return $total;
 
     }
+
     public function columnFormats(): array
     {
         return [
             'H' => '0'            
         ];
     }
-   
 }

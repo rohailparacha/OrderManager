@@ -489,6 +489,272 @@
                     </div>
                 </li>
                 @endif
+
+                @if(\App\settings::where('name','saleFreaks1')->get()->first()->sidebarCheck)
+                <li class="nav-item">
+                    <a class="nav-link active" href="#saleFreaks1" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                        <i class="fa fa-sort text-primary" ></i>
+                        <span class="nav-link-text text-primary" >{{ __('saleFreaks1') }}</span>
+                    </a>
+
+                    <div class="collapse show" id="saleFreaks1">
+                        <ul class="nav nav-sm flex-column">                            
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('saleFreaks1new') }}">
+                                    {{ __('New Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks1processed') }}">
+                                    {{ __('Processed Orders') }}
+                                </a>
+                            </li>
+                        
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks1cancel') }}">
+                                    {{ __('Cancel Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks1return') }}">
+                                    {{ __('Return Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks1refund') }}">
+                                    {{ __('Refund Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks1completed') }}">
+                                    {{ __('Completed Returns') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('saleFreaks1Setting') }}">
+                                    {{ __('saleFreaks1 - Order Fulfillment Setting') }}
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+                @endif
+
+                @if(\App\settings::where('name','saleFreaks2')->get()->first()->sidebarCheck)
+                <li class="nav-item">
+                    <a class="nav-link active" href="#saleFreaks2" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                        <i class="fa fa-sort text-primary" ></i>
+                        <span class="nav-link-text text-primary" >{{ __('saleFreaks2') }}</span>
+                    </a>
+
+                    <div class="collapse show" id="saleFreaks2">
+                        <ul class="nav nav-sm flex-column">                            
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('saleFreaks2new') }}">
+                                    {{ __('New Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks2processed') }}">
+                                    {{ __('Processed Orders') }}
+                                </a>
+                            </li>
+                        
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks2cancel') }}">
+                                    {{ __('Cancel Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks2return') }}">
+                                    {{ __('Return Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks2refund') }}">
+                                    {{ __('Refund Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks2completed') }}">
+                                    {{ __('Completed Returns') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('saleFreaks2Setting') }}">
+                                    {{ __('saleFreaks2 - Order Fulfillment Setting') }}
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+                @endif
+
+                @if(\App\settings::where('name','saleFreaks3')->get()->first()->sidebarCheck)
+                <li class="nav-item">
+                    <a class="nav-link active" href="#saleFreaks3" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                        <i class="fa fa-sort text-primary" ></i>
+                        <span class="nav-link-text text-primary" >{{ __('saleFreaks3') }}</span>
+                    </a>
+
+                    <div class="collapse show" id="saleFreaks3">
+                        <ul class="nav nav-sm flex-column">                            
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('saleFreaks3new') }}">
+                                    {{ __('New Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks3processed') }}">
+                                    {{ __('Processed Orders') }}
+                                </a>
+                            </li>
+                        
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks3cancel') }}">
+                                    {{ __('Cancel Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks3return') }}">
+                                    {{ __('Return Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks3refund') }}">
+                                    {{ __('Refund Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks3completed') }}">
+                                    {{ __('Completed Returns') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('saleFreaks3Setting') }}">
+                                    {{ __('saleFreaks3 - Order Fulfillment Setting') }}
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+                @endif
+
+                @if(\App\settings::where('name','saleFreaks4')->get()->first()->sidebarCheck)
+                <li class="nav-item">
+                    <a class="nav-link active" href="#saleFreaks4" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                        <i class="fa fa-sort text-primary" ></i>
+                        <span class="nav-link-text text-primary" >{{ __('saleFreaks4') }}</span>
+                    </a>
+
+                    <div class="collapse show" id="saleFreaks4">
+                        <ul class="nav nav-sm flex-column">                            
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('saleFreaks4new') }}">
+                                    {{ __('New Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks4processed') }}">
+                                    {{ __('Processed Orders') }}
+                                </a>
+                            </li>
+                        
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks4cancel') }}">
+                                    {{ __('Cancel Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks4return') }}">
+                                    {{ __('Return Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks4refund') }}">
+                                    {{ __('Refund Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks4completed') }}">
+                                    {{ __('Completed Returns') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('saleFreaks4Setting') }}">
+                                    {{ __('saleFreaks4 - Order Fulfillment Setting') }}
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+                @endif
+
+                @if(\App\settings::where('name','saleFreaks5')->get()->first()->sidebarCheck)
+                <li class="nav-item">
+                    <a class="nav-link active" href="#saleFreaks5" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
+                        <i class="fa fa-sort text-primary" ></i>
+                        <span class="nav-link-text text-primary" >{{ __('saleFreaks5') }}</span>
+                    </a>
+
+                    <div class="collapse show" id="saleFreaks5">
+                        <ul class="nav nav-sm flex-column">                            
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('saleFreaks5new') }}">
+                                    {{ __('New Orders') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks5processed') }}">
+                                    {{ __('Processed Orders') }}
+                                </a>
+                            </li>
+                        
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks5cancel') }}">
+                                    {{ __('Cancel Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks5return') }}">
+                                    {{ __('Return Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks5refund') }}">
+                                    {{ __('Refund Pending') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{{ route('saleFreaks5completed') }}">
+                                    {{ __('Completed Returns') }}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('saleFreaks5Setting') }}">
+                                    {{ __('saleFreaks5 - Order Fulfillment Setting') }}
+                                </a>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                </li>
+                @endif
+
                 <li class="nav-item">
                     <a class="nav-link active" href="#users" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="navbar-examples">
                         <i class="fa fa-users text-primary" ></i>

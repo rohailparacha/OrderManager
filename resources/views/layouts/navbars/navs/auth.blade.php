@@ -123,6 +123,80 @@
                 </div>
             </div>
         </form>
+        @elseif(request()->route()->getName() =='saleFreaks1processed'||request()->route()->getName()=='saleFreaks1new'||request()->route()->getName()=='saleFreaks1bce'||request()->route()->getName()=='saleFreaks1return'||request()->route()->getName()=='saleFreaks1cancel'||request()->route()->getName()=='saleFreaks1refund'||request()->route()->getName()=='saleFreaks1completed')
+        <form method="post" action="saleFreaks1search" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
+
+        @csrf
+            <div class="form-group mb-0">
+                <div class="input-group input-group-alternative">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    </div>
+                    <input class="form-control" placeholder="Search" name="searchQuery" id="searchQuery" type="text">
+                    <input class="form-control" name="route" type="hidden" value={{ request()->route()->getName()}}>
+                </div>
+            </div>
+        </form>
+
+        @elseif(request()->route()->getName() =='saleFreaks2processed'||request()->route()->getName()=='saleFreaks2new'||request()->route()->getName()=='saleFreaks2bce'||request()->route()->getName()=='saleFreaks2return'||request()->route()->getName()=='saleFreaks2cancel'||request()->route()->getName()=='saleFreaks2refund'||request()->route()->getName()=='saleFreaks2completed')
+        <form method="post" action="saleFreaks2search" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
+
+        @csrf
+            <div class="form-group mb-0">
+                <div class="input-group input-group-alternative">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    </div>
+                    <input class="form-control" placeholder="Search" name="searchQuery" id="searchQuery" type="text">
+                    <input class="form-control" name="route" type="hidden" value={{ request()->route()->getName()}}>
+                </div>
+            </div>
+        </form>
+
+        @elseif(request()->route()->getName() =='saleFreaks3processed'||request()->route()->getName()=='saleFreaks3new'||request()->route()->getName()=='saleFreaks3bce'||request()->route()->getName()=='saleFreaks3return'||request()->route()->getName()=='saleFreaks3cancel'||request()->route()->getName()=='saleFreaks3refund'||request()->route()->getName()=='saleFreaks3completed')
+        <form method="post" action="saleFreaks3search" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
+
+        @csrf
+            <div class="form-group mb-0">
+                <div class="input-group input-group-alternative">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    </div>
+                    <input class="form-control" placeholder="Search" name="searchQuery" id="searchQuery" type="text">
+                    <input class="form-control" name="route" type="hidden" value={{ request()->route()->getName()}}>
+                </div>
+            </div>
+        </form>
+
+        @elseif(request()->route()->getName() =='saleFreaks4processed'||request()->route()->getName()=='saleFreaks4new'||request()->route()->getName()=='saleFreaks4bce'||request()->route()->getName()=='saleFreaks4return'||request()->route()->getName()=='saleFreaks4cancel'||request()->route()->getName()=='saleFreaks4refund'||request()->route()->getName()=='saleFreaks4completed')
+        <form method="post" action="saleFreaks4search" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
+
+        @csrf
+            <div class="form-group mb-0">
+                <div class="input-group input-group-alternative">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    </div>
+                    <input class="form-control" placeholder="Search" name="searchQuery" id="searchQuery" type="text">
+                    <input class="form-control" name="route" type="hidden" value={{ request()->route()->getName()}}>
+                </div>
+            </div>
+        </form>
+
+        @elseif(request()->route()->getName() =='saleFreaks5processed'||request()->route()->getName()=='saleFreaks5new'||request()->route()->getName()=='saleFreaks5bce'||request()->route()->getName()=='saleFreaks5return'||request()->route()->getName()=='saleFreaks5cancel'||request()->route()->getName()=='saleFreaks5refund'||request()->route()->getName()=='saleFreaks5completed')
+        <form method="post" action="saleFreaks5search" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
+
+        @csrf
+            <div class="form-group mb-0">
+                <div class="input-group input-group-alternative">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    </div>
+                    <input class="form-control" placeholder="Search" name="searchQuery" id="searchQuery" type="text">
+                    <input class="form-control" name="route" type="hidden" value={{ request()->route()->getName()}}>
+                </div>
+            </div>
+        </form>
 
         @elseif(request()->route()->getName()=='ebayProducts' || request()->route()->getName()=='walmartProducts')
         <form method="post" action="../search" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">

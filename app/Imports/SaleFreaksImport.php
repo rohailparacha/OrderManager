@@ -6,30 +6,68 @@ use App\carriers;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 
-class YaballeImport implements ToCollection
+class SaleFreaksImport implements ToCollection
 {
     public $data;    
     public $rows;
-
+    public $flag; 
+    public function __construct($flag) {
+        $this->flag = $flag;
+     
+    }
   
     public function collection(Collection $rows)
     {
-        $this->rows = $rows;
-        $counter = 0; 
-        $poNumber = $this->getIndex('source_order_id');
-        $poAmount = $this->getIndex('source_price_before_tax_final');
-        $tracking = $this->getIndex('tracking_number');
-        $carrier = $this->getIndex('carrier');
-        $sellOrderId = $this->getIndex('transaction_id');
 
-        if($poNumber==-1 || $poAmount==-1 || $tracking==-1 || $carrier==-1 || $sellOrderId==-1)
+        $this->rows = $rows;
+        $flag = $this->flag; 
+
+        if($flag == '22')
+            $accName = 'SaleFreaks1';
+    
+        if($flag == '23')
+            $accName = 'SaleFreaks2';
+        
+        if($flag == '24')
+            $accName = 'SaleFreaks3';  
+        
+        if($flag == '25')
+            $accName = 'SaleFreaks4';
+        
+        if($flag == '26')
+            $accName = 'SaleFreaks5';
+
+        $counter = 0; 
+        $poNumber = $this->getIndex('Supplier order number');
+        $poAmount = $this->getIndex('Total');
+        $tracking = $this->getIndex('Tracking number');
+        $carrier = $this->getIndex('Carrier');
+        $sellOrderId = $this->getIndex('Market tx id');
+        $status = $this->getIndex('Status');
+        
+        if($poNumber==-1 || $poAmount==-1 || $tracking==-1 || $carrier==-1 || $sellOrderId==-1 || $status ==-1)
             return $counter;
             
-        
+          
         foreach ($rows as $row) 
-        {                          
-            if(empty(trim($row[$poNumber])))
-                continue;
+        {   
+            
+            if($row[$status]=='Canceled' || $row[$status]=='Error')
+            {
+                
+                $update = orders::where('sellOrderId',explode('.',$row[$sellOrderId])[0])->update(['flag'=>'27']);
+                
+ 
+            }
+            
+                if(empty(trim($row[$poNumber])))
+                {
+                    if($update)
+                        $counter++; 
+                    continue;
+                }
+
+            
 
             if(empty($row[$carrier])|| empty($row[$tracking]))
             {
@@ -39,7 +77,7 @@ class YaballeImport implements ToCollection
                 'poTotalAmount'=>$row[$poAmount],
                 'poNumber'=>$row[$poNumber],        
                 'afpoNumber'=>$row[$poNumber],            
-                'account_id'=>'Yaballe',        
+                'account_id'=>$accName,        
                 'status'=>'processing'
                 ]);
 
@@ -64,7 +102,7 @@ class YaballeImport implements ToCollection
                 'afpoNumber'=>$row[$poNumber],  
                 'trackingNumber'=>$row[$tracking],  
                 'carrierName'=>$carrierId->id,            
-                'account_id'=>'Yaballe',        
+                'account_id'=>$accName,        
                 'status'=>'processing'
                 ]);
             }

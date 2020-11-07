@@ -1270,7 +1270,12 @@ td {
                         <option value="Cindy">Cindy</option>                        
                         <option value="Jonathan">Jonathan</option>
                         <option value="Jonathan2">Jonathan2</option> 
-                        <option value="Yaballe">Yaballe</option>                        
+                        <option value="Yaballe">Yaballe</option>
+                        <option value="SaleFreaks1">SaleFreaks1</option>
+                        <option value="SaleFreaks2">SaleFreaks2</option>
+                        <option value="SaleFreaks3">SaleFreaks3</option>
+                        <option value="SaleFreaks4">SaleFreaks4</option>
+                        <option value="SaleFreaks5">SaleFreaks5</option>                        
                         <option value="Vaughn">Vaughn</option>                        
                         <option value="Other">Other</option>                        
                     </select>

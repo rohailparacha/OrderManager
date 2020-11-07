@@ -96,7 +96,8 @@ class newOrdersController extends Controller
                 
                 $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
                 ->leftJoin('products','order_details.SKU','=','products.asin')
-                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->where('flag', '!=' , '17')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
+                
                 ->where('flag','0')
                 ->having(DB::raw("COUNT(DISTINCT order_details.SKU)"),'>','1')
                 ->groupBy('orders.id')                             
@@ -110,7 +111,7 @@ class newOrdersController extends Controller
                 ->leftJoin('products','order_details.SKU','=','products.asin')
                 ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])
                 ->where('status','unshipped')
-                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->where('flag', '!=' , '17')
+                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')    
                 ->having(DB::raw("COUNT(DISTINCT order_details.SKU)"),'>','1')   
                 ->groupBy('orders.id')                            
@@ -123,7 +124,7 @@ class newOrdersController extends Controller
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
         
-        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '17')->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
+        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
         $minAmount = 0; 
         $maxPrice = $maxAmount;
 
@@ -162,7 +163,7 @@ class newOrdersController extends Controller
                 }
         }
             
-        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get(); 
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get(); 
         
         $accounts = settings::where('listCheck',true)->get();
         $settings = settings::where('name','jonathan')->get()->first();    
@@ -198,7 +199,7 @@ class newOrdersController extends Controller
                 
                 $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
                 ->leftJoin('products','order_details.SKU','=','products.asin')
-                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->where('flag', '!=' , '17')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')
                 ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'0')
                 ->groupBy('orders.id')                            
@@ -212,7 +213,7 @@ class newOrdersController extends Controller
                 ->leftJoin('products','order_details.SKU','=','products.asin')
                 ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])
                 ->where('status','unshipped')
-                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->where('flag', '!=' , '17')
+                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')    
                 ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'0')
                 ->groupBy('orders.id')                            
@@ -225,7 +226,7 @@ class newOrdersController extends Controller
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
         
-        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '17')->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
+        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
         $minAmount = 0; 
         $maxPrice = $maxAmount;
 
@@ -264,7 +265,7 @@ class newOrdersController extends Controller
                 }
         }
             
-        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get();  
         $accounts = settings::where('listCheck',true)->get();
         $settings = settings::where('name','jonathan')->get()->first();    
 $statecheck = $settings->statesCheck;
@@ -299,7 +300,7 @@ $statecheck = $settings->statesCheck;
                 
                 $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
                 ->leftJoin('products','order_details.SKU','=','products.asin')
-                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->where('flag', '!=' , '17')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')        
                 ->where('products.category','Movie')        
                 ->groupBy('orders.id')                               
@@ -313,7 +314,7 @@ $statecheck = $settings->statesCheck;
                 ->leftJoin('products','order_details.SKU','=','products.asin')
                 ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])
                 ->where('status','unshipped')
-                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->where('flag', '!=' , '17')
+                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')       
                 ->where('products.category','Movie')             
                 ->groupBy('orders.id')                        
@@ -326,7 +327,7 @@ $statecheck = $settings->statesCheck;
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
         
-        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '17')->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
+        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
         $minAmount = 0; 
         $maxPrice = $maxAmount;
 
@@ -365,7 +366,7 @@ $statecheck = $settings->statesCheck;
                 }
         }
             
-        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get();  
         $accounts = settings::where('listCheck',true)->get();
         $settings = settings::where('name','jonathan')->get()->first();    
 $statecheck = $settings->statesCheck;
@@ -400,7 +401,7 @@ $statecheck = $settings->statesCheck;
                 
                 $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
                 ->leftJoin('products','order_details.SKU','=','products.asin')
-                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->where('flag', '!=' , '17')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')        
                 ->where('products.category','Food')        
                 ->groupBy('orders.id')                               
@@ -414,7 +415,7 @@ $statecheck = $settings->statesCheck;
                 ->leftJoin('products','order_details.SKU','=','products.asin')
                 ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])
                 ->where('status','unshipped')
-                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->where('flag', '!=' , '17')
+                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')       
                 ->where('products.category','Food')             
                 ->groupBy('orders.id')                        
@@ -427,7 +428,7 @@ $statecheck = $settings->statesCheck;
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
         
-        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '17')->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
+        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
         $minAmount = 0; 
         $maxPrice = $maxAmount;
 
@@ -466,7 +467,7 @@ $statecheck = $settings->statesCheck;
                 }
         }
             
-        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get();  
         $accounts = settings::where('listCheck',true)->get();
         $settings = settings::where('name','jonathan')->get()->first();    
 $statecheck = $settings->statesCheck;
@@ -548,7 +549,7 @@ $statecheck = $settings->statesCheck;
                 
                 $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
                 ->leftJoin('products','order_details.SKU','=','products.asin')
-                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->where('flag', '!=' , '17')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')                        
                 ->groupBy('orders.id')            
                 ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',0)
@@ -563,7 +564,7 @@ $statecheck = $settings->statesCheck;
                 ->leftJoin('products','order_details.SKU','=','products.asin')
                 ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])
                 ->where('status','unshipped')
-                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->where('flag', '!=' , '17')
+                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')       
                 ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',0)
                 ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$price1)
@@ -577,7 +578,7 @@ $statecheck = $settings->statesCheck;
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
         
-        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '17')->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
+        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
         $minAmount = 0; 
         $maxPrice = $maxAmount;
 
@@ -616,7 +617,7 @@ $statecheck = $settings->statesCheck;
                 }
         }
             
-        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get();  
         $accounts = settings::where('listCheck',true)->get();
         $settings = settings::where('name','jonathan')->get()->first();    
 $statecheck = $settings->statesCheck;
@@ -654,7 +655,7 @@ $statecheck = $settings->statesCheck;
                 
                 $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
                 ->leftJoin('products','order_details.SKU','=','products.asin')
-                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->where('flag', '!=' , '17')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')                        
                 ->groupBy('orders.id')            
                 ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price1)
@@ -669,7 +670,7 @@ $statecheck = $settings->statesCheck;
                 ->leftJoin('products','order_details.SKU','=','products.asin')
                 ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])
                 ->where('status','unshipped')
-                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->where('flag', '!=' , '17')
+                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')       
                 ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price1)
                 ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$price2)
@@ -683,7 +684,7 @@ $statecheck = $settings->statesCheck;
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
         
-        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '17')->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
+        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
         $minAmount = 0; 
         $maxPrice = $maxAmount;
 
@@ -722,7 +723,7 @@ $statecheck = $settings->statesCheck;
                 }
         }
             
-        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get();  
         $accounts = settings::where('listCheck',true)->get();  
         $settings = settings::where('name','jonathan')->get()->first();    
 $statecheck = $settings->statesCheck;
@@ -759,7 +760,7 @@ $statecheck = $settings->statesCheck;
                 
                 $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
                 ->leftJoin('products','order_details.SKU','=','products.asin')
-                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->where('flag', '!=' , '17')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')                        
                 ->groupBy('orders.id')            
                 ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price2)
@@ -773,7 +774,7 @@ $statecheck = $settings->statesCheck;
                 ->leftJoin('products','order_details.SKU','=','products.asin')
                 ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])
                 ->where('status','unshipped')
-                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->where('flag', '!=' , '17')
+                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')       
                 ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price2)
                 ->groupBy('orders.id')                        
@@ -786,7 +787,7 @@ $statecheck = $settings->statesCheck;
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
         
-        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '17')->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
+        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
         $minAmount = 0; 
         $maxPrice = $maxAmount;
 
@@ -825,7 +826,7 @@ $statecheck = $settings->statesCheck;
                 }
         }
             
-        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();  
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get();  
         $accounts = settings::where('listCheck',true)->get();
         $settings = settings::where('name','jonathan')->get()->first();    
 $statecheck = $settings->statesCheck;
@@ -1097,7 +1098,7 @@ $statecheck = $settings->statesCheck;
         }
                 
         if(auth()->user()->role==1)
-            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '17')->where('flag', '!=' , '17')->where('flag', '!=' , '10')->where('flag','0')
+            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')
             ->groupBy('orders.id')            
             ->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
         elseif(auth()->user()->role==2)
@@ -1110,14 +1111,14 @@ $statecheck = $settings->statesCheck;
                     $strArray[]= $str->store;
                 }
                 
-                $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '17')->where('flag', '!=' , '10')->where('flag','0')
+                $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')
                 ->groupBy('orders.id')                
                 
                 ->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
         }
             
         else
-            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '17')->where('flag', '!=' , '10')->where('flag','0')
+            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')
             
             ->groupBy('orders.id')
             
@@ -1146,7 +1147,7 @@ $statecheck = $settings->statesCheck;
 
      
         
-        $maxPrice = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '17')->where('flag', '!=' , '10')->where('flag','!=','0')->max('totalAmount'));
+        $maxPrice = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','!=','0')->max('totalAmount'));
         foreach($orders as $order)
         {
             
@@ -1185,7 +1186,7 @@ $statecheck = $settings->statesCheck;
                 }
         }     
         
-        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get(); 
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get(); 
 
         
         $accounts = settings::where('listCheck',true)->get();
@@ -1209,7 +1210,7 @@ $statecheck = $settings->statesCheck;
 
         $ord = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
         ->leftJoin('products','order_details.SKU','=','products.asin')
-        ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->where('flag', '!=' , '17')->where('flag', '!=' , '10')            
+        ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')            
         ->groupBy('orders.id');
 
         if(auth()->user()->role==1)
@@ -1333,7 +1334,7 @@ $statecheck = $settings->statesCheck;
                 }
         }
         $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10'])->get(); 
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get(); 
         $accounts = settings::where('listCheck',true)->get();
         $settings = settings::where('name','jonathan')->get()->first();    
 $statecheck = $settings->statesCheck;

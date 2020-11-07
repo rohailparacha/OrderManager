@@ -490,6 +490,211 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('yaballeLabelDelete/{route}/{id}','yaballeReturnsController@labelDeleteRoute');
 	Route::delete('/yaballeDeleteReturn/{route}/{id}','yaballeReturnsController@deleteReturnRoute')->middleware('admin');
 	
+
+	//salefreaks1 auto fulfillment settings
+	Route::get('/saleFreaks1Setting', 'saleFreaks1Controller@index')->name('saleFreaks1Setting');
+	Route::post('/saleFreaks1StoreSettings', 'saleFreaks1Controller@storeSettings')->name('saleFreaks1StoreSettings');
+	Route::any('/saleFreaks1OrderFulfillmentExport', 'saleFreaks1Controller@export')->name('saleFreaks1OrderFulfillmentExport');
+	Route::delete('saleFreaks1DeleteCancelled/{id}','saleFreaks1Controller@deleteCancelled')->name('saleFreaks1DeleteCancelled')->middleware('admin');	
+	Route::delete('saleFreaks1DeleteConversion/{id}','saleFreaks1Controller@deleteConversion')->name('saleFreaks1DeleteConversion')->middleware('admin');	
+	Route::any('/saleFreaks1OrderCancelledExport', 'saleFreaks1Controller@orderCancelledExport')->name('saleFreaks1OrderCancelledExport');
+	Route::post('saleFreaks1UpdateBCE','saleFreaks1Controller@updateBCE')->name('saleFreaks1UpdateBCE');
+
+	//saleFreaks1 orders
+	Route::post('saleFreaks1Process','saleFreaks1Controller@autoFulfillProcess')->name('saleFreaks1Process')->middleware('admin');	
+	Route::get('saleFreaks1conversions','saleFreaks1Controller@autofulfillconversions')->name('saleFreaks1bce')->middleware('admin');	
+	Route::get('saleFreaks1Processed','saleFreaks1Controller@autofulfillProcessed')->name('saleFreaks1processed')->middleware('admin');	
+	Route::get('saleFreaks1Cancel','saleFreaks1Controller@autofulfillCancel')->name('saleFreaks1cancel')->middleware('admin');		
+	Route::get('saleFreaks1','saleFreaks1Controller@autoFulfill')->name('saleFreaks1new')->middleware('admin');	
+	Route::any('saleFreaks1export','saleFreaks1Controller@saleFreaks1export')->name('saleFreaks1export')->middleware('admin');	
+	Route::any('saleFreaks1OrderExport','saleFreaks1Controller@saleFreaks1OrderExport')->name('saleFreaks1OrderExport')->middleware('admin');
+	Route::any('saleFreaks1Filter','saleFreaks1Controller@autoFulfillFilter')->middleware('admin');
+	Route::any('saleFreaks1search','saleFreaks1Controller@search')->name('saleFreaks1search');
+
+
+	//saleFreaks1 Returns
+
+	Route::get('/saleFreaks1ReturnPending', 'saleFreaks1ReturnsController@index')->name('saleFreaks1return')->middleware('admin');
+	Route::get('/saleFreaks1RefundPending', 'saleFreaks1ReturnsController@refunds')->name('saleFreaks1refund')->middleware('admin');
+	Route::get('/saleFreaks1CompletedReturns', 'saleFreaks1ReturnsController@completed')->name('saleFreaks1completed')->middleware('admin');
+	Route::post('/saleFreaks1Addreturn', 'saleFreaks1ReturnsController@addReturn')->middleware('admin');
+	Route::post('/saleFreaks1Editreturn', 'saleFreaks1ReturnsController@editReturn')->middleware('admin');
+	Route::delete('/saleFreaks1DeleteReturn/{id}','saleFreaks1ReturnsController@deleteReturn')->name('saleFreaks1DeleteReturn')->middleware('admin');
+	Route::post('saleFreaks1Returnsupload','saleFreaks1ReturnsController@uploadSubmit');
+	Route::post('saleFreaks1UploadLabel','saleFreaks1ReturnsController@uploadLabel');
+	Route::get('saleFreaks1UpdateStatus','saleFreaks1ReturnsController@updateStatus');
+	Route::get('saleFreaks1LabelPrint/{id}','saleFreaks1ReturnsController@labelPrint');
+	Route::get('saleFreaks1LabelDelete/{id}','saleFreaks1ReturnsController@labelDelete');
+	Route::any('saleFreaks1ReturnFilter','saleFreaks1ReturnsController@returnFilter')->middleware('admin');
+	Route::any('saleFreaks1RefundFilter','saleFreaks1ReturnsController@refundFilter')->middleware('admin');
+	Route::any('saleFreaks1CompletedFilter','saleFreaks1ReturnsController@completedFilter')->middleware('admin');
+	Route::get('saleFreaks1LabelDelete/{route}/{id}','saleFreaks1ReturnsController@labelDeleteRoute');
+	Route::delete('/saleFreaks1DeleteReturn/{route}/{id}','saleFreaks1ReturnsController@deleteReturnRoute')->middleware('admin');
+	
+
+	//salefreaks2 auto fulfillment settings
+	Route::get('/saleFreaks2Setting', 'saleFreaks2Controller@index')->name('saleFreaks2Setting');
+	Route::post('/saleFreaks2StoreSettings', 'saleFreaks2Controller@storeSettings')->name('saleFreaks2StoreSettings');
+	Route::any('/saleFreaks2OrderFulfillmentExport', 'saleFreaks2Controller@export')->name('saleFreaks2OrderFulfillmentExport');
+	Route::delete('saleFreaks2DeleteCancelled/{id}','saleFreaks2Controller@deleteCancelled')->name('saleFreaks2DeleteCancelled')->middleware('admin');	
+	Route::delete('saleFreaks2DeleteConversion/{id}','saleFreaks2Controller@deleteConversion')->name('saleFreaks2DeleteConversion')->middleware('admin');	
+	Route::any('/saleFreaks2OrderCancelledExport', 'saleFreaks2Controller@orderCancelledExport')->name('saleFreaks2OrderCancelledExport');
+	Route::post('saleFreaks2UpdateBCE','saleFreaks2Controller@updateBCE')->name('saleFreaks2UpdateBCE');
+
+	//saleFreaks2 orders
+	Route::post('saleFreaks2Process','saleFreaks2Controller@autoFulfillProcess')->name('saleFreaks2Process')->middleware('admin');	
+	Route::get('saleFreaks2conversions','saleFreaks2Controller@autofulfillconversions')->name('saleFreaks2bce')->middleware('admin');	
+	Route::get('saleFreaks2Processed','saleFreaks2Controller@autofulfillProcessed')->name('saleFreaks2processed')->middleware('admin');	
+	Route::get('saleFreaks2Cancel','saleFreaks2Controller@autofulfillCancel')->name('saleFreaks2cancel')->middleware('admin');		
+	Route::get('saleFreaks2','saleFreaks2Controller@autoFulfill')->name('saleFreaks2new')->middleware('admin');	
+	Route::any('saleFreaks2export','saleFreaks2Controller@saleFreaks2export')->name('saleFreaks2export')->middleware('admin');	
+	Route::any('saleFreaks2OrderExport','saleFreaks2Controller@saleFreaks2OrderExport')->name('saleFreaks2OrderExport')->middleware('admin');
+	Route::any('saleFreaks2Filter','saleFreaks2Controller@autoFulfillFilter')->middleware('admin');
+	Route::any('saleFreaks2search','saleFreaks2Controller@search')->name('saleFreaks2search');
+
+
+	//saleFreaks2 Returns
+
+	Route::get('/saleFreaks2ReturnPending', 'saleFreaks2ReturnsController@index')->name('saleFreaks2return')->middleware('admin');
+	Route::get('/saleFreaks2RefundPending', 'saleFreaks2ReturnsController@refunds')->name('saleFreaks2refund')->middleware('admin');
+	Route::get('/saleFreaks2CompletedReturns', 'saleFreaks2ReturnsController@completed')->name('saleFreaks2completed')->middleware('admin');
+	Route::post('/saleFreaks2Addreturn', 'saleFreaks2ReturnsController@addReturn')->middleware('admin');
+	Route::post('/saleFreaks2Editreturn', 'saleFreaks2ReturnsController@editReturn')->middleware('admin');
+	Route::delete('/saleFreaks2DeleteReturn/{id}','saleFreaks2ReturnsController@deleteReturn')->name('saleFreaks2DeleteReturn')->middleware('admin');
+	Route::post('saleFreaks2Returnsupload','saleFreaks2ReturnsController@uploadSubmit');
+	Route::post('saleFreaks2UploadLabel','saleFreaks2ReturnsController@uploadLabel');
+	Route::get('saleFreaks2UpdateStatus','saleFreaks2ReturnsController@updateStatus');
+	Route::get('saleFreaks2LabelPrint/{id}','saleFreaks2ReturnsController@labelPrint');
+	Route::get('saleFreaks2LabelDelete/{id}','saleFreaks2ReturnsController@labelDelete');
+	Route::any('saleFreaks2ReturnFilter','saleFreaks2ReturnsController@returnFilter')->middleware('admin');
+	Route::any('saleFreaks2RefundFilter','saleFreaks2ReturnsController@refundFilter')->middleware('admin');
+	Route::any('saleFreaks2CompletedFilter','saleFreaks2ReturnsController@completedFilter')->middleware('admin');
+	Route::get('saleFreaks2LabelDelete/{route}/{id}','saleFreaks2ReturnsController@labelDeleteRoute');
+	Route::delete('/saleFreaks2DeleteReturn/{route}/{id}','saleFreaks2ReturnsController@deleteReturnRoute')->middleware('admin');
+	
+
+	//salefreaks3 auto fulfillment settings
+	Route::get('/saleFreaks3Setting', 'saleFreaks3Controller@index')->name('saleFreaks3Setting');
+	Route::post('/saleFreaks3StoreSettings', 'saleFreaks3Controller@storeSettings')->name('saleFreaks3StoreSettings');
+	Route::any('/saleFreaks3OrderFulfillmentExport', 'saleFreaks3Controller@export')->name('saleFreaks3OrderFulfillmentExport');
+	Route::delete('saleFreaks3DeleteCancelled/{id}','saleFreaks3Controller@deleteCancelled')->name('saleFreaks3DeleteCancelled')->middleware('admin');	
+	Route::delete('saleFreaks3DeleteConversion/{id}','saleFreaks3Controller@deleteConversion')->name('saleFreaks3DeleteConversion')->middleware('admin');	
+	Route::any('/saleFreaks3OrderCancelledExport', 'saleFreaks3Controller@orderCancelledExport')->name('saleFreaks3OrderCancelledExport');
+	Route::post('saleFreaks3UpdateBCE','saleFreaks3Controller@updateBCE')->name('saleFreaks3UpdateBCE');
+
+	//saleFreaks3 orders
+	Route::post('saleFreaks3Process','saleFreaks3Controller@autoFulfillProcess')->name('saleFreaks3Process')->middleware('admin');	
+	Route::get('saleFreaks3conversions','saleFreaks3Controller@autofulfillconversions')->name('saleFreaks3bce')->middleware('admin');	
+	Route::get('saleFreaks3Processed','saleFreaks3Controller@autofulfillProcessed')->name('saleFreaks3processed')->middleware('admin');	
+	Route::get('saleFreaks3Cancel','saleFreaks3Controller@autofulfillCancel')->name('saleFreaks3cancel')->middleware('admin');		
+	Route::get('saleFreaks3','saleFreaks3Controller@autoFulfill')->name('saleFreaks3new')->middleware('admin');	
+	Route::any('saleFreaks3export','saleFreaks3Controller@saleFreaks3export')->name('saleFreaks3export')->middleware('admin');	
+	Route::any('saleFreaks3OrderExport','saleFreaks3Controller@saleFreaks3OrderExport')->name('saleFreaks3OrderExport')->middleware('admin');
+	Route::any('saleFreaks3Filter','saleFreaks3Controller@autoFulfillFilter')->middleware('admin');
+	Route::any('saleFreaks3search','saleFreaks3Controller@search')->name('saleFreaks3search');
+
+
+	//saleFreaks3 Returns
+
+	Route::get('/saleFreaks3ReturnPending', 'saleFreaks3ReturnsController@index')->name('saleFreaks3return')->middleware('admin');
+	Route::get('/saleFreaks3RefundPending', 'saleFreaks3ReturnsController@refunds')->name('saleFreaks3refund')->middleware('admin');
+	Route::get('/saleFreaks3CompletedReturns', 'saleFreaks3ReturnsController@completed')->name('saleFreaks3completed')->middleware('admin');
+	Route::post('/saleFreaks3Addreturn', 'saleFreaks3ReturnsController@addReturn')->middleware('admin');
+	Route::post('/saleFreaks3Editreturn', 'saleFreaks3ReturnsController@editReturn')->middleware('admin');
+	Route::delete('/saleFreaks3DeleteReturn/{id}','saleFreaks3ReturnsController@deleteReturn')->name('saleFreaks3DeleteReturn')->middleware('admin');
+	Route::post('saleFreaks3Returnsupload','saleFreaks3ReturnsController@uploadSubmit');
+	Route::post('saleFreaks3UploadLabel','saleFreaks3ReturnsController@uploadLabel');
+	Route::get('saleFreaks3UpdateStatus','saleFreaks3ReturnsController@updateStatus');
+	Route::get('saleFreaks3LabelPrint/{id}','saleFreaks3ReturnsController@labelPrint');
+	Route::get('saleFreaks3LabelDelete/{id}','saleFreaks3ReturnsController@labelDelete');
+	Route::any('saleFreaks3ReturnFilter','saleFreaks3ReturnsController@returnFilter')->middleware('admin');
+	Route::any('saleFreaks3RefundFilter','saleFreaks3ReturnsController@refundFilter')->middleware('admin');
+	Route::any('saleFreaks3CompletedFilter','saleFreaks3ReturnsController@completedFilter')->middleware('admin');
+	Route::get('saleFreaks3LabelDelete/{route}/{id}','saleFreaks3ReturnsController@labelDeleteRoute');
+	Route::delete('/saleFreaks3DeleteReturn/{route}/{id}','saleFreaks3ReturnsController@deleteReturnRoute')->middleware('admin');
+	
+
+	//salefreaks4 auto fulfillment settings
+	Route::get('/saleFreaks4Setting', 'saleFreaks4Controller@index')->name('saleFreaks4Setting');
+	Route::post('/saleFreaks4StoreSettings', 'saleFreaks4Controller@storeSettings')->name('saleFreaks4StoreSettings');
+	Route::any('/saleFreaks4OrderFulfillmentExport', 'saleFreaks4Controller@export')->name('saleFreaks4OrderFulfillmentExport');
+	Route::delete('saleFreaks4DeleteCancelled/{id}','saleFreaks4Controller@deleteCancelled')->name('saleFreaks4DeleteCancelled')->middleware('admin');	
+	Route::delete('saleFreaks4DeleteConversion/{id}','saleFreaks4Controller@deleteConversion')->name('saleFreaks4DeleteConversion')->middleware('admin');	
+	Route::any('/saleFreaks4OrderCancelledExport', 'saleFreaks4Controller@orderCancelledExport')->name('saleFreaks4OrderCancelledExport');
+	Route::post('saleFreaks4UpdateBCE','saleFreaks4Controller@updateBCE')->name('saleFreaks4UpdateBCE');
+
+	//saleFreaks4 orders
+	Route::post('saleFreaks4Process','saleFreaks4Controller@autoFulfillProcess')->name('saleFreaks4Process')->middleware('admin');	
+	Route::get('saleFreaks4conversions','saleFreaks4Controller@autofulfillconversions')->name('saleFreaks4bce')->middleware('admin');	
+	Route::get('saleFreaks4Processed','saleFreaks4Controller@autofulfillProcessed')->name('saleFreaks4processed')->middleware('admin');	
+	Route::get('saleFreaks4Cancel','saleFreaks4Controller@autofulfillCancel')->name('saleFreaks4cancel')->middleware('admin');		
+	Route::get('saleFreaks4','saleFreaks4Controller@autoFulfill')->name('saleFreaks4new')->middleware('admin');	
+	Route::any('saleFreaks4export','saleFreaks4Controller@saleFreaks4export')->name('saleFreaks4export')->middleware('admin');	
+	Route::any('saleFreaks4OrderExport','saleFreaks4Controller@saleFreaks4OrderExport')->name('saleFreaks4OrderExport')->middleware('admin');
+	Route::any('saleFreaks4Filter','saleFreaks4Controller@autoFulfillFilter')->middleware('admin');
+	Route::any('saleFreaks4search','saleFreaks4Controller@search')->name('saleFreaks4search');
+
+
+	//saleFreaks4 Returns
+
+	Route::get('/saleFreaks4ReturnPending', 'saleFreaks4ReturnsController@index')->name('saleFreaks4return')->middleware('admin');
+	Route::get('/saleFreaks4RefundPending', 'saleFreaks4ReturnsController@refunds')->name('saleFreaks4refund')->middleware('admin');
+	Route::get('/saleFreaks4CompletedReturns', 'saleFreaks4ReturnsController@completed')->name('saleFreaks4completed')->middleware('admin');
+	Route::post('/saleFreaks4Addreturn', 'saleFreaks4ReturnsController@addReturn')->middleware('admin');
+	Route::post('/saleFreaks4Editreturn', 'saleFreaks4ReturnsController@editReturn')->middleware('admin');
+	Route::delete('/saleFreaks4DeleteReturn/{id}','saleFreaks4ReturnsController@deleteReturn')->name('saleFreaks4DeleteReturn')->middleware('admin');
+	Route::post('saleFreaks4Returnsupload','saleFreaks4ReturnsController@uploadSubmit');
+	Route::post('saleFreaks4UploadLabel','saleFreaks4ReturnsController@uploadLabel');
+	Route::get('saleFreaks4UpdateStatus','saleFreaks4ReturnsController@updateStatus');
+	Route::get('saleFreaks4LabelPrint/{id}','saleFreaks4ReturnsController@labelPrint');
+	Route::get('saleFreaks4LabelDelete/{id}','saleFreaks4ReturnsController@labelDelete');
+	Route::any('saleFreaks4ReturnFilter','saleFreaks4ReturnsController@returnFilter')->middleware('admin');
+	Route::any('saleFreaks4RefundFilter','saleFreaks4ReturnsController@refundFilter')->middleware('admin');
+	Route::any('saleFreaks4CompletedFilter','saleFreaks4ReturnsController@completedFilter')->middleware('admin');
+	Route::get('saleFreaks4LabelDelete/{route}/{id}','saleFreaks4ReturnsController@labelDeleteRoute');
+	Route::delete('/saleFreaks4DeleteReturn/{route}/{id}','saleFreaks4ReturnsController@deleteReturnRoute')->middleware('admin');
+	
+
+	//salefreaks5 auto fulfillment settings
+	Route::get('/saleFreaks5Setting', 'saleFreaks5Controller@index')->name('saleFreaks5Setting');
+	Route::post('/saleFreaks5StoreSettings', 'saleFreaks5Controller@storeSettings')->name('saleFreaks5StoreSettings');
+	Route::any('/saleFreaks5OrderFulfillmentExport', 'saleFreaks5Controller@export')->name('saleFreaks5OrderFulfillmentExport');
+	Route::delete('saleFreaks5DeleteCancelled/{id}','saleFreaks5Controller@deleteCancelled')->name('saleFreaks5DeleteCancelled')->middleware('admin');	
+	Route::delete('saleFreaks5DeleteConversion/{id}','saleFreaks5Controller@deleteConversion')->name('saleFreaks5DeleteConversion')->middleware('admin');	
+	Route::any('/saleFreaks5OrderCancelledExport', 'saleFreaks5Controller@orderCancelledExport')->name('saleFreaks5OrderCancelledExport');
+	Route::post('saleFreaks5UpdateBCE','saleFreaks5Controller@updateBCE')->name('saleFreaks5UpdateBCE');
+
+	//saleFreaks5 orders
+	Route::post('saleFreaks5Process','saleFreaks5Controller@autoFulfillProcess')->name('saleFreaks5Process')->middleware('admin');	
+	Route::get('saleFreaks5conversions','saleFreaks5Controller@autofulfillconversions')->name('saleFreaks5bce')->middleware('admin');	
+	Route::get('saleFreaks5Processed','saleFreaks5Controller@autofulfillProcessed')->name('saleFreaks5processed')->middleware('admin');	
+	Route::get('saleFreaks5Cancel','saleFreaks5Controller@autofulfillCancel')->name('saleFreaks5cancel')->middleware('admin');		
+	Route::get('saleFreaks5','saleFreaks5Controller@autoFulfill')->name('saleFreaks5new')->middleware('admin');	
+	Route::any('saleFreaks5export','saleFreaks5Controller@saleFreaks5export')->name('saleFreaks5export')->middleware('admin');	
+	Route::any('saleFreaks5OrderExport','saleFreaks5Controller@saleFreaks5OrderExport')->name('saleFreaks5OrderExport')->middleware('admin');
+	Route::any('saleFreaks5Filter','saleFreaks5Controller@autoFulfillFilter')->middleware('admin');
+	Route::any('saleFreaks5search','saleFreaks5Controller@search')->name('saleFreaks5search');
+
+
+	//saleFreaks5 Returns
+
+	Route::get('/saleFreaks5ReturnPending', 'saleFreaks5ReturnsController@index')->name('saleFreaks5return')->middleware('admin');
+	Route::get('/saleFreaks5RefundPending', 'saleFreaks5ReturnsController@refunds')->name('saleFreaks5refund')->middleware('admin');
+	Route::get('/saleFreaks5CompletedReturns', 'saleFreaks5ReturnsController@completed')->name('saleFreaks5completed')->middleware('admin');
+	Route::post('/saleFreaks5Addreturn', 'saleFreaks5ReturnsController@addReturn')->middleware('admin');
+	Route::post('/saleFreaks5Editreturn', 'saleFreaks5ReturnsController@editReturn')->middleware('admin');
+	Route::delete('/saleFreaks5DeleteReturn/{id}','saleFreaks5ReturnsController@deleteReturn')->name('saleFreaks5DeleteReturn')->middleware('admin');
+	Route::post('saleFreaks5Returnsupload','saleFreaks5ReturnsController@uploadSubmit');
+	Route::post('saleFreaks5UploadLabel','saleFreaks5ReturnsController@uploadLabel');
+	Route::get('saleFreaks5UpdateStatus','saleFreaks5ReturnsController@updateStatus');
+	Route::get('saleFreaks5LabelPrint/{id}','saleFreaks5ReturnsController@labelPrint');
+	Route::get('saleFreaks5LabelDelete/{id}','saleFreaks5ReturnsController@labelDelete');
+	Route::any('saleFreaks5ReturnFilter','saleFreaks5ReturnsController@returnFilter')->middleware('admin');
+	Route::any('saleFreaks5RefundFilter','saleFreaks5ReturnsController@refundFilter')->middleware('admin');
+	Route::any('saleFreaks5CompletedFilter','saleFreaks5ReturnsController@completedFilter')->middleware('admin');
+	Route::get('saleFreaks5LabelDelete/{route}/{id}','saleFreaks5ReturnsController@labelDeleteRoute');
+	Route::delete('/saleFreaks5DeleteReturn/{route}/{id}','saleFreaks5ReturnsController@deleteReturnRoute')->middleware('admin');
+	
 	//order flags
 	Route::get('/flags', 'flagsController@flags')->name('flags')->middleware('admin');
 	Route::post('/addFlag', 'flagsController@addFlag')->middleware('admin');

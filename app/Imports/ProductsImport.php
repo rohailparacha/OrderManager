@@ -104,7 +104,7 @@ class ProductsImport implements ToCollection
         $counter = 0; 
         foreach ($rows[0] as $col)
         {
-            if(strtolower(trim($col)) == $key)
+            if(strtolower(trim($col)) == strtolower(trim($key)))
                 return $counter; 
             $counter++;
         }

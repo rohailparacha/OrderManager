@@ -332,7 +332,7 @@ class jonathanController extends Controller
                         $order->source = 'Mix';
                 }
         }     
-        $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();
+        $flags= flags::select()->whereNotIn('id',['16','17','22','23','24','25','26','8','9','10'])->get();
 
        
         $route = 'jonathannew';
@@ -434,7 +434,7 @@ class jonathanController extends Controller
                         $order->source = 'Mix';
                 }
         }
-        $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();
+        $flags= flags::select()->whereNotIn('id',['16','17','22','23','24','25','26','8','9','10'])->get();
 
         $startDate = orders::where('status','unshipped')->where('flag','9')->min('assignDate');
         $endDate = orders::where('status','unshipped')->where('flag','9')->max('assignDate');
@@ -914,7 +914,7 @@ class jonathanController extends Controller
                         }
                 }
                 $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-                $flags= flags::select()->whereNotIn('id',['16','17','8','9','10'])->get();
+                $flags= flags::select()->whereNotIn('id',['16','17','22','23','24','25','26','8','9','10'])->get();
                 $startDate = orders::where('status','unshipped')->where('flag','9')->min('assignDate');
                 $endDate = orders::where('status','unshipped')->where('flag','9')->max('assignDate');
 
