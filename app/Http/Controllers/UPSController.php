@@ -409,20 +409,11 @@ class UPSController extends Controller
         $order = orders::where('id',$orderId)->get()->first();
         
     
-        if(empty($postalCode))
-        {
-            if(strtolower($order->state)!=strtolower($state) || strtolower($order->city) != strtolower($city))
-                return true; 
-            else
-                return false; 
-        }
-        else
-        {
-            if(strtolower($order->state)!=strtolower($state) || strtolower($order->postalCode) != strtolower($postalCode))
-                return true; 
-            else
-                return false; 
-        }
+       if(strtolower($order->state)!=strtolower($state) || strtolower($order->city) != strtolower($city))
+            return true; 
+       else
+            return false; 
+       
         
     }
 

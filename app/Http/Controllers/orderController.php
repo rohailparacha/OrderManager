@@ -319,7 +319,7 @@ class orderController extends Controller
                             }
             
                             $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
-                            $dmxCarrier  = carriers::where('name','Dynamex')->get()->first(); 
+                            $dmxCarrier  = carriers::where('name','Dynamex')->get()->first();                             
 
                             $bceCarrier = carriers::where('name','Bluecare Express')->get()->first(); 
             

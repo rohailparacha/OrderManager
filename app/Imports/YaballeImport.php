@@ -17,7 +17,7 @@ class YaballeImport implements ToCollection
         $this->rows = $rows;
         $counter = 0; 
         $poNumber = $this->getIndex('source_order_id');
-        $poAmount = $this->getIndex('source_price_before_tax_final');
+        $poAmount = $this->getIndex('amount_paid');
         $tracking = $this->getIndex('tracking_number');
         $carrier = $this->getIndex('carrier');
         $sellOrderId = $this->getIndex('transaction_id');
