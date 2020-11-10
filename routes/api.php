@@ -9,6 +9,7 @@ use App\conversions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Carbon\Carbon;
+use App\temp_trackings;
 use GuzzleHttp\Client;
 /*
 |--------------------------------------------------------------------------
@@ -355,6 +356,69 @@ Route::post('yaballe_update', function(Request $request) {
     ],201);
 });
 
+Route::post('order_update', function(Request $request) {
+    
+    $success=0;
+    $records = $request->data;
+    
+
+    foreach($records as $record)
+    {        
+        if(empty(trim($record['sellOrderId'])))
+            continue;
+        
+        $carrier = carriers::where('name',$record['carrier'])->get()->first();
+
+        if(empty($carrier))
+        {
+            $carrier = carriers::where('alias','like','%'.$record['carrier'].'%')->get()->first(); 
+        }
+
+        if(empty($carrier))
+            continue; 
+
+        $insert = orders::where('sellOrderId',$record['sellOrderId'])
+        ->update([
+        'trackingNumber'=>$record['trackingNumber'],
+        'carrierName'=>$carrier->id
+        ]);
+
+        $order = orders::where('sellOrderId',$record['sellOrderId'])->get()->first();
+
+        if(empty($order))
+            continue;
+
+        if($record['status']=='cancelled' || $record['status']=='delayed')
+        {            
+            $insert = cancelled_orders::updateOrCreate(
+                ['order_id'=>$order->id,],    
+                ['status'=>$record['status']]
+            );
+        }
+
+
+        if($insert)
+        {
+            temp_trackings::where('sellOrderId',$record['sellOrderId'])->update(['status'=>'success']);
+            $success++;
+        }
+            
+    }
+
+    return response()->json([
+        'count' => $success
+    ],201);
+});
+
+
+
+Route::get('fetch_orders', function(Request $request) {
+    $trackings = temp_trackings::where('status','pending')->offset(0)->limit(100)->get();    
+
+    return response()->json([
+        'trackings' => $trackings
+    ],200);
+});
 
 Route::post('walmart_product', function(Request $request) {
     

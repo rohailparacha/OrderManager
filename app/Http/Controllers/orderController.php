@@ -27,6 +27,7 @@ use App\transactions;
 use App\bank_accounts; 
 use App\accounting_categories;
 use App\categories;
+use App\temp_trackings;
 use App\conversions;
 use App\Exports\OrdersExport;
 use App\Exports\UPSExport;
@@ -125,262 +126,93 @@ class orderController extends Controller
             if(count($poNumbers)>0)
             {
                 foreach($poNumbers as $number)
-                {
-                    if($found)
-                        break;
-                    $ebayOrder = ebay_trackings::where('orderNumber',trim($number))->get()->first();
-                    if($ebayOrder)
-                    {
-                        $carrier = $ebayOrder->carrierName;
-                        $trackingId = $ebayOrder->trackingNumber;
+                {                  
+                                        
+                    try{
+                        $trackingId = $order->trackingNumber; 
                         
-                        if($carrier =='Bluecare Express')
+                        $carrierId = carriers::where('id',$order->carrierName)->get()->first(); 
+
+                        if(empty($trackingId)|| empty($carrierId))
+                            continue; 
+
+                        $carrier = $carrierId->name;                                                                      
+                   
+                        if(empty(trim($trackingId)) && !empty(trim($carrier)) )
+                            continue;
+                        
+                        $carrierId = carriers::where('name',$carrier)->get()->first(); 
+                        
+                        if(empty($carrierId))
                         {
-                            $bceCarrier = carriers::where('name','Bluecare Express')->get()->first(); 
-                            try{
-                                       
-                                $order = orders::where('id',$order->id)->update(['carrierName'=>$bceCarrier->id, 'trackingNumber'=>$trackingId, 'newTrackingNumber'=>$trackingId, 'converted'=>true]);   
-                                $shippedCounter++;                                    
-                                
-                            }
-                                catch(\Exception $ex)
-                                {
-                
-                                }
-                        }
-                        else
-                            {
-                            $carrierId = carriers::where('name',$carrier)->get()->first(); 
-                                
-                            if(empty($carrierId))
-                            {
-                                $carrierId = carriers::where('alias','like','%'.$carrier.'%')->get()->first(); 
-                            }
-
-                            if(empty($carrierId))
-                                continue;
-                            $this->shipOrder($order->id, $trackingId, $carrierId->name, 'new'); 
-                            
-                            try{
-                                $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId, 'status'=>'shipped']);                      
-                                $shippedCounter++;                   
-                                $found = true;
-                            }
-                            catch(\Exception $ex)
-                            {
-                            
-                            }
-                        }
-                    }
-                    else
-                    {
-                        
-                        
-                        try{
-                            if($order->account_id=='Yaballe'||$order->account_id=='Jonathan' || $order->account_id=='Jonathan2'||$order->account_id=='SaleFreaks1'||$order->account_id=='SaleFreaks2'||$order->account_id=='SaleFreaks3'||$order->account_id=='SaleFreaks4'||$order->account_id=='SaleFreaks5')
-                            {
-                                $trackingId = $order->trackingNumber; 
-                                
-                                $carrierId = carriers::where('id',$order->carrierName)->get()->first(); 
-
-                                if(empty($trackingId)|| empty($carrierId))
-                                    continue; 
-                                $carrier = $carrierId->name; 
-                            }
-                            else{
-                            $baseUrl = "https://www.amazon.com/progress-tracker/package/ref=ppx_yo_dt_b_track_package?_encoding=UTF8";
-                            
-                             
-                            $order_details = order_details::where('order_id',$order->id)->get();
-                            
-                          
-                            if($order->account_id=="Cindy"|| $order->account_id=='Jonathan' || $order->account_id=='Jonathan2' || $order->account_id=='Yaballe' ||$order->account_id=='SaleFreaks1'||$order->account_id=='SaleFreaks2'||$order->account_id=='SaleFreaks3'||$order->account_id=='SaleFreaks4'||$order->account_id=='SaleFreaks5'|| $order->account_id=='Vaughn')
-                            {
-                                
-                                
-                                $response = $client->request('GET', $order->trackingLink,
-                                [   
-                    
-                                ]);    
-                                
-                                
-                                $statusCode = $response->getStatusCode();
-                                
-                                $html = $response->getBody()->getContents();   
-                            }
-                            
-                            else                                
-                            {
-                                
-                                
-                                    $trakUrl = $this->getTrackingUrl($order->poNumber);
-                                    
-                                    if(empty($trakUrl) || !$trakUrl)
-                                    {
-                                        continue;
-                                    }
-                                    $response = $client->request('GET', $trakUrl,[]);    
-                                    
-                                    orders::where('id',$order->id)->update(['trackingLink'=>$trakUrl]);
-
-                                    $order_details = order_details::where('order_id',$order->id)->get();
-
-                                    $statusCode = $response->getStatusCode();
-                                    
-                                    $html = $response->getBody()->getContents();   
-                            }
-                                
-                           
-                            
-                            $html = str_replace('&','&amp;',$html);
-                            
-                            $doc = new \DOMDocument();
-                            
-                            $internalErrors = libxml_use_internal_errors(true);
-                           
-                            $doc->loadHTML($html);
-                             
-                            try{
-                                $elem = $doc->getElementById('primaryStatus');
-                                $stat =  $elem->nodeValue;                             
-                                if(trim($stat)=='Delayed, not yet shipped' && ($order->account_id=='Cindy'|| $order->account_id=='Jonathan' || $order->account_id=='Jonathan2'||$order->account_id=='Yaballe'||$order->account_id=='SaleFreaks1'||$order->account_id=='SaleFreaks2'||$order->account_id=='SaleFreaks3'||$order->account_id=='SaleFreaks4'||$order->account_id=='SaleFreaks5'|| $order->account_id=='Vaughn'))
-                                {
-                                    $insert = cancelled_orders::updateOrCreate(
-                                        ['order_id'=>$order->id,],    
-                                        ['status'=>'delayed']
-                                    );
-                                    
-                                }
-                                                                    
-                                if(trim($stat)=='Order cancelled' && ($order->account_id=='Cindy'|| $order->account_id=='Jonathan'|| $order->account_id=='Jonathan2' ||$order->account_id=='Yaballe' ||$order->account_id=='SaleFreaks1'||$order->account_id=='SaleFreaks2'||$order->account_id=='SaleFreaks3'||$order->account_id=='SaleFreaks4'||$order->account_id=='SaleFreaks5'|| $order->account_id=='Vaughn'))
-                                {
-                                    $insert = cancelled_orders::updateOrCreate(
-                                        ['order_id'=>$order->id,],    
-                                        ['status'=>'cancelled']
-                                    );
-                                   
-                                }
-                            }
-                            catch(\Exception $ex)
-                            {
-                               
-                            }
-                            
-                            $elements = $doc->getElementById($field);
-                            
-                            
-                            if(empty($elements))
-                                continue;
-                                
-                             
-                            libxml_use_internal_errors($internalErrors);
-                            
-                            $doc->loadHTML($this->DOMinnerHTML($elements));
-                            
-                            
-                            $finder = new \DomXPath($doc);
-                            
-                            $nodes = $finder->query("//*[contains(@class, '$trackField')]");
-                            
-                            foreach($nodes as $node)
-                            {
-                                $trackingId = trim(str_replace('Tracking ID:','',$node->nodeValue));            
-                            }
-            
-                            $nodes = $finder->query("//*[contains(@class, '$carrierField')]");
-                            
-                            foreach($nodes as $node)
-                            {
-                                $carrier = trim(str_replace('Delivery by','',str_replace('Shipped with','',$node->nodeValue)));            
-                            }        
-                            
-                            if(empty($carrier))
-                            {
-                                
-                                $nodes = $finder->query("//*[contains(@class, '$carrierField2')]");
-                                
-                                foreach($nodes as $node)
-                                {
-                                    $carrier = trim(str_replace('Delivery by','',str_replace('Shipped with','',$node->nodeValue)));            
-                                }        
-                            }
-                           
-                         
+                            $carrierId = carriers::where('alias','like','%'.$carrier.'%')->get()->first(); 
                         }
 
-                            if(empty(trim($trackingId)) && !empty(trim($carrier)) )
-                                continue;
-                            
-                            $carrierId = carriers::where('name',$carrier)->get()->first(); 
-                            
-                            if(empty($carrierId))
-                            {
-                                $carrierId = carriers::where('alias','like','%'.$carrier.'%')->get()->first(); 
-                            }
-            
-                            $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
-                            $dmxCarrier  = carriers::where('name','Dynamex')->get()->first();                             
+                        if(empty($carrierId))
+                            continue; 
+        
+                        $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
+                        $dmxCarrier  = carriers::where('name','Dynamex')->get()->first();                             
 
-                            $bceCarrier = carriers::where('name','Bluecare Express')->get()->first(); 
-            
-                            if(($carrierId->id == $amzCarrier->id && $order->marketplace == 'Walmart' && $this->startsWith($trackingId,'TBA'))||$carrierId->id == $dmxCarrier->id||$carrierId->id == $bceCarrier->id)
-                            {       
-                               
-                               $resp='';
-                               if($order->account_id=="Cindy" || $order->account_id=='Jonathan'|| $order->account_id=='Jonathan2' ||$order->account_id=='Yaballe'||$order->account_id=='SaleFreaks1'||$order->account_id=='SaleFreaks2'||$order->account_id=='SaleFreaks3'||$order->account_id=='SaleFreaks4'||$order->account_id=='SaleFreaks5'||  $order->account_id=='Vaughn')
-                               {    
-                                    if(empty($order->of_bce_created_at))
-                                        orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at' =>Carbon::now(),'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);
-                                    else
-                                        orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);
-                                   
-                                    $this->sendOrderToSheet($order->id);
-                                    
-                               }
-                               else
-                               {
-
-                                orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId, 'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);   
+                        $bceCarrier = carriers::where('name','Bluecare Express')->get()->first(); 
+        
+                        if(($carrierId->id == $amzCarrier->id && $order->marketplace == 'Walmart' && $this->startsWith($trackingId,'TBA'))||$carrierId->id == $dmxCarrier->id||($carrierId->id == $bceCarrier->id || $this->startsWith($trackingId,'BCE')))
+                        {       
+                            
+                            $resp='';
+                            if($order->account_id=="Cindy" || $order->account_id=='Jonathan'|| $order->account_id=='Jonathan2' ||$order->account_id=='Yaballe'||$order->account_id=='SaleFreaks1'||$order->account_id=='SaleFreaks2'||$order->account_id=='SaleFreaks3'||$order->account_id=='SaleFreaks4'||$order->account_id=='SaleFreaks5'||  $order->account_id=='Vaughn')
+                            {    
+                                if(empty($order->of_bce_created_at))
+                                    orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at' =>Carbon::now(),'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);
+                                else
+                                    orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);
                                 
-                                 
                                 $this->sendOrderToSheet($order->id);
-                                $shippedCounter++;              
-                                $found = true;                                
-
-                                
-                                }
                                 
                             }
                             else
-                            {    
+                            {
 
-                                $this->shipOrder($order->id, $trackingId, $carrierId->name, 'new'); 
-                                try{
-                                if($order->account_id=='Cindy')
-                                {
-                                    $this->updateSheetTracking($trackingId, $order->sellOrderId, $carrierId->name);
-                                }
+                            orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId, 'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);                                   
                                 
-                                $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId, 'status'=>'shipped']);     
-                                
-                                
-                                $shippedCounter++;  
-                                $found = true;                 
-                                }
-                                catch(\Exception $ex)
-                                {
-                                    
-                                }
-            
-                                
+                            $this->sendOrderToSheet($order->id);
+                            $shippedCounter++;              
+                            $found = true;                                
+
+                            
                             }
                             
                         }
-                        catch(\Exception $ex)
-                        {
+                        else
+                        {    
+
+                            $this->shipOrder($order->id, $trackingId, $carrierId->name, 'new'); 
+                            try{
+                            if($order->account_id=='Cindy')
+                            {
+                                $this->updateSheetTracking($trackingId, $order->sellOrderId, $carrierId->name);
+                            }
                             
-                        }  
+                            $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId, 'status'=>'shipped']);     
+                            
+                            
+                            $shippedCounter++;  
+                            $found = true;                 
+                            }
+                            catch(\Exception $ex)
+                            {
+                                
+                            }
+        
+                            
+                        }
+                        
                     }
+                    catch(\Exception $ex)
+                    {
+                        
+                    }  
+                
                 }
             }
         
@@ -395,6 +227,70 @@ class orderController extends Controller
         
         return redirect()->route('processedOrders');
         
+    }
+
+    public function fetchTrackings(Request $request)
+    {
+        $client = new client(); 
+        $pageNum =  $request->page; 
+        
+        $perPage =  $request->count;
+        
+        $offset = ($pageNum - 1) * $perPage;
+
+        $trackedCounter = 0;
+
+        if(auth()->user()->role==1)
+            $orders = orders::select()->where('status','processing')->offset($offset)->limit($perPage)->get();
+
+        
+        elseif(auth()->user()->role==2)
+        {
+            $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+            $strArray  = array();
+
+            foreach($stores as $str)
+            {
+                $strArray[]= $str->store;
+            }
+
+            $orders = orders::select()->where('status','processing')->whereIn('storeName',$strArray)->offset($offset)->limit($perPage)->get();
+        }
+        else
+            $orders = orders::select()->where('status','processing')->where('uid',auth()->user()->id)->offset($offset)->limit($perPage)->get();
+
+            foreach($orders as $order)
+            {                
+                $trakUrl = $this->getTrackingUrl($order->poNumber);
+                
+                if(empty($trakUrl) || !$trakUrl)
+                {
+                    continue;
+                }
+
+                if(strlen($trakUrl)>400)
+                    continue;
+
+                if(strpos($trakUrl, 'amazon.com') !== false && strpos($trakUrl, 'shiptrack') !== false){
+                    $insert = temp_trackings::updateOrCreate(
+                        ['sellOrderId'=>$order->sellOrderId],    
+                        ['trackingLink'=>$trakUrl,'status'=>'pending']
+                    );
+    
+                    if($insert)
+                        $trackedCounter++;
+                }
+
+                
+
+            }
+
+            Session::flash('success_msg', __('Trackings Fetched Successfully'));
+        
+            Session::flash('count_msg', $trackedCounter." Trackings are Successfully fetched from page no. " .$pageNum);
+            
+            
+            return redirect()->route('processedOrders');
     }
 
     public function export(Request $request)
@@ -556,7 +452,10 @@ class orderController extends Controller
                     $test->where('orders.status','processing');
                 })
                 ->whereNull('upsTrackingNumber')
-                ->where('trackingNumber','like','TBA%')
+                ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
                 
                 ->orderBy('orders.date', 'ASC')
                 ;                
@@ -566,7 +465,10 @@ class orderController extends Controller
                     $test->where('status','processing');                
                 })
                 ->whereNull('upsTrackingNumber')
-                ->where('trackingNumber','like','TBA%')
+                ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
                 ->count(); 
             }
     
@@ -586,7 +488,10 @@ class orderController extends Controller
                     $test->where('orders.status','processing');
                 })
                  ->whereNull('upsTrackingNumber')
-                ->where('trackingNumber','like','TBA%')
+                ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
                 ->orderBy('orders.date', 'ASC');
                           
     
@@ -595,7 +500,10 @@ class orderController extends Controller
                     $test->where('status','processing');                
                 })
                 ->whereNull('upsTrackingNumber')
-                ->where('trackingNumber','like','TBA%')
+                ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
                 ->count(); 
     
                 
@@ -2009,7 +1917,10 @@ class orderController extends Controller
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.status','shipped');
                 })
-                ->where('trackingNumber','like','TBA%')
+                ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
                 ->where(function($test) use ($query){
                 $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                 $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
@@ -2023,7 +1934,10 @@ class orderController extends Controller
                 ->where(function($test){
                     $test->where('status','processing');
                 })
-                ->where('trackingNumber','like','TBA%')
+                ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
                 ->where(function($test) use ($query){
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
@@ -2049,7 +1963,10 @@ class orderController extends Controller
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.status','shipped');
                 })
-                ->where('trackingNumber','like','TBA%')
+                ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
                 ->where(function($test) use ($query){
                 $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                 $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
@@ -2064,7 +1981,10 @@ class orderController extends Controller
                 ->where(function($test){
                     $test->where('status','processing');
                 })
-                ->where('trackingNumber','like','TBA%')
+                ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
                 ->where(function($test) use ($query){
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
@@ -2082,7 +2002,10 @@ class orderController extends Controller
                 ->where(function($test){
                 $test->where('orders.status','processing');
                 $test->orWhere('orders.status','shipped');
-                })->where('trackingNumber','like','TBA%')
+                })->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
                 ->where(function($test) use ($query){
                 $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                 $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
@@ -2096,7 +2019,10 @@ class orderController extends Controller
                 ->where(function($test){
                     $test->where('status','processing');
                 })
-                ->where('trackingNumber','like','TBA%')
+                ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
                 ->where(function($test) use ($query){
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
@@ -4751,7 +4677,10 @@ class orderController extends Controller
                 $test->where('orders.status','processing');
             }) 
             ->whereNotNull('orders.upsTrackingNumber')
-            ->where('trackingNumber','like','TBA%')            
+            ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })            
             ->orderBy('orders.date', 'ASC')->paginate(100);
             
          
@@ -4760,7 +4689,10 @@ class orderController extends Controller
                 $test->where('status','processing');                
             })
             ->whereNotNull('orders.upsTrackingNumber')
-            ->where('trackingNumber','like','TBA%')                    
+            ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })                    
             ->count(); 
         }
 
@@ -4780,7 +4712,10 @@ class orderController extends Controller
                 $test->where('orders.status','processing');                
             }) 
             ->whereNotNull('orders.upsTrackingNumber')
-            ->where('trackingNumber','like','TBA%')
+            ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
             
             ->orderBy('orders.date', 'ASC')->paginate(100);            
 
@@ -4789,7 +4724,10 @@ class orderController extends Controller
                 $test->where('status','processing');                
             })
             ->whereNotNull('orders.upsTrackingNumber')
-            ->where('trackingNumber','like','TBA%')
+            ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
             
             ->count(); 
 
@@ -4823,7 +4761,10 @@ class orderController extends Controller
             ->where(function($test){
                 $test->where('orders.status','shipped');
             }) 
-            ->where('trackingNumber','like','TBA%')
+            ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
             ->orderBy('orders.date', 'ASC')->paginate(100);
             
          
@@ -4831,7 +4772,10 @@ class orderController extends Controller
             ->where(function($test){
                 $test->where('status','shipped');                
             })
-            ->where('trackingNumber','like','TBA%')
+            ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
             ->count(); 
         }
 
@@ -4850,7 +4794,10 @@ class orderController extends Controller
             ->where(function($test){
                 $test->where('orders.status','shipped');
             }) 
-            ->where('trackingNumber','like','TBA%')
+            ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
             
             ->orderBy('orders.date', 'ASC')->paginate(100);            
 
@@ -4858,7 +4805,10 @@ class orderController extends Controller
             ->where(function($test){
                 $test->where('status','shipped');                
             })
-            ->where('trackingNumber','like','TBA%')
+            ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
             ->count(); 
 
             

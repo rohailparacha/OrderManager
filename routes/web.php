@@ -79,6 +79,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('test','FedexController@test');
 
 	Route::post('autoship','orderController@autoship')->name('autoship')->middleware('admin');
+	Route::post('fetchTrackings','orderController@fetchTrackings')->name('fetchTrackings')->middleware('admin');	
 	Route::get('accounts','accountsController@index')->name('accounts')->middleware('admin');
 	Route::get('account/create','accountsController@create')->name('createaccount')->middleware('admin');
 	Route::post('createaccount','accountsController@store')->name('storeaccount')->middleware('admin');

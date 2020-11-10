@@ -68,6 +68,31 @@ table {
                                     <button type="submit" class="btn btn-success mt-4">{{ __('Ship') }}</button>
                                 </div>                            
                             </form>
+                            @endif
+
+                             @if(auth()->user()->role==1 || auth()->user()->role==2)
+                            <form method="post" style="float:right;" class="form-inline" action="fetchTrackings" autocomplete="off">
+                            @csrf
+                            
+                            <input type="hidden" name="count" value="{{$orders->toArray()['per_page']}}"/>
+                            <div class="form-group">
+                                        <select class="form-control" name="page" style="">                                
+                                                    <option value=0>Select Page</option>
+                                                    @for ($i = 1; $i <= $orders->toArray()['last_page']; $i++)
+                                                        <option value="{{ $i }}">{{ $i }}</option>
+                                                    @endfor
+                                                                                                                                                       
+                                        </select>                                    
+                                    
+                                        @error('role')
+                                            <div class="error" style="color:red;">{{ $message }}</div>
+                                         @enderror
+                                </div>
+                               
+                                <div class="form-group text-center" style="float:right; margin-top:-27px; padding-left:5px;">
+                                    <button type="submit" class="btn btn-success mt-4">{{ __('Fetch Trackings') }}</button>
+                                </div>                            
+                            </form>
                             @endif  
                             </div>
                                                     
