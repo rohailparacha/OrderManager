@@ -176,24 +176,30 @@
                                 <table class="table align-items-center table-flush report" id="productReport">
                                     <thead class="thead-light">
                                         <tr>
-                                            <th scope="col" width="8%">{{ __('Image') }}</th>
-                                            <th scope="col" width="8%">{{ __('Store Name') }}</th>
-                                            <th scope="col" width="8%">{{ __('ASIN') }}</th>
-                                            <th scope="col" width="8%">{{ __('UPC') }}</th>
-                                            <th scope="col" width="20%">{{ __('Title') }}</th>
-                                            <th scope="col" width="8%">{{ __('Date') }}</th>
-                                            <th scope="col" width="8%">{{ __('Sold') }}</th>
-                                            <th scope="col" width="8%">{{ __('Returned') }}</th>
-                                            <th scope="col" width="8%">{{ __('Cancelled') }}</th>
-                                            <th scope="col" width="8%">{{ __('Net') }}</th>
-                                            <th scope="col" width="8%">{{ __('Link') }}</th>
+                                            <th scope="col" width="7%">{{ __('Image') }}</th>
+                                            <th scope="col" width="7%">{{ __('WM Image') }}</th>
+                                            <th scope="col" width="7%">{{ __('Store Name') }}</th>
+                                            <th scope="col" width="7%">{{ __('ASIN') }}</th>
+                                            <th scope="col" width="7%">{{ __('UPC') }}</th>
+                                            <th scope="col" width="16%">{{ __('Title') }}</th>
+                                            <th scope="col" width="7%">{{ __('Date') }}</th>
+                                            <th scope="col" width="7%">{{ __('Sold') }}</th>
+                                            <th scope="col" width="7%">{{ __('Returned') }}</th>
+                                            <th scope="col" width="7%">{{ __('Cancelled') }}</th>
+                                            <th scope="col" width="7%">{{ __('Net') }}</th>
+                                            <th scope="col" width="7%">{{ __('Link') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @if($products->count())
                                             @foreach($products as $product)
                                                 <tr id="{{ $product->id }}">
-                                                    <td width="8%"><img src="{{ $product->image }}" width="75px" height="75px"></td>
+                                                    <td width="7%"><img src="{{ $product->image }}" width="75px" height="75px"></td>
+                                                    <td width="7%">
+                                                    @if(!empty($product->wmimage))
+                                                    <img src="{{ $product->wmimage }}" width="75px" height="75px">
+                                                    @endif
+                                                    </td>
                                                     <td width="8%" class="specifictd">{{ $product->account }}</td>
                                                     <td width="8%" class="specifictd">{{ $product->asin }}</td>
                                                     <td width="8%" class="specifictd">{{ $product->upc }}</td>
@@ -212,7 +218,7 @@
                                                         @endphp
                                                         {!! $sold !!}
                                                     </td>
-                                                    <td width="8%"  class="specifictd">
+                                                    <td width="6%"  class="specifictd">
                                                         @php
                                                             if($product->returned > 0)
                                                             {
@@ -225,7 +231,7 @@
                                                         @endphp
                                                         {!! $returned !!}
                                                     </td>
-                                                    <td width="8%" class="specifictd">
+                                                    <td width="6%" class="specifictd">
                                                         @php
                                                             if($product->cancelled > 0)
                                                             {
@@ -238,13 +244,13 @@
                                                         @endphp
                                                         {!! $cancelled !!}
                                                     </td>
-                                                    <td width="8%" class="specifictd">{{ $product->sold - $product->returned - $product->cancelled }} </td>
-                                                    <td width="8%" class="specifictd"><a href="https://amazon.com/dp/{{$product->asin}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a></td>
+                                                    <td width="6%" class="specifictd">{{ $product->sold - $product->returned - $product->cancelled }} </td>
+                                                    <td width="6%" class="specifictd"><a href="https://amazon.com/dp/{{$product->asin}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a></td>
                                                 </tr>
                                             @endforeach
                                         @else
                                             <tr>
-                                                <td colspan="11" class="text-center"> No records found. </td>
+                                                <td colspan="12" class="text-center"> No records found. </td>
                                             </tr>
                                         @endif
                                     </tbody>

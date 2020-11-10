@@ -125,6 +125,7 @@ table {
                                     <th width="11%" scope="col">{{ __('Marketplace') }}</th>
                                     <th width="12%" scope="col">{{ __('Store Name') }}</th>
                                     <th width="13%" scope="col">{{ __('Sell Order Id') }}</th>
+                                    <th width="13%" scope="col">{{ __('Account Name') }}</th>
                                     <th width="12%" scope="col">{{ __('Purchase Order Id') }}</th>
                                     <th width="10%" scope="col">{{ __('Buyer Name') }}</th>
                                     <th width="7%" scope="col">{{ __('Qty') }}</th>
@@ -140,6 +141,16 @@ table {
                                         <td width="11%">{{ $order->marketplace }}</td>
                                         <td width="12%">{{ $order->storeName }}</td>
                                         <td width="13%">{{ $order->sellOrderId }}</td>
+                                        <td width="13%">
+                                        @foreach($accounts as $account)
+                                            @if($account->id == $order->account_id)
+                                                {{$account->email}}
+                                            @endif 
+                                        @endforeach
+                                        @if(!is_numeric($order->account_id))
+                                        {{$order->account_id}}
+                                        @endif
+                                        </td>
                                         <td width="12%">{{ $order->poNumber }}</td>
                                         <td width="10%">{{ $order->buyerName }}</td>
                                         <td width="7%">{{ $order->quantity }}</td>

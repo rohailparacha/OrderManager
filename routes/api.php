@@ -413,7 +413,7 @@ Route::post('order_update', function(Request $request) {
 
 
 Route::get('fetch_orders', function(Request $request) {
-    $trackings = temp_trackings::where('status','pending')->offset(0)->limit(100)->get();    
+    $trackings = temp_trackings::where('status','pending')->get();    
 
     return response()->json([
         'trackings' => $trackings

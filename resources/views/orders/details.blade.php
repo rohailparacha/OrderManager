@@ -1033,7 +1033,8 @@ td {
                                         @if($detail->src=='Ebay')
                                         <a href="https://www.ebay.com/itm/{{$detail->SKU}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a>
                                         @else
-                                        <a href="https://www.amazon.com/gp/offer-listing/{{$detail->SKU}}/ref=olp_f_new?ie=UTF8&f_new=true" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a>
+                                        
+                                        <a href="https://www.amazon.com/dp/{{$detail->SKU}}" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-external-link-alt"></i> Product</a>
                                         @endif
                                         </td>
                                     </tr>

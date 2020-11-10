@@ -23,7 +23,7 @@ class reportsController extends Controller
         $this->middleware('auth');
     }
 
-     public function dailyReport(Request $request)
+      public function dailyReport(Request $request)
     {        
         $date = $request->datepicked;
         $settings = informed_settings::all();
@@ -33,6 +33,7 @@ class reportsController extends Controller
         
         $sold=0; 
         $cancelled = 0; 
+        $totalOrders = 0; 
 
         foreach($settings as $setting)
         {   
@@ -85,6 +86,9 @@ class reportsController extends Controller
             
             $data[]= $col->qty;  
             $cancelled+=$col->qty;
+            
+           
+
             $backgroundColor = $colors[$cnt];
             $cnt++;                    
 
@@ -92,8 +96,19 @@ class reportsController extends Controller
             
         }
         
-        
-        return view('report.dailyReport',compact('settings','labels','datasets','date','sold','cancelled'));
+        $ttlOrd = orders::select(); 
+            if(empty($date))
+            {
+                $ttlOrd = $ttlOrd->whereDate('orders.date', Carbon::today());
+            }
+            else
+            {
+                $ttlOrd = $ttlOrd->whereDate('orders.date', Carbon::parse($date));
+            }
+            
+        $totalOrders=$ttlOrd->count();
+            
+        return view('report.dailyReport',compact('settings','labels','datasets','date','sold','cancelled','totalOrders'));
     }
     public function index()
     {

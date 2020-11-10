@@ -113,6 +113,9 @@ var myChart = new Chart(ctx, {
                     <div class="row">                    
                     <div class="col-md-4 offset-md-8" style="text-align:right; padding-right:2%;">Total Cancelled Items = {{$cancelled}}</div>
                     </div>
+                    <div class="row">                    
+                    <div class="col-md-4 offset-md-8" style="text-align:right; padding-right:2%;">Total Orders = {{$totalOrders}}</div>
+                    </div>
                     <div class="card-body">
                         <!-- Chart -->
                         <div class="chart">

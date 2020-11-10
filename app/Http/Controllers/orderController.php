@@ -1437,7 +1437,8 @@ class orderController extends Controller
                 $order->shippingPrice = $this->getTotalShipping($order->id);
             }
             $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-            return view('orders.processed',compact('orders','search','route'));   
+            $accounts = gmail_accounts::all(); 
+            return view('orders.processed',compact('orders','search','route','accounts'));   
             
         }
         else if ($route =='dueComing')
@@ -2200,6 +2201,8 @@ class orderController extends Controller
             ->where(function($test) use ($query){
                 $test->where('asin', 'LIKE', '%'.$query.'%');
                 $test->orWhere('upc', 'LIKE', '%'.$query.'%');
+                $test->orWhere('wmid', 'LIKE', '%'.$query.'%');
+                $test->orWhere('title', 'LIKE', '%'.$query.'%');
             })
             ->paginate(100); 
 
@@ -2215,11 +2218,15 @@ class orderController extends Controller
             $maxSellers = ceil($prd->where(function($test) use ($query){
                 $test->where('asin', 'LIKE', '%'.$query.'%');
                 $test->orWhere('upc', 'LIKE', '%'.$query.'%');
+                $test->orWhere('wmid', 'LIKE', '%'.$query.'%');
+                $test->orWhere('title', 'LIKE', '%'.$query.'%');
             })->max('totalSellers'));
             
             $maxPrice = ceil($prd->where(function($test) use ($query){
                 $test->where('asin', 'LIKE', '%'.$query.'%');
                 $test->orWhere('upc', 'LIKE', '%'.$query.'%');
+                $test->orWhere('wmid', 'LIKE', '%'.$query.'%');
+                $test->orWhere('title', 'LIKE', '%'.$query.'%');
             })->max('price'));
 
             $minAmount = 0;
@@ -5006,7 +5013,9 @@ class orderController extends Controller
     
                 $order->shippingPrice = $this->getTotalShipping($order->id);
             }
-        return view('orders.processed',compact('orders'));
+        
+        $accounts = gmail_accounts::all(); 
+        return view('orders.processed',compact('orders','accounts'));
     }
     
     public function dueComing()
