@@ -48,16 +48,12 @@ class SaleFreaksImport implements ToCollection
         if($poNumber==-1 || $poAmount==-1 || $tracking==-1 || $carrier==-1 || $sellOrderId==-1 || $status ==-1)
             return $counter;
             
-          
         foreach ($rows as $row) 
         {   
             
             if($row[$status]=='Canceled' || $row[$status]=='Error')
-            {
-                
-                $update = orders::where('sellOrderId',explode('.',$row[$sellOrderId])[0])->update(['flag'=>'27']);
-                
- 
+            {                
+                $update = orders::where('sellOrderId',explode('.',$row[$sellOrderId])[0])->whereIn('flag',['0','16','17','8','9','10','22','23','24','25','26'])->update(['flag'=>'27']);        
             }
             
                 if(empty(trim($row[$poNumber])))
