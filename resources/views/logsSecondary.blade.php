@@ -69,7 +69,9 @@ table {
                                     <th scope="col" width="15%">{{ __('Start Date') }}</th>
                                     <th scope="col" width="15%">{{ __('End Date') }}</th>
                                     <th scope="col" width="15%">{{ __('Original File') }}</th>
-                                    <th scope="col" width="15%">{{ __('Final File') }}</th>
+                                    <th scope="col" width="15%">{{ __('Final File - Find It Fast') }}</th>
+                                    <th scope="col" width="15%">{{ __('Final File - Snapp') }}</th>
+                                    <th scope="col" width="15%">{{ __('Final File - DigiCommerce') }}</th>
                                     <th scope="col" width="15%">{{ __('Duplicate ASINs File') }}</th>
                                     <th scope="col" width="15%">{{ __('Type') }}</th>     
                                     <th scope="col" width="15%">{{ __('Status') }}</th>                                                                                                      
@@ -82,8 +84,18 @@ table {
                                         <td width="10%">{{ $log->date_completed }}</td>
                                         <td width="10%"><a href={{ $log->upload_link }}>Download</a></td>
                                         <td width="10%">
-                                        @if(!empty($log->export_link))
-                                        <a href={{ $log->export_link }}>Download</a>                                        
+                                        @if(!empty($log->export_link_1))
+                                        <a href={{ $log->export_link_1 }}>Download</a>                                        
+                                        @endif
+                                        </td>
+                                        <td width="10%">
+                                        @if(!empty($log->export_link_2))
+                                        <a href={{ $log->export_link_2 }}>Download</a>                                        
+                                        @endif
+                                        </td>
+                                        <td width="10%">
+                                        @if(!empty($log->export_link_3))
+                                        <a href={{ $log->export_link_3 }}>Download</a>                                        
                                         @endif
                                         </td>
                                         <td width="10%">

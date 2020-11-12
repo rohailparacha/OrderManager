@@ -23,7 +23,8 @@ class reportsController extends Controller
         $this->middleware('auth');
     }
 
-      public function dailyReport(Request $request)
+     
+    public function dailyReport(Request $request)
     {        
         $date = $request->datepicked;
         $settings = informed_settings::all();
@@ -53,8 +54,8 @@ class reportsController extends Controller
             foreach($settings as $setting)
             {
                  $col = order_details::join('orders','order_details.order_id','orders.id')
-                ->join ('products','order_details.SKU','products.asin')
-                ->select(DB::raw('IFNULL(SUM(orders.quantity),0) As qty'))
+                ->leftJoin('products','order_details.SKU','products.asin')
+                ->select(DB::raw('IFNULL(SUM(order_details.quantity),0) As qty'))
                 ->whereBetween('products.lowestPrice',[$setting->minAmount,$setting->maxAmount])
                 ->where('storeName',$account->store);
 
@@ -68,7 +69,6 @@ class reportsController extends Controller
                 }
                 
                 $data[]= $col->qty;   
-                $sold+=$col->qty;             
             }
 
             $col = orders::select(DB::raw('IFNULL(SUM(orders.quantity),0) As qty'))
@@ -86,6 +86,21 @@ class reportsController extends Controller
             
             $data[]= $col->qty;  
             $cancelled+=$col->qty;
+            
+             $col = order_details::join('orders','order_details.order_id','orders.id')
+                ->select(DB::raw('IFNULL(SUM(order_details.quantity),0) As qty'))
+                ->where('storeName',$account->store);
+                
+            if(empty($date))
+            {
+                $col = $col->whereDate('date', Carbon::today())->get()->first();
+            }
+            else
+            {
+                $col = $col->whereDate('date', Carbon::parse($date))->get()->first();
+            }
+            
+            $sold+=$col->qty;
             
            
 
@@ -110,6 +125,7 @@ class reportsController extends Controller
             
         return view('report.dailyReport',compact('settings','labels','datasets','date','sold','cancelled','totalOrders'));
     }
+    
     public function index()
     {
         $startDate = orders::min('date');

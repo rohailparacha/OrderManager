@@ -18,17 +18,20 @@ class NewSellerActiveExport implements FromCollection,WithHeadings,ShouldAutoSiz
     * @return \Illuminate\Support\Collection
     */
     protected $collection; 
+    protected $account;
 
-    public function __construct($collection)
+    public function __construct($collection, $account)
     {
         $this->collection = $collection;
+        $this->account = $account;
         
     }
 
     public function collection()
     {
         //
-        $collection = $this->collection;        
+        $collection = $this->collection;     
+        $account = $this->account;        
 
         $setting = amazon_settings::get()->first();
        
@@ -39,7 +42,9 @@ class NewSellerActiveExport implements FromCollection,WithHeadings,ShouldAutoSiz
             $product = products::where('asin',$col['asin'])
             ->leftJoin('accounts','products.account','accounts.store')
             ->leftJoin('blacklist','products.asin','blacklist.sku')
-            ->select(['products.*','accounts.lagTime','accounts.quantity','accounts.maxListingBuffer','blacklist.allowance'])->get()->first();
+            ->select(['products.*','accounts.lagTime','accounts.quantity','accounts.maxListingBuffer','blacklist.allowance'])
+            ->where('account',$account)
+            ->get()->first();
 
             if(empty($product))
                 continue;

@@ -15,5 +15,5 @@ class new_logs extends Model
      * @var array
      */
 
-    protected $fillable = ['id','date_started','date_completed','upload_link','export_link','dup_link','action','status'];
+    protected $fillable = ['id','date_started','date_completed','upload_link','export_link_1','export_link_2','export_link_3','dup_link','action','status'];
 }

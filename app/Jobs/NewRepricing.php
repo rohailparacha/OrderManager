@@ -69,6 +69,9 @@ class NewRepricing implements ShouldQueue
     {            
         $sc_id =  products::where('asin',$asin)->get()->first();
         
+        if(empty($sc_id))
+            return; 
+
         $temp = products::where('id','=',$sc_id->id)->delete(); 
 
         try{
@@ -81,8 +84,6 @@ class NewRepricing implements ShouldQueue
 
         }  
     }
-
-   
 
     public function handle()
     {                          
@@ -508,15 +509,23 @@ class NewRepricing implements ShouldQueue
     }
 
     public function createFile()
-    {        
-
-        $filename = date("d-m-Y")."-".time()."-selleractive-export.csv";
+    {       
+        $accounts = accounts::leftJoin('informed_accounts','accounts.infaccount_id','informed_accounts.id')->get();
+        $counter=0;
+        foreach($accounts as $account)
+        {
+            $counter++;
         
-        Excel::store(new NewSellerActiveExport($this->originalCollection), $filename,'exports');   
+            $filename = date("d-m-Y")."-".time()."-selleractive-export-".$counter.".csv";
+        
+            Excel::store(new NewSellerActiveExport($this->originalCollection, $account->store), $filename,'exports');   
+    
+            $url = URL::to('/repricing/exports/')."/".$filename;
+    
+            $id = new_logs::where('id',$this->id)->update(['export_link_'.$counter=> $url]);
+        }
 
-        $url = URL::to('/repricing/exports/')."/".$filename;
-
-        $id = new_logs::where('id',$this->id)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Completed','export_link'=> $url]);
+        $id = new_logs::where('id',$this->id)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Completed']);
     }
 
     
