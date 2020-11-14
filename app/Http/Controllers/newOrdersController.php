@@ -227,11 +227,15 @@ class newOrdersController extends Controller
         $price2 = order_settings::get()->first()->price2; 
         
         $orders = $orders->having(DB::raw("COUNT(DISTINCT order_details.SKU)"),'<=','1')
-        ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'!=','0')
-        ->where('products.category','!=','Movie')
-        ->where('products.category','!=','Food')
-        ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price1)          
-        ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<',$price2);        
+                    ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'!=','0')                    
+                   ->where(function($test){
+                        $test->whereNull('products.category');
+                        $test->orWhere('products.category','!=','Movie');
+                        
+                    })        
+                                   
+                    ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$price2)                    
+                    ->having(DB::raw("(orders.totalAmount + sum(IFNULL( order_details.shippingPrice, 0)) * 0.85) - sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'>=','2');       
 
         $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
 
@@ -425,7 +429,7 @@ class newOrdersController extends Controller
                 ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])
                 ->where('status','unshipped')
                 ->where('flag','0')
-                ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2')
+                ->having(DB::raw("(orders.totalAmount + sum(IFNULL( order_details.shippingPrice, 0)) * 0.85) - sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2')
                 ->groupBy('orders.id');
             }                        
 
@@ -444,7 +448,7 @@ class newOrdersController extends Controller
                 ->leftJoin('products','order_details.SKU','=','products.asin')
                 ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')
-                ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2')
+                ->having(DB::raw("(orders.totalAmount + sum(IFNULL( order_details.shippingPrice, 0)) * 0.85) - sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2')
                 ->groupBy('orders.id')                            
                 ->whereIn('storeName',$strArray);
                 
@@ -458,7 +462,7 @@ class newOrdersController extends Controller
                 ->where('status','unshipped')
                 ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')    
-                ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2')
+                ->having(DB::raw("(orders.totalAmount + sum(IFNULL( order_details.shippingPrice, 0)) * 0.85) - sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2')
                 ->groupBy('orders.id')                            
                 ->where('uid',auth()->user()->id);
                 
@@ -1315,9 +1319,9 @@ class newOrdersController extends Controller
         }
         elseif($page=='minus')
         {
-            $route = 'newOrdersChecked';
+            $route = 'newOrdersMinus';
             
-            $orders = $orders->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2');
+            $orders = $orders->having(DB::raw("(orders.totalAmount + sum(IFNULL( order_details.shippingPrice, 0)) * 0.85) - sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2');
         
         }
         elseif($page=='checked')
@@ -1326,11 +1330,15 @@ class newOrdersController extends Controller
 
             $orders = $orders->having(DB::raw("COUNT(DISTINCT order_details.SKU)"),'<=','1')
             ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'!=','0')
-            ->where('products.category','!=','Movie')
-            ->where('products.category','!=','Food')
-            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price1)          
-            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<',$price2);        
-
+           ->where(function($test){
+                        $test->whereNull('products.category');
+                        $test->orWhere('products.category','!=','Movie');
+                        
+                    })                         
+            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$price2)
+            ->having(DB::raw("(orders.totalAmount + sum(IFNULL( order_details.shippingPrice, 0)) * 0.85) - sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'>=','2')            
+            ;
+            
         }
 
             
@@ -1574,17 +1582,20 @@ class newOrdersController extends Controller
 
             $orders = $orders->having(DB::raw("COUNT(DISTINCT order_details.SKU)"),'<=','1')
             ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'!=','0')
-            ->where('products.category','!=','Movie')
-            ->where('products.category','!=','Food')
-            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price1)          
-            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<',$price2);        
+           ->where(function($test){
+                        $test->whereNull('products.category');
+                        $test->orWhere('products.category','!=','Movie');
+                        
+                    })                         
+            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$price2)
+            ->having(DB::raw("(orders.totalAmount + sum(IFNULL( order_details.shippingPrice, 0)) * 0.85) - sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'>=','2');       
 
         }
         elseif($page=='newOrdersMinus')
         {
             $page = 'minus';
 
-            $orders = $orders->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2');        
+            $orders = $orders->having(DB::raw("(orders.totalAmount + sum(IFNULL( order_details.shippingPrice, 0)) * 0.85) - sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2');        
 
         }
 

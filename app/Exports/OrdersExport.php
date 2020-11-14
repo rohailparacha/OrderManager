@@ -5,6 +5,7 @@ use App\orders;
 use App\order_details;
 use App\accounts;
 use App\ebay_products;
+use App\order_settings;
 use DB;
 use App\states;
 use App\flags;
@@ -41,6 +42,8 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
 
     public function collection()
     {        
+        $price1 = order_settings::get()->first()->price1; 
+        $price2 = order_settings::get()->first()->price2; 
         $dataArray = array(); 
         $storeFilter = $this->storeFilter;
         $marketFilter = $this->marketFilter;
@@ -118,17 +121,21 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
 
         elseif($route=='minus')
         {           
-            $orders = $orders->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2');        
+            $orders = $orders->having(DB::raw("(orders.totalAmount + sum(IFNULL( order_details.shippingPrice, 0)) * 0.85) - sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2');       
+             
         }
         
         elseif($route=='checked')
-        {           
+        {
             $orders = $orders->having(DB::raw("COUNT(DISTINCT order_details.SKU)"),'<=','1')
             ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'!=','0')
-            ->where('products.category','!=','Movie')
-            ->where('products.category','!=','Food')
-            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price1)          
-            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<',$price2);        
+           ->where(function($test){
+                        $test->whereNull('products.category');
+                        $test->orWhere('products.category','!=','Movie');
+                        
+                    })                         
+            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$price2)
+            ->having(DB::raw("(orders.totalAmount + sum(IFNULL( order_details.shippingPrice, 0)) * 0.85) - sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'>=','2');           
         }
         
         
@@ -169,20 +176,16 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
             $orders = $orders->where('state',$stateFilter);
         }
 
-        
+        if($route == 'new')
+                $orders = $orders->where('isChecked',false);    
+            else
+                $orders = $orders->where('isChecked',true);
 
-        $orders = $orders->having(DB::raw("COUNT(DISTINCT order_details.SKU)"),'<=','1')
-        ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'!=','0')
-        ->where('products.category','!=','Movie')
-        ->where('products.category','!=','Food')
-        ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price1)          
-        ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<',$price2);  
-                
-        if(auth()->user()->role==1|| auth()->user()->role==2)
+         
+        if(auth()->user()->role==1|| auth()->user()->role==2)        
             $orders = $orders->where('isChecked',true)->where('status','unshipped')->orderBy('date', 'ASC')->groupby('orders.id')->get();
         else
             $orders = $orders->where('isChecked',true)->where('status','unshipped')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->get();
-        
         
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
