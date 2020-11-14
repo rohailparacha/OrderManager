@@ -121,7 +121,7 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
 
         elseif($route=='minus')
         {           
-            $orders = $orders->having(DB::raw("(orders.totalAmount + sum(IFNULL( order_details.shippingPrice, 0)) * 0.85) - sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2');       
+            $orders = $orders->having(DB::raw("((orders.totalAmount + sum(IFNULL( order_details.shippingPrice, 0))) * 0.85) - sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2');       
              
         }
         
@@ -135,7 +135,7 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
                         
                     })                         
             ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$price2)
-            ->having(DB::raw("(orders.totalAmount + sum(IFNULL( order_details.shippingPrice, 0)) * 0.85) - sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'>=','2');           
+            ->having(DB::raw("((orders.totalAmount + sum(IFNULL( order_details.shippingPrice, 0))) * 0.85) - sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'>=','2');           
         }
         
         
