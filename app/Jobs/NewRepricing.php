@@ -516,7 +516,7 @@ class NewRepricing implements ShouldQueue
         {
             $counter++;
         
-            $filename = date("d-m-Y")."-".time()."-".$account->store."-selleractive-export-".$counter.".csv";
+            $filename = date("d-m-Y")."-".time()."-".$account->store."-selleractive-export.csv";
         
             Excel::store(new NewSellerActiveExport($this->originalCollection, $account->store), $filename,'exports');   
     

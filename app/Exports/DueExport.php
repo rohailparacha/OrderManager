@@ -107,7 +107,7 @@ class DueExport implements FromCollection,WithHeadings,ShouldAutoSize
         
         if(!empty($startDate)&& !empty($endDate))
         {
-            $orders = $orders->whereBetween('date', [$from, $to]);
+            $orders = $orders->whereBetween('dueShip', [$from, $to]);
         }
 
         if(!empty($storeFilter)&& $storeFilter !=0)
