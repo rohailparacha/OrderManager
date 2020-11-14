@@ -12,12 +12,13 @@ class UPSExport implements WithColumnFormatting,FromCollection,WithHeadings,Shou
 {
     protected $storeFilter; 
     protected $daterange; 
-    
+    protected $option; 
 
-    public function __construct($storeFilter,$daterange)
+    public function __construct($storeFilter,$daterange, $option)
     {
         $this->storeFilter = $storeFilter;
         $this->daterange = $daterange;
+        $this->option = $option; 
     }
 
     /**
@@ -28,6 +29,7 @@ class UPSExport implements WithColumnFormatting,FromCollection,WithHeadings,Shou
     {        
         $storeFilter = $this->storeFilter;
         $daterange = $this->daterange;
+        $option = $this->option;
 
         $startDate = explode('-',$daterange)[0];
         $from = date("Y-m-d", strtotime($startDate));  
@@ -35,62 +37,124 @@ class UPSExport implements WithColumnFormatting,FromCollection,WithHeadings,Shou
         $to = date("Y-m-d", strtotime($endDate)); 
             
 
-        if(auth()->user()->role==1)            
-        {
-            $orders = orders::where('isBCE',true)            
-            ->where(function($test){
-                $test->where('orders.status','processing');
-                $test->orWhere('orders.status','shipped');
-            });                
-         
-            $count = orders::select()->where('isBCE',true)
-            ->where(function($test){
-                $test->where('status','processing');                
-            })->count(); 
-        }
+        $count =0; 
 
-        elseif(auth()->user()->role==2)
+        if($option == 1)
         {
-            $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
-            $strArray  = array();
-
-            foreach($stores as $str)
+            if(auth()->user()->role==1)            
             {
-                $strArray[]= $str->store;
-            }            
-            
-            $orders = orders::where('isBCE',true)
-            ->whereIn('storeName',$strArray)            
-            ->where(function($test){
-                $test->where('orders.status','processing');
-                $test->orWhere('orders.status','shipped');
-            });
+                $orders = orders::where('isBCE',true)            
+                ->where(function($test){
+                    $test->where('orders.status','processing');
+                })
+                ->whereNull('upsTrackingNumber')
+                ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
+                
+                ->orderBy('orders.date', 'ASC');
+               
                       
-
-            $count = orders::select()->where('isBCE',true)->whereIn('storeName',$strArray)
-            ->where(function($test){
-                $test->where('status','processing');                
-            })->count(); 
-
-            
+            }
+    
+            elseif(auth()->user()->role==2)
+            {
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+    
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }            
+                
+                $orders = orders::where('isBCE',true)
+                ->whereIn('storeName',$strArray)            
+                ->where(function($test){
+                    $test->where('orders.status','processing');
+                })
+                 ->whereNull('upsTrackingNumber')
+                ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
+                ->orderBy('orders.date', 'ASC');
+                          
+  
+    
+                
+            }
+                
+            else
+                    $orders = array();
+    
         }
-            
-    else
-            $orders = array();
+
+        elseif($option == 2)
+        {
+            if(auth()->user()->role==1)            
+            {
+                $orders = orders::where('isBCE',true)            
+                ->where(function($test){
+                    $test->where('orders.status','processing');
+                })
+                ->whereNotNull('upsTrackingNumber')
+                ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
+                
+                ->orderBy('orders.date', 'ASC');
+               
+             
+    
+            }
+    
+            elseif(auth()->user()->role==2)
+            {
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+    
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }            
+                
+                $orders = orders::where('isBCE',true)
+                ->whereIn('storeName',$strArray)            
+                ->where(function($test){
+                    $test->where('orders.status','processing');
+                })
+                 ->whereNotNull('upsTrackingNumber')
+                ->where(function($rest){
+                    $rest->where('trackingNumber','like','TBA%');
+                    $rest->orWhere('trackingNumber','like','BCE%');
+                })
+                ->orderBy('orders.date', 'ASC');                                      
+    
+                
+            }
+                
+            else
+                    $orders = array();
+    
+        }
+       
+        $stores = accounts::all();         
 
 
-    if(!empty($storeFilter)&& $storeFilter !=0)
-    {
-        $storeName = accounts::select()->where('id',$storeFilter)->get()->first();
-        $orders = $orders->where('storeName',$storeName->store);
-    }
+        if(!empty($storeFilter)&& $storeFilter !=0)
+        {
+            $storeName = accounts::select()->where('id',$storeFilter)->get()->first();
+            $orders = $orders->where('storeName',$storeName->store);
+        }
 
-    if(!empty($startDate)&& !empty($endDate))
-    {
-        $orders = $orders->whereBetween('date', [$from.' 00:00:00', $to.' 23:59:59']);
-    }
+        if(!empty($startDate)&& !empty($endDate))
+        {
+            $orders = $orders->whereBetween('date', [$from.' 00:00:00', $to.' 23:59:59']);
+        }
 
-    $orders = $orders->orderBy('orders.status', 'ASC')->get(); 
+        $orders = $orders->orderBy('orders.status', 'ASC')->get(); 
     
 
        $dataArray = array();

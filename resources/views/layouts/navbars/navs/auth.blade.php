@@ -94,7 +94,7 @@
             </div>
         </form>
 
-        @elseif(request()->route()->getName() =='newOrdersMultiItems'||request()->route()->getName()=='newOrdersPrice1'||request()->route()->getName()=='newOrdersPrice2'||request()->route()->getName()=='newOrdersZero'||request()->route()->getName()=='newOrdersMovie'||request()->route()->getName()=='newOrdersFood'||request()->route()->getName()=='newOrdersExpensive')
+        @elseif(request()->route()->getName() =='newOrdersMinus'||request()->route()->getName() =='newOrdersChecked'||request()->route()->getName() =='newOrdersMultiItems'||request()->route()->getName()=='newOrdersPrice1'||request()->route()->getName()=='newOrdersPrice2'||request()->route()->getName()=='newOrdersZero'||request()->route()->getName()=='newOrdersMovie'||request()->route()->getName()=='newOrdersFood'||request()->route()->getName()=='newOrdersExpensive')
         <form method="post" action="newSearch" class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
 
         @csrf

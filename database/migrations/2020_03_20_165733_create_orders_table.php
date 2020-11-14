@@ -43,6 +43,7 @@ class CreateOrdersTable extends Migration
             $table->text('trackingNumber')->nullable();
             $table->text('newTrackingNumber')->nullable();
             $table->boolean('converted')->default(false);
+            $table->boolean('isChecked')->default(false);
             $table->boolean('isBCE')->default(false);
             $table->integer('assigned')->default(0);
             $table->string('trackingLink')->nullable();

@@ -76,6 +76,12 @@
                             </li>
 
                             <li class="nav-item">
+                            <a class="nav-link" href="{{ route('newOrdersChecked') }}">
+                                {{ __('New Orders - Checked') }}
+                            </a>
+                            </li>
+
+                            <li class="nav-item">
                             <a class="nav-link" href="{{ route('newOrdersFlagged') }}">
                                 {{ __('New Orders - Flagged') }}
                             </a>
@@ -84,6 +90,12 @@
                             <li class="nav-item">
                             <a class="nav-link" href="{{ route('newOrdersMultiItems') }}">
                                 {{ __('New Orders - Multi Item') }}
+                            </a>
+                            </li>
+
+                            <li class="nav-item">
+                            <a class="nav-link" href="{{ route('newOrdersMinus') }}">
+                                {{ __('New Orders - Minus') }}
                             </a>
                             </li>
 

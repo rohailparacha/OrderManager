@@ -119,7 +119,7 @@ class newOrdersController extends Controller
                 
             }
 
-        $orders = $orders->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -132,6 +132,7 @@ class newOrdersController extends Controller
         {
             $order->shippingPrice = $this->getTotalShipping($order->id);
             $order->itemcount = $this->getCount($order->id);
+            
             $sources = array();
                 $order_details = order_details::where('order_id',$order->id)->get(); 
                 if(empty($order_details))
@@ -142,6 +143,7 @@ class newOrdersController extends Controller
                 {
 
                     $amz = products::where('asin',$detail->SKU)->get()->first(); 
+ 
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -170,6 +172,120 @@ class newOrdersController extends Controller
         $statecheck = $settings->statesCheck;
         $disabledStates = json_decode($settings->states);
         return view('orders.multi',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts','statecheck','disabledStates'));
+    }
+    
+
+    
+    public function newOrdersChecked()
+    {              
+        
+            if(auth()->user()->role==1)
+            {
+                $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
+                ->leftJoin('products','order_details.SKU','=','products.asin')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])
+                ->where('status','unshipped')
+                ->where('flag','0')                
+                ->groupBy('orders.id');
+            }                        
+
+            elseif(auth()->user()->role==2)
+            {
+                
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+    
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }
+                
+                $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
+                ->leftJoin('products','order_details.SKU','=','products.asin')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
+                
+                ->where('flag','0')                
+                ->groupBy('orders.id')                             
+                ->whereIn('storeName',$strArray);
+                
+            }
+        
+            else
+            {
+                $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
+                ->leftJoin('products','order_details.SKU','=','products.asin')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])
+                ->where('status','unshipped')
+                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
+                ->where('flag','0')                    
+                ->groupBy('orders.id')                            
+                ->where('uid',auth()->user()->id);
+                
+            }
+
+        $price1 = order_settings::get()->first()->price1; 
+        $price2 = order_settings::get()->first()->price2; 
+        
+        $orders = $orders->having(DB::raw("COUNT(DISTINCT order_details.SKU)"),'<=','1')
+        ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'!=','0')
+        ->where('products.category','!=','Movie')
+        ->where('products.category','!=','Food')
+        ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price1)          
+        ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<',$price2);        
+
+        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
+
+        $stores = accounts::select(['id','store'])->get();
+        $states = states::select()->distinct()->get();
+        
+        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
+        $minAmount = 0; 
+        $maxPrice = $maxAmount;
+
+        foreach($orders as $order)
+        {
+            $order->shippingPrice = $this->getTotalShipping($order->id);
+            $order->itemcount = $this->getCount($order->id);
+
+            $sources = array();
+                $order_details = order_details::where('order_id',$order->id)->get(); 
+                if(empty($order_details))
+                    continue;
+                
+                
+                foreach($order_details as $detail)
+                {
+
+                    $amz = products::where('asin',$detail->SKU)->get()->first(); 
+ 
+                    if(empty($amz))
+                        {
+                            $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
+                            if(empty($ebay))
+                                $sources[]= 'N/A'; 
+                            else
+                                $sources[]= 'Ebay'; 
+
+                        }
+                    else
+                                $sources[]= 'Amazon'; 
+
+                    $b = array_unique($sources); 
+
+                    if(count($b)==1)
+                        $order->source = $b[0];
+                    else
+                        $order->source = 'Mix';
+                }
+        }
+            
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get(); 
+        
+        $accounts = settings::where('listCheck',true)->get();
+        $settings = settings::where('name','jonathan')->get()->first();    
+        $statecheck = $settings->statesCheck;
+        $disabledStates = json_decode($settings->states);
+        return view('orders.checked',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts','statecheck','disabledStates'));
     }
 
     public function newOrdersZero()
@@ -221,7 +337,7 @@ class newOrdersController extends Controller
                 
             }
 
-        $orders = $orders->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -234,6 +350,7 @@ class newOrdersController extends Controller
         {
             $order->shippingPrice = $this->getTotalShipping($order->id);
             $order->itemcount = $this->getCount($order->id);
+
             $sources = array();
                 $order_details = order_details::where('order_id',$order->id)->get(); 
                 if(empty($order_details))
@@ -244,6 +361,7 @@ class newOrdersController extends Controller
                 {
 
                     $amz = products::where('asin',$detail->SKU)->get()->first(); 
+ 
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -268,9 +386,137 @@ class newOrdersController extends Controller
         $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get();  
         $accounts = settings::where('listCheck',true)->get();
         $settings = settings::where('name','jonathan')->get()->first();    
-$statecheck = $settings->statesCheck;
+        $statecheck = $settings->statesCheck;
         $disabledStates = json_decode($settings->states);
         return view('orders.zero',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts','statecheck','disabledStates'));
+    }
+
+   
+
+    
+
+    public function checkOrder($id)
+    {
+        orders::where('id',$id)->update(['isChecked'=>true]);        
+        $sellOrderId = orders::where('id',$id)->get()->first()->sellOrderId; 
+        return redirect()->route('newOrders')->withStatus(__('Order '.$sellOrderId.' Is Checked Successfully.'));
+    }
+
+    public function flagOrder(Request $request)
+    {
+        $id = $request->id;
+        
+        $flag = $request->flag;
+        
+        orders::where('id',$id)->update(['isChecked'=>true, 'flag'=>$flag]);        
+        
+        $sellOrderId = orders::where('id',$id)->get()->first()->sellOrderId; 
+
+        return redirect()->route('newOrders')->withStatus(__('Order '.$sellOrderId.' Is Flagged Successfully.'));
+    }
+
+    public function newOrdersMinus()
+    {              
+        
+            if(auth()->user()->role==1)
+            {
+                $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
+                ->leftJoin('products','order_details.SKU','=','products.asin')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])
+                ->where('status','unshipped')
+                ->where('flag','0')
+                ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2')
+                ->groupBy('orders.id');
+            }                        
+
+            elseif(auth()->user()->role==2)
+            {
+                
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+    
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }
+                
+                $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
+                ->leftJoin('products','order_details.SKU','=','products.asin')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
+                ->where('flag','0')
+                ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2')
+                ->groupBy('orders.id')                            
+                ->whereIn('storeName',$strArray);
+                
+            }
+        
+            else
+            {
+                $orders = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
+                ->leftJoin('products','order_details.SKU','=','products.asin')
+                ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),DB::raw("SUM(order_details.quantity) as total_quantity"),'products.asin'])
+                ->where('status','unshipped')
+                ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
+                ->where('flag','0')    
+                ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2')
+                ->groupBy('orders.id')                            
+                ->where('uid',auth()->user()->id);
+                
+            }
+
+        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
+
+        $stores = accounts::select(['id','store'])->get();
+        $states = states::select()->distinct()->get();
+        
+        $maxAmount = ceil(orders::where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')->max('totalAmount'));
+        $minAmount = 0; 
+        $maxPrice = $maxAmount;
+
+        foreach($orders as $order)
+        {
+            $order->shippingPrice = $this->getTotalShipping($order->id);
+            $order->itemcount = $this->getCount($order->id);
+            
+            
+            $sources = array();
+                $order_details = order_details::where('order_id',$order->id)->get(); 
+                if(empty($order_details))
+                    continue;
+                
+                
+                foreach($order_details as $detail)
+                {
+
+                    $amz = products::where('asin',$detail->SKU)->get()->first(); 
+                    
+                    if(empty($amz))
+                        {
+                            $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
+                            if(empty($ebay))
+                                $sources[]= 'N/A'; 
+                            else
+                                $sources[]= 'Ebay'; 
+
+                        }
+                    else
+                                $sources[]= 'Amazon'; 
+
+                    $b = array_unique($sources); 
+
+                    if(count($b)==1)
+                        $order->source = $b[0];
+                    else
+                        $order->source = 'Mix';
+                }
+        }
+            
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get();  
+        $accounts = settings::where('listCheck',true)->get();
+        $settings = settings::where('name','jonathan')->get()->first();    
+        $statecheck = $settings->statesCheck;
+        $disabledStates = json_decode($settings->states);
+        return view('orders.minus',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts','statecheck','disabledStates'));
     }
 
     public function newOrdersMovie()
@@ -322,7 +568,7 @@ $statecheck = $settings->statesCheck;
                 
             }
 
-        $orders = $orders->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -335,6 +581,7 @@ $statecheck = $settings->statesCheck;
         {
             $order->shippingPrice = $this->getTotalShipping($order->id);
             $order->itemcount = $this->getCount($order->id);
+            
             $sources = array();
                 $order_details = order_details::where('order_id',$order->id)->get(); 
                 if(empty($order_details))
@@ -345,6 +592,7 @@ $statecheck = $settings->statesCheck;
                 {
 
                     $amz = products::where('asin',$detail->SKU)->get()->first(); 
+                    
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -369,7 +617,7 @@ $statecheck = $settings->statesCheck;
         $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get();  
         $accounts = settings::where('listCheck',true)->get();
         $settings = settings::where('name','jonathan')->get()->first();    
-$statecheck = $settings->statesCheck;
+        $statecheck = $settings->statesCheck;
         $disabledStates = json_decode($settings->states);
         return view('orders.movie',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts','statecheck','disabledStates'));
     }
@@ -423,7 +671,7 @@ $statecheck = $settings->statesCheck;
                 
             }
 
-        $orders = $orders->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -436,6 +684,7 @@ $statecheck = $settings->statesCheck;
         {
             $order->shippingPrice = $this->getTotalShipping($order->id);
             $order->itemcount = $this->getCount($order->id);
+
             $sources = array();
                 $order_details = order_details::where('order_id',$order->id)->get(); 
                 if(empty($order_details))
@@ -446,6 +695,7 @@ $statecheck = $settings->statesCheck;
                 {
 
                     $amz = products::where('asin',$detail->SKU)->get()->first(); 
+ 
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -470,7 +720,7 @@ $statecheck = $settings->statesCheck;
         $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get();  
         $accounts = settings::where('listCheck',true)->get();
         $settings = settings::where('name','jonathan')->get()->first();    
-$statecheck = $settings->statesCheck;
+        $statecheck = $settings->statesCheck;
         $disabledStates = json_decode($settings->states);
         return view('orders.food',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts','statecheck','disabledStates'));
     }
@@ -573,7 +823,7 @@ $statecheck = $settings->statesCheck;
                 
             }
 
-        $orders = $orders->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -586,6 +836,7 @@ $statecheck = $settings->statesCheck;
         {
             $order->shippingPrice = $this->getTotalShipping($order->id);
             $order->itemcount = $this->getCount($order->id);
+
             $sources = array();
                 $order_details = order_details::where('order_id',$order->id)->get(); 
                 if(empty($order_details))
@@ -596,6 +847,7 @@ $statecheck = $settings->statesCheck;
                 {
 
                     $amz = products::where('asin',$detail->SKU)->get()->first(); 
+ 
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -620,7 +872,7 @@ $statecheck = $settings->statesCheck;
         $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get();  
         $accounts = settings::where('listCheck',true)->get();
         $settings = settings::where('name','jonathan')->get()->first();    
-$statecheck = $settings->statesCheck;
+        $statecheck = $settings->statesCheck;
         $disabledStates = json_decode($settings->states);
         return view('orders.price1',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts','statecheck','disabledStates'));
     }
@@ -679,7 +931,7 @@ $statecheck = $settings->statesCheck;
                 
             }
 
-        $orders = $orders->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -692,6 +944,7 @@ $statecheck = $settings->statesCheck;
         {
             $order->shippingPrice = $this->getTotalShipping($order->id);
             $order->itemcount = $this->getCount($order->id);
+
             $sources = array();
                 $order_details = order_details::where('order_id',$order->id)->get(); 
                 if(empty($order_details))
@@ -702,6 +955,7 @@ $statecheck = $settings->statesCheck;
                 {
 
                     $amz = products::where('asin',$detail->SKU)->get()->first(); 
+ 
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -726,7 +980,7 @@ $statecheck = $settings->statesCheck;
         $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get();  
         $accounts = settings::where('listCheck',true)->get();  
         $settings = settings::where('name','jonathan')->get()->first();    
-$statecheck = $settings->statesCheck;
+        $statecheck = $settings->statesCheck;
         $disabledStates = json_decode($settings->states);
 
         return view('orders.price2',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts','statecheck','disabledStates'));
@@ -782,7 +1036,7 @@ $statecheck = $settings->statesCheck;
                 
             }
 
-        $orders = $orders->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -795,6 +1049,7 @@ $statecheck = $settings->statesCheck;
         {
             $order->shippingPrice = $this->getTotalShipping($order->id);
             $order->itemcount = $this->getCount($order->id);
+
             $sources = array();
                 $order_details = order_details::where('order_id',$order->id)->get(); 
                 if(empty($order_details))
@@ -805,6 +1060,7 @@ $statecheck = $settings->statesCheck;
                 {
 
                     $amz = products::where('asin',$detail->SKU)->get()->first(); 
+ 
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -829,7 +1085,7 @@ $statecheck = $settings->statesCheck;
         $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get();  
         $accounts = settings::where('listCheck',true)->get();
         $settings = settings::where('name','jonathan')->get()->first();    
-$statecheck = $settings->statesCheck;
+        $statecheck = $settings->statesCheck;
         $disabledStates = json_decode($settings->states);
         return view('orders.expensive',compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','accounts','statecheck','disabledStates'));
     }
@@ -1057,6 +1313,26 @@ $statecheck = $settings->statesCheck;
             $route = 'newOrdersMovie';
             $orders = $orders->where('products.category','Movie');
         }
+        elseif($page=='minus')
+        {
+            $route = 'newOrdersChecked';
+            
+            $orders = $orders->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2');
+        
+        }
+        elseif($page=='checked')
+        {
+            $route = 'newOrdersChecked';
+
+            $orders = $orders->having(DB::raw("COUNT(DISTINCT order_details.SKU)"),'<=','1')
+            ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'!=','0')
+            ->where('products.category','!=','Movie')
+            ->where('products.category','!=','Food')
+            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price1)          
+            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<',$price2);        
+
+        }
+
             
 
         if(!empty($storeFilter)&& $storeFilter !=0)
@@ -1100,7 +1376,7 @@ $statecheck = $settings->statesCheck;
         if(auth()->user()->role==1)
             $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')
             ->groupBy('orders.id')            
-            ->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
+            ->orderBy('date', 'ASC')->where('isChecked',true)->groupby('orders.id')->paginate(100);
         elseif(auth()->user()->role==2)
         {
             $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
@@ -1111,14 +1387,14 @@ $statecheck = $settings->statesCheck;
                     $strArray[]= $str->store;
                 }
                 
-                $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')
+                $orders = $orders->where('isChecked',true)->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')
                 ->groupBy('orders.id')                
                 
                 ->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
         }
             
         else
-            $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')
+            $orders = $orders->where('isChecked',true)->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')
             
             ->groupBy('orders.id')
             
@@ -1153,6 +1429,7 @@ $statecheck = $settings->statesCheck;
             
             $order->shippingPrice = $this->getTotalShipping($order->id);
             $order->itemcount = $this->getCount($order->id);
+
             
 
             $sources = array();
@@ -1165,6 +1442,7 @@ $statecheck = $settings->statesCheck;
                 {
 
                     $amz = products::where('asin',$detail->SKU)->get()->first(); 
+ 
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -1290,7 +1568,27 @@ $statecheck = $settings->statesCheck;
             $orders = $orders->where('products.category','Movie');
         }
 
-        $orders = $orders->orderBy('date', 'ASC')->paginate(100);
+        elseif($route=='newOrdersChecked')
+        {
+            $page = 'checked';
+
+            $orders = $orders->having(DB::raw("COUNT(DISTINCT order_details.SKU)"),'<=','1')
+            ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'!=','0')
+            ->where('products.category','!=','Movie')
+            ->where('products.category','!=','Food')
+            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price1)          
+            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<',$price2);        
+
+        }
+        elseif($page=='newOrdersMinus')
+        {
+            $page = 'minus';
+
+            $orders = $orders->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2');        
+
+        }
+
+        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -1303,6 +1601,7 @@ $statecheck = $settings->statesCheck;
         {
             $order->shippingPrice = $this->getTotalShipping($order->id);
             $order->itemcount = $this->getCount($order->id);
+            
             $sources = array();
                 $order_details = order_details::where('order_id',$order->id)->get(); 
                 if(empty($order_details))
@@ -1313,6 +1612,7 @@ $statecheck = $settings->statesCheck;
                 {
 
                     $amz = products::where('asin',$detail->SKU)->get()->first(); 
+                    
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -1337,7 +1637,7 @@ $statecheck = $settings->statesCheck;
         $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get(); 
         $accounts = settings::where('listCheck',true)->get();
         $settings = settings::where('name','jonathan')->get()->first();    
-$statecheck = $settings->statesCheck;
+        $statecheck = $settings->statesCheck;
         $disabledStates = json_decode($settings->states);
         return view('orders.'.$page,compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','search','route','accounts','statecheck','disabledStates'));
             

@@ -115,6 +115,22 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
         {
             $orders = $orders->where('products.category','Movie');
         }
+
+        elseif($route=='minus')
+        {           
+            $orders = $orders->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'<','2');        
+        }
+        
+        elseif($route=='checked')
+        {           
+            $orders = $orders->having(DB::raw("COUNT(DISTINCT order_details.SKU)"),'<=','1')
+            ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'!=','0')
+            ->where('products.category','!=','Movie')
+            ->where('products.category','!=','Food')
+            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price1)          
+            ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<',$price2);        
+        }
+        
         
         if(!empty($storeFilter)&& $storeFilter !=0)
         {
@@ -152,11 +168,20 @@ class OrdersExport implements WithColumnFormatting,FromCollection,WithHeadings,S
         {           
             $orders = $orders->where('state',$stateFilter);
         }
+
+        
+
+        $orders = $orders->having(DB::raw("COUNT(DISTINCT order_details.SKU)"),'<=','1')
+        ->having(DB::raw("sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'!=','0')
+        ->where('products.category','!=','Movie')
+        ->where('products.category','!=','Food')
+        ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'>',$price1)          
+        ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<',$price2);  
                 
         if(auth()->user()->role==1|| auth()->user()->role==2)
-            $orders = $orders->where('status','unshipped')->orderBy('date', 'ASC')->groupby('orders.id')->get();
+            $orders = $orders->where('isChecked',true)->where('status','unshipped')->orderBy('date', 'ASC')->groupby('orders.id')->get();
         else
-            $orders = $orders->where('status','unshipped')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->get();
+            $orders = $orders->where('isChecked',true)->where('status','unshipped')->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->get();
         
         
         $stores = accounts::select(['id','store'])->get();

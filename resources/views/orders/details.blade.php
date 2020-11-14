@@ -70,6 +70,15 @@ table {
 
 $(document).ready(function(){
  
+    $(function(){
+      // bind change event to select
+      $('#flagTbx').on('change', function () {
+          var flag = $(this).val(); 
+          var id = <?php echo json_encode($order->id); ?>;          
+          window.location.href = "/flagOrder/"+id+"/"+flag;          
+      });
+    });
+
   
  $('#btnCancel').on('click',function(event){
     $('#error').hide(); 
@@ -968,7 +977,17 @@ td {
                     @endif
                     </H3>
                     </div>
-                    <div class="col-md-4 offset-md-4"  style="float:right;">
+
+                    <div class="col-md-4">                         
+                        <select class="form-control" id="flagTbx" name="userList" style="">                                
+                            <option value="0">Select Flag</option>        
+                            @foreach($flags as $flag)                                           
+                                <option value="{{$flag->id}}">{{$flag->name}}</option>                   
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-md-4"  style="float:right;">
                     
 
                         @if(($order->status=='unshipped' || $order->status=='pending' || auth()->user()->role==1) && $order->status!='cancelled')            
@@ -980,6 +999,7 @@ td {
                         @endif
 
                         <a id="btnReset" class="btn btn-warning btn-md" style="color: black;background: yellow;border-color: yellow;float:right;margin-right:5px;">RESET</a>                                        
+                        <a href="../checkOrder/{{$order->id}}" class="btn btn-success btn-md" style="color:white; float:right;margin-right:5px;"><i class="fa fa-check" style="margin-right:4px!important;"></i>CHECK</a>                                        
                     </div>
                     </div>
                     

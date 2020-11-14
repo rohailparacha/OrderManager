@@ -516,7 +516,7 @@ class NewRepricing implements ShouldQueue
         {
             $counter++;
         
-            $filename = date("d-m-Y")."-".time()."-selleractive-export-".$counter.".csv";
+            $filename = date("d-m-Y")."-".time()."-".$account->store."-selleractive-export-".$counter.".csv";
         
             Excel::store(new NewSellerActiveExport($this->originalCollection, $account->store), $filename,'exports');   
     
@@ -527,9 +527,4 @@ class NewRepricing implements ShouldQueue
 
         $id = new_logs::where('id',$this->id)->update(['date_completed'=>date('Y-m-d H:i:s'),'status'=>'Completed']);
     }
-
-    
-
-
-    
 }

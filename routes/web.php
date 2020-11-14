@@ -35,6 +35,8 @@ Route::group(['middleware' => 'auth'], function () {
 	
 	// New Order Pages Routes
 	Route::get('newOrdersFlagged','orderController@newOrdersFlagged')->name('newOrdersFlagged')->middleware('admin');
+	Route::get('newOrdersChecked','newOrdersController@newOrdersChecked')->name('newOrdersChecked')->middleware('admin');
+	Route::get('newOrdersMinus','newOrdersController@newOrdersMinus')->name('newOrdersMinus')->middleware('admin');
 	Route::get('newOrdersMultiItems','newOrdersController@newOrdersMultiItems')->name('newOrdersMultiItems')->middleware('admin');
 	Route::get('newOrdersPrice1','newOrdersController@newOrdersPrice1')->name('newOrdersPrice1')->middleware('admin');
 	Route::get('newOrdersPrice2','newOrdersController@newOrdersPrice2')->name('newOrdersPrice2')->middleware('admin');
@@ -49,9 +51,14 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('/orderTemplate', 'newOrdersController@getTemplate')->middleware('admin');
 	Route::post('newFilter','newOrdersController@filter')->middleware('admin');	
 	Route::post('newSearch','newOrdersController@search')->middleware('admin');	
+	Route::get('checkOrder/{id}','newOrdersController@checkOrder')->middleware('admin');	
+	Route::get('flagOrder/{id}/{flag}','newOrdersController@flagOrder')->middleware('admin');	
 
 	Route::get('processedOrders','orderController@processedOrders')->name('processedOrders')->middleware('admin');
 	Route::get('dueDateComing','orderController@dueComing')->name('dueComing')->middleware('admin');	
+	Route::any('dueFilter','orderController@dueFilter')->name('dueFilter')->middleware('admin');
+	Route::any('dueExport','orderController@dueExport')->name('dueExport')->middleware('admin');	
+
 	Route::get('cancelledOrders','orderController@cancelledOrders')->name('cancelledOrders')->middleware('admin');
 	Route::get('shippedOrders','orderController@shippedOrders')->name('shippedOrders')->middleware('admin');
 	Route::get('conversions','orderController@conversions')->name('conversions')->middleware('admin');

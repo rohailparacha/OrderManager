@@ -82,7 +82,8 @@ try{
 
 var query = {                
                 storeFilter:storeFilter,
-                daterange:daterange
+                daterange:daterange,
+                option:2
             }
 
 var url = "/upsexport?" + $.param(query)

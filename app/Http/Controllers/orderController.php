@@ -30,6 +30,7 @@ use App\categories;
 use App\temp_trackings;
 use App\conversions;
 use App\Exports\OrdersExport;
+use App\Exports\DueExport;
 use App\Exports\UPSExport;
 use App\Exports\AutoFulfillExport;
 use Illuminate\Http\Request;
@@ -424,9 +425,10 @@ class orderController extends Controller
 
         $storeFilter = $request->storeFilter;
         $daterange = $request->daterange;
+        $option = $request->option; 
 
         $filename = date("d-m-Y")."-".time()."-ups-conversions.xlsx";
-        return Excel::download(new UPSExport($storeFilter,$daterange), $filename);
+        return Excel::download(new UPSExport($storeFilter,$daterange,$option), $filename);
     }
 
     public function upsfilter(Request $request)
@@ -610,7 +612,7 @@ class orderController extends Controller
                 
         if(auth()->user()->role==1)
             $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')
-            ->groupBy('orders.id')            
+            ->groupBy('orders.id')->where('isChecked',false)            
             ->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
         elseif(auth()->user()->role==2)
         {
@@ -625,7 +627,7 @@ class orderController extends Controller
                 $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')
                 ->groupBy('orders.id')                
                 
-                ->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
+                ->whereIn('storeName',$strArray)->where('isChecked',false)->orderBy('date', 'ASC')->paginate(100);
         }
             
         else
@@ -633,7 +635,7 @@ class orderController extends Controller
             
             ->groupBy('orders.id')
             
-            ->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
+            ->where('uid',auth()->user()->id)->where('isChecked',false)->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
         
         if(!empty($storeFilter))
             $orders = $orders->appends('storeFilter',$storeFilter);
@@ -674,6 +676,8 @@ class orderController extends Controller
                 {
 
                     $amz = products::where('asin',$detail->SKU)->get()->first(); 
+
+                    
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -903,7 +907,7 @@ class orderController extends Controller
             
             $order->shippingPrice = $this->getTotalShipping($order->id);
             $order->itemcount = $this->getCount($order->id);
-
+            
             $sources = array();
                 $order_details = order_details::where('order_id',$order->id)->get(); 
                 if(empty($order_details))
@@ -914,6 +918,7 @@ class orderController extends Controller
                 {
 
                     $amz = products::where('asin',$detail->SKU)->get()->first(); 
+                    
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -1066,8 +1071,9 @@ class orderController extends Controller
                 
                 foreach($order_details as $detail)
                 {
+                    $amz = products::where('asin',$detail->SKU)->get()->first();
 
-                    $amz = products::where('asin',$detail->SKU)->get()->first(); 
+                    
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -1197,6 +1203,7 @@ class orderController extends Controller
                 {
 
                     $amz = products::where('asin',$detail->SKU)->get()->first(); 
+
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -1301,7 +1308,7 @@ class orderController extends Controller
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
                 })                
-                ->orderBy('date', 'ASC')->paginate(100);
+                ->where('isChecked',false)->orderBy('date', 'ASC')->paginate(100);
             }
     
             elseif(auth()->user()->role==2)
@@ -1320,7 +1327,7 @@ class orderController extends Controller
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
                 })                
-                ->orderBy('date', 'ASC')->paginate(100);
+                ->where('isChecked',false)->orderBy('date', 'ASC')->paginate(100);
                 
             }
 
@@ -1331,7 +1338,7 @@ class orderController extends Controller
                 $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                 $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
             })                
-            ->orderBy('date', 'ASC')->paginate(100);
+            ->where('isChecked',false)->orderBy('date', 'ASC')->paginate(100);
             }
 
 
@@ -1346,6 +1353,7 @@ class orderController extends Controller
                 {
                     $order->shippingPrice = $this->getTotalShipping($order->id);
                     $order->itemcount = $this->getCount($order->id);
+                    
                     $sources = array();
                         $order_details = order_details::where('order_id',$order->id)->get(); 
                         if(empty($order_details))
@@ -1356,6 +1364,7 @@ class orderController extends Controller
                         {
         
                             $amz = products::where('asin',$detail->SKU)->get()->first(); 
+
                             if(empty($amz))
                                 {
                                     $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -1445,7 +1454,10 @@ class orderController extends Controller
         {
             if(auth()->user()->role==1)
             {            
-                $orders = orders::select()->where('status','processing')                
+                $orders = orders::select()->where(function($test){
+                    $test->where('status', 'processing');
+                    $test->orWhere('status', 'unshipped');
+                })               
                 ->where(function($test) use ($query){
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
@@ -1466,7 +1478,10 @@ class orderController extends Controller
                 }
                                 
                 
-                $orders = orders::select()->where('status','processing')->whereIn('storeName',$strArray)
+                $orders = orders::select()->where(function($test){
+                    $test->where('status', 'processing');
+                    $test->orWhere('status', 'unshipped');
+                }) ->whereIn('storeName',$strArray)
                 ->where(function($test) use ($query){
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('poNumber', 'LIKE', '%'.$query.'%');
@@ -1479,7 +1494,10 @@ class orderController extends Controller
 
             else
             {
-                $orders = orders::select()->where('status','processing')->where('uid',auth()->user()->id)
+                $orders = orders::select()->where(function($test){
+                    $test->where('status', 'processing');
+                    $test->orWhere('status', 'unshipped');
+                }) ->where('uid',auth()->user()->id)
                 ->where(function($test) use ($query){
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
@@ -1493,7 +1511,9 @@ class orderController extends Controller
                 $order->shippingPrice = $this->getTotalShipping($order->id);
             }
             $orders = $orders->appends('searchQuery',$query)->appends('route', $route);
-            return view('orders.dueComing',compact('orders','search','route'));   
+            $accounts = gmail_accounts::get();       
+            $stores = accounts::all();     
+            return view('orders.dueComing',compact('orders','search','route','accounts','stores'));   
             
         }
 
@@ -2427,6 +2447,7 @@ class orderController extends Controller
                     foreach($order_details as $detail)
                     {
                         $amz = products::where('asin',$detail->SKU)->get()->first(); 
+
                         if(empty($amz))
                             {
                                 $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -3763,6 +3784,7 @@ class orderController extends Controller
                 {
 
                     $amz = products::where('asin',$detail->SKU)->get()->first(); 
+
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -4052,7 +4074,9 @@ class orderController extends Controller
                 ->leftJoin('products','order_details.SKU','=','products.asin')
                 ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')
-                ->groupBy('orders.id')            
+                ->where('isChecked',false)
+                ->groupBy('orders.id')  
+                          
                 ->orderBy('date', 'ASC')->paginate(100);
             }
     
@@ -4072,7 +4096,9 @@ class orderController extends Controller
                 ->select(['orders.*',DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0)) as lowestPrice'),'products.asin'])->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '10')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])
                 ->where('flag','0')
                 ->groupBy('orders.id')                  
-                ->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
+                ->whereIn('storeName',$strArray)
+                ->where('isChecked',false)
+                ->orderBy('date', 'ASC')->paginate(100);
                 
             }
         
@@ -4086,6 +4112,7 @@ class orderController extends Controller
                 ->where('flag','0')            
                 ->groupBy('orders.id')            
                 ->where('uid',auth()->user()->id)
+                ->where('isChecked',false)
                 ->orderBy('date', 'ASC')
                 ->paginate(100);
             }
@@ -4101,6 +4128,7 @@ class orderController extends Controller
         {
             $order->shippingPrice = $this->getTotalShipping($order->id);
             $order->itemcount = $this->getCount($order->id);
+            
             $sources = array();
                 $order_details = order_details::where('order_id',$order->id)->get(); 
                 if(empty($order_details))
@@ -4111,6 +4139,7 @@ class orderController extends Controller
                 {
 
                     $amz = products::where('asin',$detail->SKU)->get()->first(); 
+
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -4246,7 +4275,7 @@ class orderController extends Controller
                 ->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')
                 ->where('flag','!=' ,'0')
                 ->where('uid',auth()->user()->id)
-                ->groupBy('orders.id')                
+                ->groupBy('orders.id')                             
                 ->orderBy('date', 'ASC')
                 ->paginate(100);
             }
@@ -4263,6 +4292,7 @@ class orderController extends Controller
             
             $order->shippingPrice = $this->getTotalShipping($order->id);
             $order->itemcount = $this->getCount($order->id);
+            
             $sources = array();
                 $order_details = order_details::where('order_id',$order->id)->get(); 
                 if(empty($order_details))
@@ -4273,6 +4303,7 @@ class orderController extends Controller
                 {
 
                     $amz = products::where('asin',$detail->SKU)->get()->first(); 
+
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -4372,6 +4403,7 @@ class orderController extends Controller
                 {
 
                     $amz = products::where('asin',$detail->SKU)->get()->first(); 
+
                     if(empty($amz))
                         {
                             $ebay = ebay_products::where('sku',$detail->SKU)->get()->first(); 
@@ -5022,7 +5054,10 @@ class orderController extends Controller
     {
         
         if(auth()->user()->role==1)
-            $orders = orders::select()->where('status','processing')->orderBy('dueShip','asc')->orderBy('date', 'ASC')->paginate(100);
+            $orders = orders::select()->where(function($test){
+                $test->where('status', 'processing');
+                $test->orWhere('status', 'unshipped');
+            }) ->orderBy('dueShip','asc')->orderBy('date', 'ASC')->paginate(100);
 
         elseif(auth()->user()->role==2)
             {
@@ -5034,19 +5069,38 @@ class orderController extends Controller
                     $strArray[]= $str->store;
                 }
                 
-                $orders = orders::select()->where('status','processing')->whereIn('storeName',$strArray)->orderBy('dueShip','asc')->orderBy('date', 'ASC')->paginate(100);
+                $orders = orders::select()->where(function($test){
+                    $test->where('status', 'processing');
+                    $test->orWhere('status', 'unshipped');
+                }) ->whereIn('storeName',$strArray)->orderBy('dueShip','asc')->orderBy('date', 'ASC')->paginate(100);
             }
         
         else
             
-            $orders = orders::select()->where('status','processing')->where('uid',auth()->user()->id)->orderBy('dueShip','asc')->orderBy('date', 'ASC')->paginate(100);
+            $orders = orders::select()->where(function($test){
+                $test->where('status', 'processing');
+                $test->orWhere('status', 'unshipped');
+            }) ->where('uid',auth()->user()->id)->orderBy('dueShip','asc')->orderBy('date', 'ASC')->paginate(100);
         
             foreach($orders as $order)
             {
     
                 $order->shippingPrice = $this->getTotalShipping($order->id);
             }
-        return view('orders.dueComing',compact('orders'));
+
+        $startDate = orders::min('date');
+        $endDate = orders::max('date');
+
+        $from = date("m/d/Y", strtotime($startDate));  
+        $to = date("m/d/Y", strtotime($endDate));  
+
+        $dateRange = $from .' - '.$to;
+
+        $accounts = gmail_accounts::get();
+        $stores = accounts::all();
+        $accountFilter='';
+        $storeFilter='';
+        return view('orders.dueComing',compact('orders','accounts','stores','dateRange','accountFilter','storeFilter'));
     }
 
 
@@ -5671,8 +5725,93 @@ class orderController extends Controller
         $carriers = carriers::all();
         $accounts = gmail_accounts::all(); 
         $flag = flags::where('id',$order->flag)->get()->first();
-        return view('orders.details',compact('details','order','carriers','accounts','flag'));
+        $flags = flags::select()->whereNotIn('id',['16','17','8','9','10','22','23','24','25','26'])->get(); 
+        return view('orders.details',compact('details','order','carriers','accounts','flag','flags'));
     }
+
+    public function dueExport(Request $request)
+    {
+        $dateRange = $request->daterange;
+        $storeFilter = $request->storeFilter;
+        $accountFilter = $request->accountFilter;
+        $filename = date("d-m-Y")."-".time()."-due-coming-soon-orders.xlsx";
+        return Excel::download(new DueExport($dateRange,$storeFilter,$accountFilter), $filename);
+    }
+
+    public function dueFilter(Request $request)
+    {
+        if($request->has('daterange'))
+        $dateRange = $request->get('daterange');
+        $startDate = explode('-',$dateRange)[0];
+        $from = date("Y-m-d", strtotime($startDate));  
+        $endDate = explode('-',$dateRange)[1];
+        $to = date("Y-m-d", strtotime($endDate));  
+        if($request->has('storeFilter'))
+            $storeFilter = $request->get('storeFilter');
+        if($request->has('accountFilter'))
+            $accountFilter = $request->get('accountFilter');  
+
+        
+        //now show orders
+        if(auth()->user()->role==1)
+            $orders = orders::select()->where(function($test){
+                $test->where('status', 'processing');
+                $test->orWhere('status', 'unshipped');
+            }) ;
+
+        elseif(auth()->user()->role==2)
+            {
+                $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
+                $strArray  = array();
+
+                foreach($stores as $str)
+                {
+                    $strArray[]= $str->store;
+                }
+                
+                $orders = orders::select()->where(function($test){
+                    $test->where('status', 'processing');
+                    $test->orWhere('status', 'unshipped');
+                }) ->whereIn('storeName',$strArray);
+            }        
+        else
+            $orders = orders::select()->where(function($test){
+                $test->where('status', 'processing');
+                $test->orWhere('status', 'unshipped');
+            }) ->where('uid',auth()->user()->id);
+        
+        if(!empty($startDate)&& !empty($endDate))
+        {
+            $orders = $orders->whereBetween('date', [$from, $to]);
+        }
+
+        if(!empty($storeFilter)&& $storeFilter !=0)
+        {
+            $storeName = accounts::select()->where('id',$storeFilter)->get()->first();
+            $orders = $orders->where('storeName',$storeName->store);
+        }
+        
+        if(!empty($accountFilter)&& $accountFilter !='0')
+        {            
+            
+            $orders = $orders->where('account_id',$accountFilter);
+        }
+            
+        
+        foreach($orders as $order)
+        {
+
+            $order->shippingPrice = $this->getTotalShipping($order->id);
+        }
+
+        $orders  = $orders->orderBy('dueShip','asc')->orderBy('date', 'ASC')->paginate(100)->appends('daterange',$dateRange)->appends('storeFilter',$storeFilter)->appends('accountFilter',$accountFilter);
+
+        $accounts = gmail_accounts::get();
+        $stores = accounts::all();
+        return view('orders.dueComing',compact('orders','accounts','stores','dateRange','accountFilter','storeFilter'));        
+    }
+
+    
 
     
 }

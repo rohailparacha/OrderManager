@@ -69,9 +69,9 @@ table {
                                     <th scope="col" width="15%">{{ __('Start Date') }}</th>
                                     <th scope="col" width="15%">{{ __('End Date') }}</th>
                                     <th scope="col" width="15%">{{ __('Original File') }}</th>
-                                    <th scope="col" width="15%">{{ __('Final File - Find It Fast') }}</th>
-                                    <th scope="col" width="15%">{{ __('Final File - Snapp') }}</th>
-                                    <th scope="col" width="15%">{{ __('Final File - DigiCommerce') }}</th>
+                                    <th scope="col" width="15%">{{ __('Find It Fast') }}</th>
+                                    <th scope="col" width="15%">{{ __('Snapp') }}</th>
+                                    <th scope="col" width="15%">{{ __('DigiCommerce') }}</th>
                                     <th scope="col" width="15%">{{ __('Duplicate ASINs File') }}</th>
                                     <th scope="col" width="15%">{{ __('Type') }}</th>     
                                     <th scope="col" width="15%">{{ __('Status') }}</th>                                                                                                      

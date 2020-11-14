@@ -126,7 +126,7 @@ var query = {
                 stateFilter:stateFilter,
                 amountFilter:amountFilter,
                 sourceFilter:sourceFilter,
-                route:'new'
+                route:'minus'
             }
 
 
@@ -165,7 +165,7 @@ catch{
                     <div class="card-header border-0">
                         <div class="row align-items-center">
                             <div class="col-6">
-                                <h3 class="mb-0">{{ __('New Orders') }}</h3>
+                                <h3 class="mb-0">{{ __('New Orders - Minus') }}</h3>
                             </div>  
                             
                             <div class="col-6" style="text-align:right;">
@@ -198,8 +198,9 @@ catch{
 
                             <div class="row" style="margin-left:0px!important;">
                         <div class="col-12 text-center" id="filters">
-                        <form action="orderFilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
+                        <form action="newFilter" class="navbar-search navbar-search-light form-inline" style="width:100%" method="post">
                             @csrf
+                            <input type="hidden" value="minus" name="page">
                             <div style="width:100%; padding-bottom:2%;">
                                 <div class="form-group">
                                     
@@ -280,7 +281,8 @@ catch{
                                     <th scope="col" width="10%">{{ __('Total Purchase Amount') }}</th>
                                      <th scope="col" width="10%">{{ __('Total Amount') }}</th>
                                     <th scope="col" width="11%">{{ __('Net') }}</th>                                    
-                                    <th scope="col" width="8%">{{ __('Action') }}</th>                                    
+                                    <th scope="col" width="8%">{{ __('Action') }}</th>
+                                    <th scope="col" width="8%">Sheet</th>
                                     <th scope="col" width="8%">Flag</th>
                                 </tr>
                             </thead>
@@ -315,7 +317,26 @@ catch{
                                         
                                         
                                         <td width="8%"><a href="orderDetails/{{$order->id}}" class="btn btn-primary btn-sm">Details</a></td>
-                                       
+                                        <td class="text-right" width="3%" style="padding:0px!important">
+                                            <div class="dropdown">
+                                                <a class="btn btn-sm btn-icon-only text-light" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
+                                                    @foreach($accounts as $account)       
+                                                        @if($order->itemcount>1 || $order->lowestPrice==0 || (in_array($order->state,$disabledStates) && $statecheck && ($account->name=='jonathan' ||$account->name=='jonathan2')))                                       
+                                                            <a class="dropdown-item btnTransfer"  data-toggle="modal" data-target="#checkPass"  data-id={{$order->id}} data-account={{$account->id}} href="#">{{$account->name}}</a>
+                                                        @else
+                                                            @if(empty($route))
+                                                            <a class="dropdown-item" href="/accTransfer/{{$order->id}}/{{$account->id}}">{{$account->name}}</a>
+                                                            @else
+                                                            <a class="dropdown-item" href="/accTransfer/{{$route}}/{{$order->id}}/{{$account->id}}">{{$account->name}}</a>
+                                                            @endif
+                                                        @endif
+                                                    @endforeach                                                   
+                                                </div>
+                                            </div>
+                                        </td>
                                         <td class="text-right" width="3%" style="padding:0px!important">
                                             <div class="dropdown">
                                                 <a class="btn btn-sm btn-icon-only text-light" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -323,11 +344,11 @@ catch{
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
                                                     @foreach($flags as $flag)
-                                                    @if(empty($route))
-                                                    <a class="dropdown-item" href="/orderFlag/{{$order->id}}/{{$flag->id}}">{{$flag->name}}</a>
-                                                    @else
-                                                    <a class="dropdown-item" href="/orderFlag/{{$route}}/{{$order->id}}/{{$flag->id}}">{{$flag->name}}</a>
-                                                    @endif
+                                                         @if(empty($route))
+                                                        <a class="dropdown-item" href="/orderFlag/{{$order->id}}/{{$flag->id}}">{{$flag->name}}</a>
+                                                        @else
+                                                        <a class="dropdown-item" href="/orderFlag/{{$route}}/{{$order->id}}/{{$flag->id}}">{{$flag->name}}</a>
+                                                        @endif
                                                     @endforeach
                                                    @if(empty($route))
                                                     <a class="dropdown-item" href="/orderFlag/{{$order->id}}/0">{{ __('Unflag') }}</a>
