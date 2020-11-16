@@ -52,7 +52,8 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::post('newFilter','newOrdersController@filter')->middleware('admin');	
 	Route::post('newSearch','newOrdersController@search')->middleware('admin');	
 	Route::get('checkOrder/{id}','newOrdersController@checkOrder')->middleware('admin');	
-	Route::get('flagOrder/{id}/{flag}','newOrdersController@flagOrder')->middleware('admin');	
+	Route::post('flagOrder','newOrdersController@flagOrder')->middleware('admin');	
+	Route::get('orderTrackingLinks','newOrdersController@orderTrackingLinks')->name('orderTrackingLinks')->middleware('admin');
 
 	Route::get('processedOrders','orderController@processedOrders')->name('processedOrders')->middleware('admin');
 	Route::get('dueDateComing','orderController@dueComing')->name('dueComing')->middleware('admin');	

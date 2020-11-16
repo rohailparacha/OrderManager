@@ -70,14 +70,7 @@ table {
 
 $(document).ready(function(){
  
-    $(function(){
-      // bind change event to select
-      $('#flagTbx').on('change', function () {
-          var flag = $(this).val(); 
-          var id = <?php echo json_encode($order->id); ?>;          
-          window.location.href = "/flagOrder/"+id+"/"+flag;          
-      });
-    });
+ 
 
   
  $('#btnCancel').on('click',function(event){
@@ -977,14 +970,25 @@ td {
                     @endif
                     </H3>
                     </div>
-
-                    <div class="col-md-4">                         
-                        <select class="form-control" id="flagTbx" name="userList" style="">                                
-                            <option value="0">Select Flag</option>        
+                    <div class="col-md-4">
+                    <form action="../flagOrder" class="form-horizontal" method="post" >
+                    <input type="hidden" class="form-control" name="idOrder" value="{{$order->id}}">
+                    {{csrf_field()}}
+                    <div class="row clearfix">
+                    <div class="col-md-8">                         
+                        <select class="form-control" id="flagTbx" name="flag" style="">                                
+                            <option value="0" {{ isset($order->flag) && $order->flag==0?"selected":"" }}>Unflag</option>        
                             @foreach($flags as $flag)                                           
-                                <option value="{{$flag->id}}">{{$flag->name}}</option>                   
+                                <option value="{{$flag->id}}"  {{ isset($order->flag) && $order->flag==$flag->id?"selected":"" }}>{{$flag->name}}</option>                   
                             @endforeach
                         </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <input type="submit" class="btn btn-primary btn-md" value="SUBMIT" style="margin-left:10px;"/>
+                    </div>
+                    </div>
+                    </form>
                     </div>
 
                     <div class="col-md-4"  style="float:right;">
@@ -999,7 +1003,7 @@ td {
                         @endif
 
                         <a id="btnReset" class="btn btn-warning btn-md" style="color: black;background: yellow;border-color: yellow;float:right;margin-right:5px;">RESET</a>                                        
-                        <a href="../checkOrder/{{$order->id}}" class="btn btn-success btn-md" style="color:white; float:right;margin-right:5px;"><i class="fa fa-check" style="margin-right:4px!important;"></i>CHECK</a>                                        
+                        
                     </div>
                     </div>
                     
@@ -1067,7 +1071,11 @@ td {
                 {{$details->links()}}
             </nav>
         </div>
-    
+    <div class="row">
+        <div class="col-md-4 offset-md-8 ">
+            <a href="../checkOrder/{{$order->id}}" class="btn btn-success btn-md" style="color:white; float:right;margin-right:5px;"><i class="fa fa-check" style="margin-right:4px!important;"></i>CHECK</a>                                        
+        </div>
+    </div>
     <div class="container row mt-5" >
     
     <form action="../updateNotes" class="form-horizontal" method="post" >

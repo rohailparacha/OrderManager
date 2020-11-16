@@ -12,6 +12,7 @@ use DB;
 use Carbon\Carbon;
 use App\amazon_settings;
 use App\User;
+use App\temp_trackings;
 use App\returns;
 use App\order_settings;
 use App\states;
@@ -119,7 +120,7 @@ class newOrdersController extends Controller
                 
             }
 
-        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('dueShip', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -237,7 +238,7 @@ class newOrdersController extends Controller
                     ->having(DB::raw('sum(IFNULL( products.lowestPrice * order_details.quantity, 0))'),'<=',$price2)                    
                     ->having(DB::raw("((orders.totalAmount + sum(IFNULL( order_details.shippingPrice, 0))) * 0.85) - sum(IFNULL( products.lowestPrice * order_details.quantity, 0))"),'>=','2');       
 
-        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('dueShip', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -341,7 +342,7 @@ class newOrdersController extends Controller
                 
             }
 
-        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('dueShip', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -408,7 +409,7 @@ class newOrdersController extends Controller
 
     public function flagOrder(Request $request)
     {
-        $id = $request->id;
+        $id = $request->idOrder;
         
         $flag = $request->flag;
         
@@ -468,7 +469,7 @@ class newOrdersController extends Controller
                 
             }
 
-        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('dueShip', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -572,7 +573,7 @@ class newOrdersController extends Controller
                 
             }
 
-        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('dueShip', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -675,7 +676,7 @@ class newOrdersController extends Controller
                 
             }
 
-        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('dueShip', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -827,7 +828,7 @@ class newOrdersController extends Controller
                 
             }
 
-        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('dueShip', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -935,7 +936,7 @@ class newOrdersController extends Controller
                 
             }
 
-        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('dueShip', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -1040,7 +1041,7 @@ class newOrdersController extends Controller
                 
             }
 
-        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('dueShip', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -1384,7 +1385,7 @@ class newOrdersController extends Controller
         if(auth()->user()->role==1)
             $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')
             ->groupBy('orders.id')            
-            ->orderBy('date', 'ASC')->where('isChecked',true)->groupby('orders.id')->paginate(100);
+            ->orderBy('dueShip', 'ASC')->where('isChecked',true)->groupby('orders.id')->paginate(100);
         elseif(auth()->user()->role==2)
         {
             $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
@@ -1398,7 +1399,7 @@ class newOrdersController extends Controller
                 $orders = $orders->where('isChecked',true)->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')
                 ->groupBy('orders.id')                
                 
-                ->whereIn('storeName',$strArray)->orderBy('date', 'ASC')->paginate(100);
+                ->whereIn('storeName',$strArray)->orderBy('dueShip', 'ASC')->paginate(100);
         }
             
         else
@@ -1406,7 +1407,7 @@ class newOrdersController extends Controller
             
             ->groupBy('orders.id')
             
-            ->where('uid',auth()->user()->id)->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
+            ->where('uid',auth()->user()->id)->orderBy('dueShip', 'ASC')->groupby('orders.id')->paginate(100);
         
         if(!empty($storeFilter))
             $orders = $orders->appends('storeFilter',$storeFilter);
@@ -1599,7 +1600,7 @@ class newOrdersController extends Controller
 
         }
 
-        $orders = $orders->where('isChecked',true)->orderBy('date', 'ASC')->paginate(100);
+        $orders = $orders->where('isChecked',true)->orderBy('dueShip', 'ASC')->paginate(100);
 
         $stores = accounts::select(['id','store'])->get();
         $states = states::select()->distinct()->get();
@@ -1653,6 +1654,13 @@ class newOrdersController extends Controller
         return view('orders.'.$page,compact('flags','orders','stores','states','maxAmount','minAmount','maxPrice','search','route','accounts','statecheck','disabledStates'));
             
         
+    }
+
+    public function orderTrackingLinks()
+    {
+        $orders = temp_trackings::join('orders','orders.sellOrderId','temp_trackings.sellOrderId')->select(['orders.*', 'temp_trackings.trackingLink As tlLink'])->where('temp_trackings.status','pending')->paginate(100);
+        $accounts = gmail_accounts::all();
+        return view('orders.orderTrackingLinks',compact('accounts','orders'));
     }
 
     

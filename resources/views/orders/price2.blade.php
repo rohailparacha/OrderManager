@@ -269,7 +269,8 @@ catch{
                         <table class="table align-items-center table-flush">
                             <thead class="thead-light">
                                 <tr>
-                                    <th scope="col" width="9%">{{ __('Date') }}</th>
+                                     <th scope="col" width="9%">{{ __('Date') }}</th>
+                                    <th scope="col" width="9%">{{ __('Due Ship') }}</th>
                                     <th scope="col" width="9%">{{ __('Marketplace') }}</th>
                                     <th scope="col" width="9%">{{ __('Store Name') }}</th>
                                     <th scope="col" width="9%">{{ __('Sell Order Id') }}</th>
@@ -290,6 +291,11 @@ catch{
                                     <tr>
                                     
                                         <td width="9%">{{ $provider::getIranTime(date_format(date_create($order->date), 'm/d/Y H:i:s')) }}</td>                                       
+                                        <td width="9%">
+                                        @if(!empty($order->dueShip))
+                                        {{ $provider::getIranTime(date_format(date_create($order->dueShip), 'm/d/Y H:i:s')) }}
+                                        @endif
+                                        </td>  
                                         <td width="9%">{{ $order->marketplace }}</td>
                                         <td width="9%">{{ $order->storeName }}</td>
                                         <td width="9%">{{ $order->sellOrderId }}</td>

@@ -135,6 +135,8 @@
                             </a>
                             </li>
 
+                          
+
                             @endif
                             @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(2,json_decode(auth()->user()->assigned_pages))))                       
                             <li class="nav-item">
@@ -172,6 +174,13 @@
                                 </a>
                             </li>
                             @endif
+
+                            <li class="nav-item">
+                            <a class="nav-link" href="{{ route('orderTrackingLinks') }}">
+                                {{ __('Order Tracking Links') }}
+                            </a>
+                            </li>
+                            
                             @if(auth()->user()->role==1 || (!empty(auth()->user()->assigned_pages) &&in_array(5,json_decode(auth()->user()->assigned_pages))))                       
                             <li class="nav-item" style="display:none;">
                                 <a class="nav-link" href="{{ route('conversions') }}">

@@ -613,7 +613,7 @@ class orderController extends Controller
         if(auth()->user()->role==1)
             $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')
             ->groupBy('orders.id')->where('isChecked',false)            
-            ->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
+            ->orderBy('dueShip', 'ASC')->groupby('orders.id')->paginate(100);
         elseif(auth()->user()->role==2)
         {
             $stores = accounts::select()->where('manager_id',auth()->user()->id)->get(); 
@@ -627,7 +627,7 @@ class orderController extends Controller
                 $orders = $orders->where('status','unshipped')->where('flag', '!=' , '8')->where('flag', '!=' , '9')->where('flag', '!=' , '16')->whereNotIn('flag', ['17','22','23','24','25','26'])->where('flag', '!=' , '10')->where('flag','0')
                 ->groupBy('orders.id')                
                 
-                ->whereIn('storeName',$strArray)->where('isChecked',false)->orderBy('date', 'ASC')->paginate(100);
+                ->whereIn('storeName',$strArray)->where('isChecked',false)->orderBy('dueShip', 'ASC')->paginate(100);
         }
             
         else
@@ -635,7 +635,7 @@ class orderController extends Controller
             
             ->groupBy('orders.id')
             
-            ->where('uid',auth()->user()->id)->where('isChecked',false)->orderBy('date', 'ASC')->groupby('orders.id')->paginate(100);
+            ->where('uid',auth()->user()->id)->where('isChecked',false)->orderBy('dueShip', 'ASC')->groupby('orders.id')->paginate(100);
         
         if(!empty($storeFilter))
             $orders = $orders->appends('storeFilter',$storeFilter);
@@ -1292,7 +1292,7 @@ class orderController extends Controller
             return view('accounting.processedtransactions', compact('transactions','banks','categories','dateRange','search','route'));
         }
 
-        else if($route == 'newOrders' || $route == 'newOrdersFlagged' || $route == 'newOrdersExpensive')
+        else if($route == 'newOrders' || $route == 'newOrdersFlagged')
         {               
             $val = flags::where('name','Expensive')->get()->first(); 
             $ord = orders::leftJoin('order_details','order_details.order_id','=','orders.id')
@@ -1308,7 +1308,7 @@ class orderController extends Controller
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
                 })                
-                ->where('isChecked',false)->orderBy('date', 'ASC')->paginate(100);
+                ->orderBy('dueShip', 'ASC')->paginate(100);
             }
     
             elseif(auth()->user()->role==2)
@@ -1327,7 +1327,7 @@ class orderController extends Controller
                     $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                     $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
                 })                
-                ->where('isChecked',false)->orderBy('date', 'ASC')->paginate(100);
+                ->orderBy('dueShip', 'ASC')->paginate(100);
                 
             }
 
@@ -1338,7 +1338,7 @@ class orderController extends Controller
                 $test->where('sellOrderId', 'LIKE', '%'.$query.'%');
                 $test->orWhere('buyerName', 'LIKE', '%'.$query.'%');
             })                
-            ->where('isChecked',false)->orderBy('date', 'ASC')->paginate(100);
+            ->orderBy('dueShip', 'ASC')->paginate(100);
             }
 
 
@@ -4077,7 +4077,7 @@ class orderController extends Controller
                 ->where('isChecked',false)
                 ->groupBy('orders.id')  
                           
-                ->orderBy('date', 'ASC')->paginate(100);
+                ->orderBy('dueShip', 'ASC')->paginate(100);
             }
     
             elseif(auth()->user()->role==2)
@@ -4098,7 +4098,7 @@ class orderController extends Controller
                 ->groupBy('orders.id')                  
                 ->whereIn('storeName',$strArray)
                 ->where('isChecked',false)
-                ->orderBy('date', 'ASC')->paginate(100);
+                ->orderBy('dueShip', 'ASC')->paginate(100);
                 
             }
         
@@ -4113,7 +4113,7 @@ class orderController extends Controller
                 ->groupBy('orders.id')            
                 ->where('uid',auth()->user()->id)
                 ->where('isChecked',false)
-                ->orderBy('date', 'ASC')
+                ->orderBy('dueShip', 'ASC')
                 ->paginate(100);
             }
 
