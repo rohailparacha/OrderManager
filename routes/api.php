@@ -174,6 +174,7 @@ Route::post('jonathan2_update', function(Request $request) {
                
             $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])
             ->where('status','!=','shipped')
+            ->where('status','!=','cancelled')
             ->update([
             'poTotalAmount'=>$record['poTotalAmount'],
             'poNumber'=>$record['poNumber'],        
@@ -200,6 +201,7 @@ Route::post('jonathan2_update', function(Request $request) {
                
             $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])
             ->where('status','!=','shipped')
+            ->where('status','!=','cancelled')
             ->update([
             'poTotalAmount'=>$record['poTotalAmount'],
             'poNumber'=>$record['poNumber'],        
@@ -264,6 +266,7 @@ Route::post('jonathan_update', function(Request $request) {
                
             $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])
             ->where('status','!=','shipped')
+            ->where('status','!=','cancelled')
             ->update([
             'poTotalAmount'=>$record['poTotalAmount'],
             'poNumber'=>$record['poNumber'],        
@@ -293,6 +296,7 @@ Route::post('jonathan_update', function(Request $request) {
                
             $insert = orders::where('sellOrderId',explode('--',$record['sellOrderId'])[0])
             ->where('status','!=','shipped')
+            ->where('status','!=','cancelled')
             ->update([
             'poTotalAmount'=>$record['poTotalAmount'],
             'poNumber'=>$record['poNumber'],        

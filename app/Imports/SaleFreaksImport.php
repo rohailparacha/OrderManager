@@ -69,6 +69,7 @@ class SaleFreaksImport implements ToCollection
             {
                 $update = orders::where('sellOrderId',explode('.',$row[$sellOrderId])[0])                
                 ->where('status','!=','shipped')
+                ->where('status','!=','cancelled')
                 ->update([
                 'poTotalAmount'=>$row[$poAmount],
                 'poNumber'=>$row[$poNumber],        
@@ -92,6 +93,7 @@ class SaleFreaksImport implements ToCollection
 
                 $update = orders::where('sellOrderId',explode('.',$row[$sellOrderId])[0])                
                 ->where('status','!=','shipped')
+                ->where('status','!=','cancelled')
                 ->update([
                 'poTotalAmount'=>$row[$poAmount],
                 'poNumber'=>$row[$poNumber],        
