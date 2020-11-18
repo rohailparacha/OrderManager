@@ -402,7 +402,13 @@ class newOrdersController extends Controller
 
     public function checkOrder($id)
     {
-        orders::where('id',$id)->update(['isChecked'=>true]);        
+        orders::where('id',$id)->update(['isChecked'=>true]);    
+        $details = order_details::where('order_id',$id)->get();
+        foreach($details as $detail)
+        {
+            products::where('asin',$detail->SKU)->update(['checked'=>true]);
+        }   
+
         $sellOrderId = orders::where('id',$id)->get()->first()->sellOrderId; 
         return redirect()->route('newOrders')->withStatus(__('Order '.$sellOrderId.' Is Checked Successfully.'));
     }
@@ -415,6 +421,13 @@ class newOrdersController extends Controller
         
         orders::where('id',$id)->update(['isChecked'=>true, 'flag'=>$flag]);        
         
+        $details = order_details::where('order_id',$id)->get();
+        
+        foreach($details as $detail)
+        {
+            products::where('asin',$detail->SKU)->update(['checked'=>true]);
+        }   
+
         $sellOrderId = orders::where('id',$id)->get()->first()->sellOrderId; 
 
         return redirect()->route('newOrders')->withStatus(__('Order '.$sellOrderId.' Is Flagged Successfully.'));

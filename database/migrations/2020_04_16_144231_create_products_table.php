@@ -25,6 +25,7 @@ class CreateProductsTable extends Migration
             $table->double('lowestPrice',8,2)->default(0);
             $table->double('price',8,2)->default(0);
             $table->unsignedBigInteger('strategy_id');
+            $table->boolean('checked')->default(false);
             $table->integer('sold')->default(0);
             $table->integer('returned')->default(0);
             $table->integer('cancelled')->default(0);

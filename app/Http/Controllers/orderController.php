@@ -2919,6 +2919,7 @@ class orderController extends Controller
                     continue; 
                $orderId = orders::create($temp)->id;
                 
+               $checked = false;
                 
                 foreach($order->$att as $item)
                 {
@@ -2926,7 +2927,7 @@ class orderController extends Controller
                     $temp2 = array(); 
                     
                     $att = 'SKU';
-                    $temp2['SKU'] = $item->$att;
+                    $temp2['SKU'] = $item->$att;                    
                     
                     $att='SiteItemID';
                     $temp2['siteItemId'] = $item->$att; 
@@ -3158,10 +3159,28 @@ class orderController extends Controller
                      products::where('asin',$temp2['SKU'])->increment('90days', $temp2['quantity'] );
                      products::where('asin',$temp2['SKU'])->increment('120days', $temp2['quantity'] );
                 }
+                $att = 'OrderDetails';
+                foreach($order->$att as $item)
+                {
+                                                        
+                    $att = 'SKU';
+                    $skuAtt = $item->$att;
+
+                    $attrit = products::where('asin',$skuAtt)->get()->first(); 
+
+                    if(!empty($attrit))
+                    {
+                        $checked = $attrit->checked; 
+                        if(!$checked)
+                            break;
+                    }
+
+                }
+                
+                orders::where('id',$orderId)->update(['isChecked'=>$checked]);
 
                 try{
                    order_details::insert($details);   
-                    //$this->autoFlag($orderId);            
                 }
                 catch(\Exception $ex)
                 {
