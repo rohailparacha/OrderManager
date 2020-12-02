@@ -69,7 +69,7 @@ class orderController extends Controller
         $len = strlen($startString); 
         return (substr($string, 0, $len) === $startString); 
     } 
-    
+
     public function autoship(Request $request)
     {        
         $client = new client(); 
@@ -101,6 +101,8 @@ class orderController extends Controller
             $orders = orders::select()->where('status','processing')->where('uid',auth()->user()->id)->offset($offset)->limit($perPage)->get();
         
         
+        
+        
             $field = 'carrierRelatedInfo-container';
         
             $trackField = 'carrierRelatedInfo-trackingId-text';
@@ -125,256 +127,93 @@ class orderController extends Controller
             if(count($poNumbers)>0)
             {
                 foreach($poNumbers as $number)
-                {
-                    if($found)
-                        break;
-                    $ebayOrder = ebay_trackings::where('orderNumber',trim($number))->get()->first();
-                    if($ebayOrder)
-                    {
-                        $carrier = $ebayOrder->carrierName;
-                        $trackingId = $ebayOrder->trackingNumber;
+                {                  
+                                        
+                    try{
+                        $trackingId = $order->trackingNumber; 
                         
-                        if($carrier =='Bluecare Express')
+                        $carrierId = carriers::where('id',$order->carrierName)->get()->first(); 
+
+                        if(empty($trackingId)|| empty($carrierId))
+                            continue; 
+
+                        $carrier = $carrierId->name;                                                                      
+                   
+                        if(empty(trim($trackingId)) && !empty(trim($carrier)) )
+                            continue;
+                        
+                        $carrierId = carriers::where('name',$carrier)->get()->first(); 
+                        
+                        if(empty($carrierId))
                         {
-                            $bceCarrier = carriers::where('name','Bluecare Express')->get()->first(); 
-                            try{
-                                       
-                                $order = orders::where('id',$order->id)->update(['carrierName'=>$bceCarrier->id, 'trackingNumber'=>$trackingId, 'newTrackingNumber'=>$trackingId, 'converted'=>true]);   
-                                $shippedCounter++;                                    
+                            $carrierId = carriers::where('alias','like','%'.$carrier.'%')->get()->first(); 
+                        }
+
+                        if(empty($carrierId))
+                            continue; 
+        
+                        $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
+                        $dmxCarrier  = carriers::where('name','Dynamex')->get()->first();                             
+
+                        $bceCarrier = carriers::where('name','Bluecare Express')->get()->first(); 
+        
+                        if(($carrierId->id == $amzCarrier->id && $order->marketplace == 'Walmart' && $this->startsWith($trackingId,'TBA'))||$carrierId->id == $dmxCarrier->id||($carrierId->id == $bceCarrier->id || $this->startsWith($trackingId,'BCE')))
+                        {       
+                            
+                            $resp='';
+                            if($order->account_id=="Cindy" || $order->account_id=='Jonathan'|| $order->account_id=='Jonathan2' ||$order->account_id=='Yaballe'||$order->account_id=='SaleFreaks1'||$order->account_id=='SaleFreaks2'||$order->account_id=='SaleFreaks3'||$order->account_id=='SaleFreaks4'||$order->account_id=='SaleFreaks5'||  $order->account_id=='Vaughn')
+                            {    
+                                if(empty($order->of_bce_created_at))
+                                    orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at' =>Carbon::now(),'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);
+                                else
+                                    orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);
+                                
+                                $this->sendOrderToSheet($order->id);
                                 
                             }
-                                catch(\Exception $ex)
-                                {
-                
-                                }
+                            else
+                            {
+
+                            orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId, 'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);                                   
+                                
+                            $this->sendOrderToSheet($order->id);
+                            $shippedCounter++;              
+                            $found = true;                                
+
+                            
+                            }
+                            
                         }
                         else
-                            {
-                            $carrierId = carriers::where('name',$carrier)->get()->first(); 
-                                
-                            if(empty($carrierId))
-                            {
-                                $carrierId = carriers::where('alias','like','%'.$carrier.'%')->get()->first(); 
-                            }
+                        {    
 
-                            if(empty($carrierId))
-                                continue;
                             $this->shipOrder($order->id, $trackingId, $carrierId->name, 'new'); 
-                            
                             try{
-                                $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId, 'status'=>'shipped']);                      
-                                $shippedCounter++;                   
-                                $found = true;
+                            if($order->account_id=='Cindy')
+                            {
+                                $this->updateSheetTracking($trackingId, $order->sellOrderId, $carrierId->name);
+                            }
+                            
+                            $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId, 'status'=>'shipped']);     
+                            
+                            
+                            $shippedCounter++;  
+                            $found = true;                 
                             }
                             catch(\Exception $ex)
                             {
-                            
+                                
                             }
-                        }
-                    }
-                    else
-                    {                                                
-                        try{
+        
                             
-                            if($order->account_id=="Cindy" || $order->account_id=='Jonathan'|| $order->account_id=='Jonathan2' ||$order->account_id=='Yaballe'||$order->account_id=='SaleFreaks1'||$order->account_id=='SaleFreaks2'||$order->account_id=='SaleFreaks3'||$order->account_id=='SaleFreaks4'||$order->account_id=='SaleFreaks5'||  $order->account_id=='Vaughn')
-                            {
-                                $trackingId = $order->trackingNumber; 
-                                
-                                $carrierId = carriers::where('id',$order->carrierName)->get()->first(); 
-
-                                if(empty($trackingId)|| empty($carrierId))
-                                    continue; 
-                                $carrier = $carrierId->name; 
-                            }
-                            else
-                            {                            
-                            $baseUrl = "https://www.amazon.com/progress-tracker/package/ref=ppx_yo_dt_b_track_package?_encoding=UTF8&itemId=klpjsskrrrpoqn&orderId=";
-                             
-                            $order_details = order_details::where('order_id',$order->id)->get();
-                            
-                          
-                            if($order->account_id=="Cindy" || $order->account_id=='Jonathan'|| $order->account_id=='Jonathan2' ||$order->account_id=='Yaballe'||$order->account_id=='SaleFreaks1'||$order->account_id=='SaleFreaks2'||$order->account_id=='SaleFreaks3'||$order->account_id=='SaleFreaks4'||$order->account_id=='SaleFreaks5'||  $order->account_id=='Vaughn')
-                            {
-                                
-                                
-                                $response = $client->request('GET', $order->trackingLink,
-                                [   
-                    
-                                ]);    
-                                
-                                
-                                $statusCode = $response->getStatusCode();
-                                
-                                $html = $response->getBody()->getContents();   
-                            }
-                            
-                            else                                
-                            {
-                                
-                                
-                                    $response = $client->request('GET', $baseUrl.$order->poNumber,
-                                    [   
-                        
-                                    ]);                                                                          
-                                                                    
-                                    $order_details = order_details::where('order_id',$order->id)->get();
-
-                                    $statusCode = $response->getStatusCode();
-                                    
-                                    $html = $response->getBody()->getContents();   
-                            }
-                                
-                           
-                            
-                            $html = str_replace('&','&amp;',$html);
-                            
-                            $doc = new \DOMDocument();
-                            
-                            $internalErrors = libxml_use_internal_errors(true);
-                           
-                            $doc->loadHTML($html);
-                             
-                            try{
-                                $elem = $doc->getElementById('primaryStatus');
-                                $stat =  $elem->nodeValue;                             
-                                if(trim($stat)=='Delayed, not yet shipped' && ($order->account_id=='Cindy'|| $order->account_id=='Jonathan' || $order->account_id=='Jonathan2'||$order->account_id=='Yaballe'|| $order->account_id=='Vaughn'))
-                                {
-                                    $insert = cancelled_orders::updateOrCreate(
-                                        ['order_id'=>$order->id,],    
-                                        ['status'=>'delayed']
-                                    );
-                                    
-                                }
-                                                                    
-                                if(trim($stat)=='Order cancelled' && ($order->account_id=='Cindy'|| $order->account_id=='Jonathan'|| $order->account_id=='Jonathan2' ||$order->account_id=='Yaballe' || $order->account_id=='Vaughn'))
-                                {
-                                    $insert = cancelled_orders::updateOrCreate(
-                                        ['order_id'=>$order->id,],    
-                                        ['status'=>'cancelled']
-                                    );
-                                   
-                                }
-                            }
-                            catch(\Exception $ex)
-                            {
-                               
-                            }
-                            
-                            $elements = $doc->getElementById($field);
-                            
-                            
-                            if(empty($elements))
-                                continue;
-                                
-                             
-                            libxml_use_internal_errors($internalErrors);
-                            
-                            $doc->loadHTML($this->DOMinnerHTML($elements));
-                            
-                            
-                            $finder = new \DomXPath($doc);
-                            
-                            $nodes = $finder->query("//*[contains(@class, '$trackField')]");
-                            
-                            foreach($nodes as $node)
-                            {
-                                $trackingId = trim(str_replace('Tracking ID:','',$node->nodeValue));            
-                            }
-            
-                            $nodes = $finder->query("//*[contains(@class, '$carrierField')]");
-                            
-                            foreach($nodes as $node)
-                            {
-                                $carrier = trim(str_replace('Delivery by','',str_replace('Shipped with','',$node->nodeValue)));            
-                            }        
-                            
-                            if(empty($carrier))
-                            {
-                                
-                                $nodes = $finder->query("//*[contains(@class, '$carrierField2')]");
-                                
-                                foreach($nodes as $node)
-                                {
-                                    $carrier = trim(str_replace('Delivery by','',str_replace('Shipped with','',$node->nodeValue)));            
-                                }        
-                            }
-                           
-                         
                         }
                         
-                            if(empty(trim($trackingId)) && !empty(trim($carrier)) )
-                                continue;
-                            
-                            $carrierId = carriers::where('name',$carrier)->get()->first(); 
-                            
-                            if(empty($carrierId))
-                            {
-                                $carrierId = carriers::where('alias','like','%'.$carrier.'%')->get()->first(); 
-                            }
-            
-                            $amzCarrier = carriers::where('name','Amazon')->get()->first(); 
-                            $dmxCarrier  = carriers::where('name','Dynamex')->get()->first(); 
-
-                            $bceCarrier = carriers::where('name','Bluecare Express')->get()->first(); 
-            
-                            if(($carrierId->id == $amzCarrier->id && $order->marketplace == 'Walmart' && $this->startsWith($trackingId,'TBA'))||$carrierId->id == $dmxCarrier->id ||($carrierId->id == $bceCarrier->id || $this->startsWith($trackingId,'BCE')))
-                            {       
-                               
-                               $resp='';
-                               if($order->account_id=="Cindy" || $order->account_id=='Jonathan'|| $order->account_id=='Jonathan2' ||$order->account_id=='Yaballe'||$order->account_id=='SaleFreaks1'||$order->account_id=='SaleFreaks2'||$order->account_id=='SaleFreaks3'||$order->account_id=='SaleFreaks4'||$order->account_id=='SaleFreaks5'||  $order->account_id=='Vaughn')
-                               {    
-                                    if(empty($order->of_bce_created_at))
-                                        orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at' =>Carbon::now(),'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);
-                                    else
-                                        orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId,'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);
-                                   
-                                    $this->sendOrderToSheet($order->id);
-                                    
-                               }
-                               else
-                               {
-
-                                orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId, 'of_bce_created_at'=>Carbon::now(),'isBCE'=>true]);   
-                                
-                                 
-                                $this->sendOrderToSheet($order->id);
-                                $shippedCounter++;              
-                                $found = true;                                
-
-                                
-                                }
-                                
-                            }
-                            else
-                            {    
-
-                                $this->shipOrder($order->id, $trackingId, $carrierId->name, 'new'); 
-                                try{
-                                if($order->account_id=='Cindy')
-                                {
-                                    $this->updateSheetTracking($trackingId, $order->sellOrderId, $carrierId->name);
-                                }
-                                
-                                $order = orders::where('id',$order->id)->update(['carrierName'=>$carrierId->id, 'trackingNumber'=>$trackingId, 'status'=>'shipped']);     
-                                
-                                
-                                $shippedCounter++;  
-                                $found = true;                 
-                                }
-                                catch(\Exception $ex)
-                                {
-                                    
-                                }
-            
-                                
-                            }
-                            
-                        }
-                        catch(\Exception $ex)
-                        {
-                            echo $ex;die(); 
-                        }  
                     }
+                    catch(\Exception $ex)
+                    {
+                        
+                    }  
+                
                 }
             }
         
@@ -2941,7 +2780,7 @@ class orderController extends Controller
         
         $date = date_format(date_create($endDate), 'Y-m-d');
         
-        $date = date('Y-m-d', strtotime($date . "-5 days"));        
+        $date = date('Y-m-d', strtotime($date . "-5 days"));
 
         $setting = settings::where('name','cindy')->get()->first(); 
         $vaughnSetting = settings::where('name','vaughn')->get()->first(); 
@@ -2966,6 +2805,7 @@ class orderController extends Controller
             $data['req.dateOrderedFrom'] = $date;            
             $data['req.page'] = $page;
             $data['req.orderStatus'] = "Unshipped";
+            
            
             $response = $client->request('GET', 'https://rest.selleractive.com:443/api/Order',
             [

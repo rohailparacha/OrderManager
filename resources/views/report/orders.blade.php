@@ -113,7 +113,7 @@
 
                     <div class="card-footer py-4">
                         <nav class="d-flex justify-content-end" aria-label="...">
-                            {{$order_details->links()}}
+                            {{$order_details->appends(request()->except('page'))->links()}}
                         </nav>
                     </div>
                 </div>

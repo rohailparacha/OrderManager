@@ -53,7 +53,7 @@ class SaleFreaksImport implements ToCollection
             
             if($row[$status]=='Canceled' || $row[$status]=='Error')
             {                
-                $update = orders::where('sellOrderId',explode('.',$row[$sellOrderId])[0])->whereIn('flag',['0','16','17','8','9','10','22','23','24','25','26'])->update(['flag'=>'27']);        
+                $update = orders::where('sellOrderId',explode('.',$row[$sellOrderId])[0])->whereIn('flag',['0','22','23','24','25','26'])->update(['flag'=>'27']);        
             }
             
                 if(empty(trim($row[$poNumber])))
@@ -70,6 +70,7 @@ class SaleFreaksImport implements ToCollection
                 $update = orders::where('sellOrderId',explode('.',$row[$sellOrderId])[0])                
                 ->where('status','!=','shipped')
                 ->where('status','!=','cancelled')
+                ->whereIn('flag',['0','22','23','24','25','26'])
                 ->update([
                 'poTotalAmount'=>$row[$poAmount],
                 'poNumber'=>$row[$poNumber],        
@@ -94,6 +95,7 @@ class SaleFreaksImport implements ToCollection
                 $update = orders::where('sellOrderId',explode('.',$row[$sellOrderId])[0])                
                 ->where('status','!=','shipped')
                 ->where('status','!=','cancelled')
+                ->whereIn('flag',['0','22','23','24','25','26'])
                 ->update([
                 'poTotalAmount'=>$row[$poAmount],
                 'poNumber'=>$row[$poNumber],        

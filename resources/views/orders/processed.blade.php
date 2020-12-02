@@ -69,7 +69,7 @@ table {
                                 </div>                            
                             </form>
                             @endif
-
+                            <!-- 
                              @if(auth()->user()->role==1 || auth()->user()->role==2)
                             <form method="post" style="float:right;" class="form-inline" action="fetchTrackings" autocomplete="off">
                             @csrf
@@ -93,7 +93,7 @@ table {
                                     <button type="submit" class="btn btn-success mt-4">{{ __('Fetch Trackings') }}</button>
                                 </div>                            
                             </form>
-                            @endif  
+                            @endif   -->
                             </div>
                                                     
                     </div>

@@ -258,7 +258,7 @@
                             </div>
                             <div class="row" style="margin-top:15px;">
                                 <div class="col">
-                                    <div class="float-right">{{ $products->appends(request()->except('page'))->links() }}</div>
+                                    <div class="float-right">{{ $products->links() }}</div>
                                 </div>
                             </div>
                         </div>

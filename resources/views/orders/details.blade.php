@@ -1039,7 +1039,10 @@ td {
                                         <td width="9%" class="specifictd"><img src="{{ $detail->image }}" width="75px" height="75px"></td>
                                         <td width="9%" class="specifictd"><img src="{{ $detail->wmimage }}" width="75px" height="75px"></td>
                                         <td width="26%">{{ $detail->title }}</td>
-                                        <td width="13%" class="specifictd">{{ $detail->SKU }}</td>
+                                        <td width="13%" class="specifictd">                                        
+                                            <a href="http://ordermanager.supplydistributor.com/productReport/orders?asin={{ $detail->SKU }}&status=sold" target="_blank">{{ $detail->SKU }}</a>
+                                        </td>
+
                                         <td width="13%" class="specifictd">{{ $detail->upc }}</td>
                                         <td width="13%" class="specifictd">{{ $detail->wmid }}</td>
                                         @if($detail->quantity>1)
